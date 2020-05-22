@@ -1,0 +1,28 @@
+-- Deploy opensrp_common_transaction_tables:recurring_service to pg
+-- requires: utils:appschema
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS recurring_services (
+    id VARCHAR(36) UNIQUE NOT NULL,  -- the event id
+    base_entity_id VARCHAR NOT NULL,
+    entity_type VARCHAR NOT NULL,
+    event_date VARCHAR NOT NULL,
+    event_type VARCHAR NOT NULL,
+    team VARCHAR NOT NULL,
+    location_id VARCHAR NOT NULL,
+    provider_id VARCHAR NOT NULL,
+    service_name VARCHAR NOT NULL,
+    service_date DATE NOT NULL,
+    service_dose VARCHAR NOT NULL,
+    truncated_event_date VARCHAR NOT NULL,
+    server_version BIGINT NOT NULL DEFAULT 0,
+    date_created VARCHAR NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE INDEX IF NOT EXISTS recurring_services_base_entity_id_idx ON recurring_services (base_entity_id);
+
+COMMIT;

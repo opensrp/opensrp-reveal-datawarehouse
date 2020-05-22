@@ -1,0 +1,90 @@
+-- Verify reveal_transaction_tables:goal_target on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    created_at,
+    goal_id,
+    plan_id,
+    measure,
+    due,
+    detail_quantity_value,
+    detail_quantity_comparator,
+    detail_quantity_unit
+FROM goal_target
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'goal_target_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check fk constraints
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_goal_target_plan'
+AND contype = 'f'
+AND 4 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- lets create the util_exception_query function
+CREATE OR REPLACE FUNCTION util_exception_query(text)
+  RETURNS SETOF text AS
+$func$
+DECLARE
+    text_msg text;
+    text_detail text;
+    text_hint text;
+BEGIN
+    EXECUTE $1;
+EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS text_msg    = MESSAGE_TEXT,
+                            text_detail = PG_EXCEPTION_DETAIL,
+                            text_hint   = PG_EXCEPTION_HINT;
+    RETURN NEXT text_msg;
+END
+$func$ LANGUAGE plpgsql;
+--- end
+
+-- you should not be able to insert a goal without existing plan
+SELECT 1/COUNT(*)
+FROM util_exception_query(
+$$
+INSERT INTO goal_target
+VALUES (
+    uuid_generate_v1(),
+    NOW(),
+    'the goal id',
+    -- this plan does not exists yet
+    '123e4567-mosh-12d3-a456-426655440000',
+    'measure',
+    '1970-01-01',
+    18,
+    '>=',
+    'days'
+)
+$$) AS output
+WHERE output ILIKE '%violates foreign key constraint%';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'goal_target'
+AND indexname = 'goal_target_goal_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'goal_target'
+AND indexname = 'goal_target_plan_id_idx';
+
+ROLLBACK;

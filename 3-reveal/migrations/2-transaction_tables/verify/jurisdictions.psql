@@ -1,0 +1,95 @@
+-- Verify reveal_migrations:jurisdictions on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    created_at,
+    uid,
+    parent_id,
+    code,
+    type,
+    name,
+    status,
+    geometry,
+    geographic_level,
+    effective_start_date,
+    effective_end_date,
+    version,
+    server_version
+FROM jurisdictions
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'jurisdictions_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check foreign keys
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_jurisdictions_raw_jurisdictions'
+AND contype = 'f'
+AND 1 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- check unique uid
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'jurisdictions_uid_key'
+AND contype = 'u'
+AND 3 = ALL(conkey);
+
+-- check cst_jurisdictions_unique_code
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'cst_jurisdictions_unique_code'
+AND contype = 'u'
+AND 5 = ALL(conkey);
+
+-- check indices
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions'
+AND indexname = 'jurisdiction_uid_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions'
+AND indexname = 'jurisdiction_code_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions'
+AND indexname = 'jurisdiction_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions'
+AND indexname = 'jurisdiction_server_version_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions'
+AND indexdef LIKE '%gist (geometry)%'
+AND indexname = 'jurisdictions_geom_gix';
+
+ROLLBACK;

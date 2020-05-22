@@ -1,0 +1,19 @@
+-- Verify reveal_monitoring_tables:data_integrity_validation on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT name, type, object_ids, last_modified
+FROM data_integrity_validation
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'data_integrity_validation_pkey'
+AND contype = 'p'
+AND conkey @> '{1}';
+
+ROLLBACK;

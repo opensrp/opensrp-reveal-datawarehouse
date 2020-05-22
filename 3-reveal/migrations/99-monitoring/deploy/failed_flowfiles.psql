@@ -1,0 +1,21 @@
+-- Deploy reveal_monitoring_tables:failed_flowfiles to pg
+-- requires: object_type
+--
+-- Failed_flowfiles table
+-- This table holds info on all flowfiles that
+-- failed during the transfer from the raw_tables
+-- to the data warehouse tables
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS failed_flowfiles (
+    id VARCHAR (36) NOT NULL,
+    type REVEAL_OBJECT_TYPE NOT NULL,
+    last_updated TIMESTAMP DEFAULT NOW (),
+    PRIMARY KEY (id, type)
+);
+
+
+COMMIT;

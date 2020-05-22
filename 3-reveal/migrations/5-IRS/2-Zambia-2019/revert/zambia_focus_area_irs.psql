@@ -1,0 +1,9 @@
+-- Revert reveal_irs_zambia_2019:zambia_focus_area_irs from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW zambia_focus_area_irs CASCADE;
+
+COMMIT;

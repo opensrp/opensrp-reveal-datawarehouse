@@ -1,0 +1,9 @@
+%syntax-version=1.0.0
+%project=reveal_monitoring_tables
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/reveal/99-monitoring
+
+object_type [utils:appschema] 2020-03-11T12:26:41Z mosh <kjayanoris@ona.io> # Add object_type enum.
+failed_flowfiles [object_type] 2020-03-11T12:34:46Z mosh <kjayanoris@ona.io> # Add failed_flowfiles table.
+data_integrity_validation [object_type] 2020-05-14T06:52:07Z mosh <kjayanoris@ona.io> # Add data_integrity_validation.
+data_integrity_validation_functions [data_integrity_validation] 2020-05-14T07:02:37Z mosh <kjayanoris@ona.io> # Add data_integrity_validation_functions.
+check_data_integrity [data_integrity_validation] 2020-05-14T08:19:40Z mosh <kjayanoris@ona.io> # Add check_data_integrity function.

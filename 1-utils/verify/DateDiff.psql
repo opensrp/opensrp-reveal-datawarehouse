@@ -1,0 +1,13 @@
+-- Verify reveal_migrations:DateDiff on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT has_function_privilege(:'schema' || '.DATEDIFF(VARCHAR(30), TIMESTAMP, TIMESTAMP)', 'execute');
+
+SELECT 1/count(*) FROM (
+    SELECT DATEDIFF('second', '2011-12-30 08:54:55'::timestamp, '2011-12-30 08:56:10'::timestamp) AS diff
+) foo WHERE foo.diff = 75;
+
+ROLLBACK;

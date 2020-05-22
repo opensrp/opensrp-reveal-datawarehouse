@@ -1,0 +1,155 @@
+-- Deploy reveal_irs_namibia_2019:namibia_irs_jurisdictions to pg
+-- requires: utils:count_elements
+-- requires: utils:array_concat_agg
+-- requires: reveal_database_views:jurisdictions_materialized_view
+-- requires: namibia_focus_area_irs
+-- requires: namibia_village_attributes
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS namibia_irs_jurisdictions
+AS
+SELECT * FROM
+(
+    (
+        SELECT DISTINCT ON (jurisdictions_materialized_view.jurisdiction_id, holding_query.plan_id)
+            uuid_generate_v5(
+                '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+                concat(jurisdictions_materialized_view.jurisdiction_id, holding_query.plan_id)) AS id,
+            holding_query.plan_id AS plan_id,
+            jurisdictions_materialized_view.jurisdiction_id AS jurisdiction_id,
+            jurisdictions_materialized_view.jurisdiction_parent_id AS jurisdiction_parent_id,
+            jurisdictions_materialized_view.jurisdiction_name AS jurisdiction_name,
+            jurisdictions_materialized_view.jurisdiction_geometry AS jurisdiction_geometry,
+            jurisdictions_materialized_view.jurisdiction_depth AS jurisdiction_depth,
+            jurisdictions_materialized_view.jurisdiction_path AS jurisdiction_path,
+            jurisdictions_materialized_view.jurisdiction_name_path AS jurisdiction_name_path,
+            namibia_focus_area_irs_query.structuresFound AS structuresFound,
+            namibia_focus_area_irs_query.nUnsprayable AS nUnsprayable,
+            namibia_focus_area_irs_query.nUnsprayedTotalFirst AS nUnsprayedTotalFirst,
+            namibia_focus_area_irs_query.nUnsprayedTotalMop AS nUnsprayedTotalMop,
+            namibia_focus_area_irs_query.structuresSprayed AS structuresSprayed,
+            CASE
+                WHEN namibia_focus_area_irs_query.target_2019 = 0 THEN 0
+                ELSE CAST(namibia_focus_area_irs_query.structuresSprayed AS DECIMAL(10,4))/CAST(namibia_focus_area_irs_query.target_2019 AS DECIMAL(10,4))
+            END AS targetCoverage,
+            -- TODO sprayEffectiveness
+            CASE
+                WHEN namibia_focus_area_irs_query.structuresFound = 0 THEN 0
+                ELSE CAST(namibia_focus_area_irs_query.structuresSprayed AS DECIMAL(10,4))/CAST(namibia_focus_area_irs_query.structuresFound AS DECIMAL(10,4))
+            END AS sprayEffectiveness,
+            CASE
+                WHEN namibia_focus_area_irs_query.structuresFound = 0 THEN 0
+                ELSE CAST(namibia_focus_area_irs_query.structuresSprayed AS DECIMAL(10,4))/CAST(namibia_focus_area_irs_query.structuresFound AS DECIMAL(10,4))
+            END AS foundCoverage,
+            namibia_focus_area_irs_query.householdsNotAccessible AS householdsNotAccessible,
+            namibia_focus_area_irs_query.refusalsFirst_count AS refusalsFirst_count,
+            CASE
+                WHEN namibia_focus_area_irs_query.structuresFound = 0 THEN 0
+                ELSE CAST(namibia_focus_area_irs_query.refusalsFirst_count AS DECIMAL(10,4))/CAST(namibia_focus_area_irs_query.structuresFound AS DECIMAL(10,4))
+            END AS refusalsFirst,
+            namibia_focus_area_irs_query.refusalsMopup_count AS refusalsMopup_count,
+            CASE
+                WHEN namibia_focus_area_irs_query.structuresFound = 0 THEN 0
+                ELSE CAST(namibia_focus_area_irs_query.refusalsMopup_count AS DECIMAL(10,4))/CAST(namibia_focus_area_irs_query.structuresFound AS DECIMAL(10,4))
+            END AS refusalsMopup,
+            namibia_focus_area_irs_query.lockedFirst_count AS lockedFirst_count,
+            CASE
+                WHEN namibia_focus_area_irs_query.structuresFound = 0 THEN 0
+                ELSE CAST(namibia_focus_area_irs_query.lockedFirst_count AS DECIMAL(10,4))/CAST(namibia_focus_area_irs_query.structuresFound AS DECIMAL(10,4))
+            END AS lockedFirst,
+            namibia_focus_area_irs_query.lockedMopup_count AS lockedMopup_count,
+            CASE
+                WHEN namibia_focus_area_irs_query.structuresFound = 0 THEN 0
+                ELSE CAST(namibia_focus_area_irs_query.lockedMopup_count AS DECIMAL(10,4))/CAST(namibia_focus_area_irs_query.structuresFound AS DECIMAL(10,4))
+            END AS lockedMopup,
+            CAST(count_elements(namibia_focus_area_irs_query.unsprayedReasonFirst_values) AS JSONB) AS unsprayedReasonFirst_counts,
+            CAST(count_elements(namibia_focus_area_irs_query.refusalReasonFirst_values) AS JSONB) AS refusalReasonFirst_counts,
+            CAST(count_elements(namibia_focus_area_irs_query.unsprayedReasonMop_values) AS JSONB) AS unsprayedReasonMop_counts,
+            CAST(count_elements(namibia_focus_area_irs_query.refusalReasonMop_values) AS JSONB) AS refusalReasonMop_counts,
+            namibia_focus_area_irs_query.target_2019 AS target_2019
+        FROM jurisdictions_materialized_view
+        LEFT JOIN namibia_focus_area_irs as holding_query
+            ON holding_query.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id]
+        LEFT JOIN LATERAL (
+            SELECT
+                COALESCE(SUM(structuresFound), 0) AS structuresFound,
+                COALESCE(SUM(nUnsprayable), 0) AS nUnsprayable,
+                COALESCE(SUM(nUnsprayedTotalFirst), 0) AS nUnsprayedTotalFirst,
+                COALESCE(SUM(nUnsprayedTotalMop), 0) AS nUnsprayedTotalMop,
+                COALESCE(SUM(structuresSprayed), 0) AS structuresSprayed,
+                COALESCE(SUM(householdsNotAccessible), 0) AS householdsNotAccessible,
+                COALESCE(SUM(refusalsFirst_count), 0) AS refusalsFirst_count,
+                COALESCE(SUM(lockedFirst_count), 0) AS lockedFirst_count,
+                COALESCE(SUM(refusalsMopup_count), 0) AS refusalsMopup_count,
+                COALESCE(SUM(lockedMopup_count), 0) AS lockedMopup_count,
+                array_concat_agg(unsprayedReasonFirst_values) FILTER (WHERE unsprayedReasonFirst_values <> '{}')  AS unsprayedReasonFirst_values,
+                array_concat_agg(refusalReasonFirst_values) FILTER (WHERE refusalReasonFirst_values <> '{}')  AS refusalReasonFirst_values,
+                array_concat_agg(unsprayedReasonMop_values) FILTER (WHERE unsprayedReasonMop_values <> '{}')  AS unsprayedReasonMop_values,
+                array_concat_agg(refusalReasonMop_values) FILTER (WHERE refusalReasonMop_values <> '{}')  AS refusalReasonMop_values,
+                COALESCE(SUM(target_2019), 0) AS target_2019
+            FROM namibia_focus_area_irs
+            WHERE namibia_focus_area_irs.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id]
+            AND holding_query.plan_id = namibia_focus_area_irs.plan_id
+        ) as namibia_focus_area_irs_query ON true
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM namibia_focus_area_irs
+            WHERE namibia_focus_area_irs.jurisdiction_id = jurisdictions_materialized_view.jurisdiction_id
+        )
+        AND holding_query.plan_id IS NOT NULL
+        -- dont get any spray areas
+        AND jurisdictions_materialized_view.jurisdiction_depth != 3
+    )
+    UNION
+    (
+        SELECT
+            id,
+            plan_id,
+            jurisdiction_id,
+            jurisdiction_parent_id,
+            jurisdiction_name,
+            jurisdiction_geometry,
+            jurisdiction_depth,
+            jurisdiction_path,
+            jurisdiction_name_path,
+            structuresFound,
+            nUnsprayable,
+            nUnsprayedTotalFirst,
+            nUnsprayedTotalMop,
+            structuresSprayed,
+            targetCoverage,
+            sprayEffectiveness,
+            foundCoverage,
+            householdsNotAccessible,
+            refusalsFirst_count,
+            refusalsFirst,
+            refusalsMopup_count,
+            refusalsMopup,
+            lockedFirst_count,
+            lockedFirst,
+            lockedMopup_count,
+            lockedMopup,
+            CAST(unsprayedReasonFirst_counts AS JSONB),
+            CAST(refusalReasonFirst_counts AS JSONB),
+            CAST(unsprayedReasonMop_counts AS JSONB),
+            CAST(refusalReasonMop_counts AS JSONB),
+            target_2019
+        FROM namibia_focus_area_irs
+    )
+) AS main_query
+ORDER BY main_query.jurisdiction_name;
+
+CREATE INDEX IF NOT EXISTS namibia_irs_jurisdictions_path_idx_gin on namibia_irs_jurisdictions using GIN (jurisdiction_path);
+
+CREATE INDEX IF NOT EXISTS namibia_irs_jurisdictions_plan_idx ON namibia_irs_jurisdictions (plan_id);
+
+CREATE INDEX IF NOT EXISTS namibia_irs_jurisdictions_jurisdiction_idx ON namibia_irs_jurisdictions (jurisdiction_id);
+
+CREATE INDEX IF NOT EXISTS namibia_irs_jurisdictions_jurisdiction_parent_idx ON namibia_irs_jurisdictions (jurisdiction_parent_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_jurisdictions_irs_idx ON namibia_irs_jurisdictions (id);
+
+COMMIT;

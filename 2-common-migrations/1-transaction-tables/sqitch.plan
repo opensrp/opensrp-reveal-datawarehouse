@@ -1,0 +1,6 @@
+%syntax-version=1.0.0
+%project=opensrp_common_transaction_tables
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/2-common-migrations/1-transaction-tables
+
+vaccinations [utils:appschema] 2020-03-26T11:44:31Z mosh <kjayanoris@ona.io> # Add vaccinations table.
+recurring_service [utils:appschema] 2020-03-26T11:45:03Z mosh <kjayanoris@ona.io> # Add recurring_service table.

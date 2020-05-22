@@ -1,0 +1,5 @@
+%syntax-version=1.0.0
+%project=opensrp_common_raw_tables
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/2-common-migrations/2-raw-tables
+
+raw_events [utils:appschema] 2020-03-27T12:35:39Z mosh <kjayanoris@ona.io> # Add raw_events table.

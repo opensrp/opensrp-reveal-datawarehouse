@@ -1,0 +1,40 @@
+-- Verify reveal_migrations:plans on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    identifier,
+    created_at,
+    version,
+    name,
+    title,
+    status,
+    fi_status,
+    fi_reason,
+    intervention_type,
+    date,
+    effective_period_start,
+    effective_period_end
+FROM plans
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'plans_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check foreign keys
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_plans_raw_plans'
+AND contype = 'f'
+AND 1 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+ROLLBACK;

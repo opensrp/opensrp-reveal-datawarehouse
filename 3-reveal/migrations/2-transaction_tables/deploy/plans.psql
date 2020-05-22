@@ -1,0 +1,29 @@
+-- Deploy reveal_migrations:plans to pg
+-- requires: appschema
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS plans (
+    identifier VARCHAR(36) UNIQUE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    version VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    title VARCHAR NOT NULL,
+    status VARCHAR NOT NULL,
+    fi_status VARCHAR NULL,
+    fi_reason VARCHAR NULL,
+    intervention_type VARCHAR NULL,
+    date DATE NULL,
+    effective_period_start DATE NULL,
+    effective_period_end DATE NULL,
+    PRIMARY KEY (identifier),
+    CONSTRAINT fk_plans_raw_plans
+        FOREIGN KEY (identifier)
+        REFERENCES raw_plans (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+COMMIT;

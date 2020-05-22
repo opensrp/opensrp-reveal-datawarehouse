@@ -1,0 +1,14 @@
+-- Verify opensrp_common_raw_tables:raw_events on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    server_version,
+    data
+FROM raw_events
+WHERE FALSE;
+
+ROLLBACK;

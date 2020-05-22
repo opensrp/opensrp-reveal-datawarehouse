@@ -1,0 +1,21 @@
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    totStruct,
+    rooms_eligible,
+    rooms_sprayed,
+    sprayed_rooms_eligible,
+    sprayed_rooms_sprayed,
+    foundStruct,
+    sprayedStruct,
+    sprayCov,
+    sprayTarg,
+    spraySuccess,
+    roomCov
+FROM zambia_focus_area_irs;

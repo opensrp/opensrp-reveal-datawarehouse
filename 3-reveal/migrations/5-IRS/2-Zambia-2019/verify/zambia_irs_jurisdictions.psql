@@ -1,0 +1,77 @@
+-- Verify reveal_irs_zambia_2019:zambia_irs_jurisdictions on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_jurisdictions';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_geometry,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    is_virtual_jurisdiction,
+    totStruct,
+    rooms_eligible,
+    rooms_sprayed,
+    sprayed_rooms_eligible,
+    sprayed_rooms_sprayed,
+    foundStruct,
+    notSprayed,
+    notEligible,
+    sprayedStruct,
+    totAreas,
+    targAreas,
+    targStruct,
+    perctVisAreasEffect,
+    sprayCovTarg,
+    roomCov
+FROM zambia_irs_jurisdictions
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_jurisdictions_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'zambia_irs_jurisdictions_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexname = 'zambia_irs_jurisdictions_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexname = 'zambia_irs_jurisdictions_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexname = 'zambia_irs_jurisdictions_jurisdiction_parent_idx';
+
+ROLLBACK;

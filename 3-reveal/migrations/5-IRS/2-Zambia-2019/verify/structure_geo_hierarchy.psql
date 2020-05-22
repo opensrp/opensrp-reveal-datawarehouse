@@ -1,0 +1,65 @@
+-- Verify reveal_irs_namibia_2019:structure_geo_hierarchy on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    jurisdiction_id,
+    jurisdiction_depth,
+    geo_jurisdiction_id,
+    geo_jurisdiction_depth,
+    geo_strict_within
+FROM structure_geo_hierarchy
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'structure_geo_hierarchy_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check fk constraints
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_structure_geo_hierarchy_structures'
+AND contype = 'f'
+AND 1 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_structure_geo_hierarchy_jurisdictions'
+AND contype = 'f'
+AND 2 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_structure_geo_hierarchy_geo_jurisdictions'
+AND contype = 'f'
+AND 4 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- check indices
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structure_geo_hierarchy'
+AND indexname = 'structure_geo_hierarchy_jurisdiction_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structure_geo_hierarchy'
+AND indexname = 'structure_geo_hierarchy_geo_jurisdiction_id_idx';
+
+ROLLBACK;

@@ -1,0 +1,55 @@
+-- Verify reveal_fi_thailand_2019:task_structures_materialized_view on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'task_structures_materialized_view';
+
+SELECT
+    task_identifier,
+    plan_id,
+    jurisdiction_id,
+    task_status,
+    task_business_status,
+    task_focus,
+    task_task_for,
+    task_execution_start_date,
+    task_execution_end_date,
+    goal_id,
+    action_code,
+    jurisdiction_name,
+    jurisdiction_parent_id,
+    structure_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    structure_geometry
+FROM task_structures_materialized_view
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'task_structures_materialized_view'
+AND indexname = 'task_structures_materialized_view_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'task_structures_materialized_view'
+AND indexname = 'task_structures_materialized_view_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'task_structures_materialized_view'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'task_structures_materialized_view_idx';
+
+ROLLBACK;

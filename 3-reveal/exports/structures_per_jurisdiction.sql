@@ -1,0 +1,1 @@
+COPY (SELECT cid as num_of_structures, gid as uuid, L.json->'properties'->>'name' as name FROM (SELECT COUNT(tid) as cid, gid FROM (SELECT t.json->>'id' as tid, t.json->'properties'->>'parentId' as gid  FROM core.structure AS t) AS A GROUP BY gid ORDER BY gid) AS B, core.location AS L WHERE L.json->>'id' = B.gid ORDER BY name) TO STDOUT WITH CSV HEADER;

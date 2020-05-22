@@ -1,0 +1,28 @@
+-- Deploy reveal_migrations:count_elements to pg
+-- requires: appschema
+
+BEGIN;
+
+-- lets make it possible to create this function in any schema provided by the
+-- :"schema" variable - and default to public.
+SET search_path TO :"schema",public;
+
+CREATE OR REPLACE FUNCTION count_elements(text[]) RETURNS json AS $BODY$
+-- this function takes an array and returns a JSON object containing each of
+-- the array elements and its corresponding count
+-- e.g. count_elements('{a, b, b}') => {'b': 2, 'a': 1}
+    SELECT
+        json_object_agg(item, item_count)
+    FROM (
+        SELECT
+            item,
+            COUNT(*) item_count FROM (
+                SELECT unnest($1::text[]) item
+            ) item
+        GROUP BY item
+        ORDER BY item_count DESC
+    ) foo;
+$BODY$
+LANGUAGE SQL;
+
+COMMIT;

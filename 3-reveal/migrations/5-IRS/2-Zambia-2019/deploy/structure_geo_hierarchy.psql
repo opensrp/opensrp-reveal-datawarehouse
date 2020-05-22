@@ -1,0 +1,37 @@
+-- Deploy reveal_irs_namibia_2019:structure_geo_hierarchy to pg
+-- requires: reveal_transaction_tables:structures
+-- requires: reveal_transaction_tables:jurisdictions
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS structure_geo_hierarchy (
+    id VARCHAR(36) UNIQUE NOT NULL,
+    jurisdiction_id VARCHAR(36) NOT NULL,
+    jurisdiction_depth INT NOT NULL,
+    geo_jurisdiction_id VARCHAR(36) NOT NULL,
+    geo_jurisdiction_depth INT NOT NULL,
+    geo_strict_within BOOLEAN NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_structure_geo_hierarchy_structures
+        FOREIGN KEY (id)
+        REFERENCES structures (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_structure_geo_hierarchy_jurisdictions
+        FOREIGN KEY (jurisdiction_id)
+        REFERENCES jurisdictions (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_structure_geo_hierarchy_geo_jurisdictions
+        FOREIGN KEY (geo_jurisdiction_id)
+        REFERENCES jurisdictions (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS structure_geo_hierarchy_jurisdiction_id_idx ON structure_geo_hierarchy (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS structure_geo_hierarchy_geo_jurisdiction_id_idx ON structure_geo_hierarchy (geo_jurisdiction_id);
+
+COMMIT;

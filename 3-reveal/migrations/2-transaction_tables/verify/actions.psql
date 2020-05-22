@@ -1,0 +1,119 @@
+-- Verify reveal_transaction_tables:actions on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    identifier,
+    created_at,
+    plan_id,
+    prefix,
+    title,
+    description,
+    code,
+    timingPeriod_start,
+    timingPeriod_end,
+    reason,
+    goal_id,
+    subject_codable_concept_text
+FROM actions
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'actions_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check fk constraints
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_actions_plans'
+AND contype = 'f'
+AND 3 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- you should not be able to insert an action without existing plan
+
+-- lets create the util_exception_query function
+CREATE OR REPLACE FUNCTION util_exception_query(text)
+  RETURNS SETOF text AS
+$func$
+DECLARE
+    text_msg text;
+    text_detail text;
+    text_hint text;
+BEGIN
+    EXECUTE $1;
+EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS text_msg    = MESSAGE_TEXT,
+                            text_detail = PG_EXCEPTION_DETAIL,
+                            text_hint   = PG_EXCEPTION_HINT;
+    RETURN NEXT text_msg;
+END
+$func$ LANGUAGE plpgsql;
+--- end
+
+SELECT 1/COUNT(*)
+FROM util_exception_query(
+$$
+INSERT INTO actions
+VALUES (
+    '123e4567-mosh-12d3-a456-426655440000',
+    NOW(),
+    -- this does not exists yet
+    '123e4567-mosh-12d3-a456-426655440000',
+    'prefix',
+    'the title',
+    'the description',
+    'code',
+    NULL,
+    NULL,
+    'reason',
+    'the goal id',
+    '123e4567-mosh-12d3-a456-426655440000'
+)
+$$) AS output
+WHERE output ILIKE '%violates foreign key constraint%';
+
+-- check indices
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'actions'
+AND indexname = 'actions_code_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'actions'
+AND indexname = 'actions_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'actions'
+AND indexname = 'actions_goal_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'actions'
+AND indexname = 'actions_plan_id_goal_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'actions'
+AND indexname = 'actions_plan_id_code_idx';
+
+ROLLBACK;

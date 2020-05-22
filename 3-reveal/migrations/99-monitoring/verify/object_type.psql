@@ -1,0 +1,18 @@
+-- Verify reveal_monitoring_tables:object_type on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*) FROM
+(
+    SELECT      n.nspname as schema, t.typname as type
+    FROM        pg_type t
+    LEFT JOIN   pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+    WHERE       (t.typrelid = 0 OR (SELECT c.relkind = 'c' FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid)) 
+    AND     NOT EXISTS(SELECT 1 FROM pg_catalog.pg_type el WHERE el.oid = t.typelem AND el.typarray = t.oid)
+    AND     n.nspname NOT IN ('pg_catalog', 'information_schema')
+) AS foo
+WHERE type = 'reveal_object_type' AND schema = current_schema();
+
+ROLLBACK;

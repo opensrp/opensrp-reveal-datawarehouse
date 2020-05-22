@@ -1,0 +1,103 @@
+-- Deploy reveal_fi_thailand_2019:targets_materialized_view to pg
+-- requires: reveal_transaction_tables:goal_target
+-- requires: reveal_transaction_tables:actions
+-- requires: reveal_transaction_tables:plan_jurisdiction
+-- requires: reveal_transaction_tables:tasks
+-- requires: utils:refresh_mat_views
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS targets_materialized_view
+AS
+SELECT DISTINCT ON (id)
+    id,
+    plan_id,
+    jurisdiction_id,
+    goal_id,
+    measure,
+    goal_value,
+    goal_comparator,
+    goal_unit,
+    action_code,
+    action_description,
+    action_prefix,
+    action_reason,
+    action_title,
+    task_count,
+    completed_task_count,
+    COALESCE(task_business_status_map, '{}'::json) AS task_business_status_map
+FROM
+(SELECT
+    uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(
+            goal_target.plan_id,
+            goal_target.goal_id,
+            plan_jurisdiction.jurisdiction_id)
+    ) AS id,
+    goal_target.plan_id AS plan_id,
+    subq.task_count AS task_count,
+    subq1.completed_task_count AS completed_task_count,
+    subq2.business_status_map AS task_business_status_map,
+    plan_jurisdiction.jurisdiction_id AS jurisdiction_id,
+    goal_target.goal_id AS goal_id,
+    goal_target.measure AS measure,
+    goal_target.detail_quantity_value AS goal_value,
+    goal_target.detail_quantity_comparator AS goal_comparator,
+    goal_target.detail_quantity_unit AS goal_unit,
+    actions.code AS action_code,
+    actions.description AS action_description,
+    actions.prefix AS action_prefix,
+    actions.reason AS action_reason,
+    actions.title AS action_title
+FROM goal_target
+LEFT JOIN plan_jurisdiction AS plan_jurisdiction
+    ON goal_target.plan_id = plan_jurisdiction.plan_id
+LEFT JOIN actions AS actions
+    ON goal_target.plan_id = actions.plan_id
+    AND goal_target.goal_id = actions.goal_id
+LEFT JOIN LATERAL (
+    SELECT
+        count(1) AS task_count
+    FROM tasks
+    WHERE
+        plan_identifier = plan_jurisdiction.plan_id
+        AND code = actions.code
+        AND group_identifier = plan_jurisdiction.jurisdiction_id
+) AS subq ON true
+LEFT JOIN LATERAL (
+    SELECT
+        count(1) AS completed_task_count
+    FROM tasks
+    WHERE
+        plan_identifier = plan_jurisdiction.plan_id
+        AND code = actions.code
+        AND group_identifier = plan_jurisdiction.jurisdiction_id
+        AND business_status IN ('Complete', 'Sprayed')
+) AS subq1 ON true
+LEFT JOIN LATERAL (
+    SELECT
+        json_object_agg(each.business_status, each.status_count) AS business_status_map
+    FROM (
+        SELECT business_status, count(1) AS status_count
+        FROM tasks
+        WHERE
+            subq.task_count > 0
+            AND plan_identifier = plan_jurisdiction.plan_id
+            AND code = actions.code
+            AND group_identifier = plan_jurisdiction.jurisdiction_id
+        GROUP BY business_status
+    ) AS each
+) AS subq2 ON true
+ORDER BY goal_target.plan_id)
+AS main;
+
+CREATE INDEX IF NOT EXISTS targets_materialized_view_plan_idx ON targets_materialized_view (plan_id);
+CREATE INDEX IF NOT EXISTS targets_materialized_view_jurisdiction_idx ON targets_materialized_view (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS targets_materialized_view_goal_idx ON targets_materialized_view (goal_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS targets_materialized_view_idx ON targets_materialized_view (id);
+
+COMMIT;

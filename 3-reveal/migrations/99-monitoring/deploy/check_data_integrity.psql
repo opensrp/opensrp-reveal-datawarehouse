@@ -1,0 +1,34 @@
+-- Deploy reveal_monitoring_tables:check_data_integrity to pg
+-- requires: data_integrity_validation
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE OR REPLACE FUNCTION check_data_integrity(func_name VARCHAR, object_type REVEAL_OBJECT_TYPE) RETURNS VOID AS $$
+-- this function is used to run data integrity validation functions and then record the result
+-- in the data_integrity_validation table
+-- example usage:
+--      SELECT check_data_integrity('missing_goal_actions', 'actions');
+--      SELECT check_data_integrity('missing_subject_tasks', 'tasks');
+DECLARE result_row RECORD;
+DECLARE result_length INTEGER DEFAULT 0;
+BEGIN
+
+    EXECUTE 'SELECT ' || func_name || '(NULL) AS ids' INTO result_row;
+
+    result_length := COALESCE(array_length(result_row.ids, 1), 0);
+
+    IF result_length > 0 THEN
+        INSERT INTO data_integrity_validation (name, type, object_ids, last_modified)
+        VALUES (func_name, object_type, result_row.ids, NOW())
+        ON CONFLICT (name) DO UPDATE
+        SET type = object_type, object_ids = result_row.ids, last_modified = NOW();
+    ELSE
+        DELETE FROM data_integrity_validation WHERE name = func_name;
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;

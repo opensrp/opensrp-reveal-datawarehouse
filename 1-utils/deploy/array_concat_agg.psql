@@ -1,0 +1,23 @@
+-- Deploy reveal_setup:array_concat_agg to pg
+-- requires: appschema
+
+BEGIN;
+
+-- lets make it possible to create this aggregate in any schema provided by the
+-- :"schema" variable - and default to public.
+SET search_path TO :"schema",public;
+
+DO $$
+BEGIN
+    CREATE AGGREGATE array_concat_agg(anyarray) (
+        -- this is like array_agg but can work over arrays that have
+        -- different dimensions
+        SFUNC = array_cat,
+        STYPE = anyarray
+    );
+EXCEPTION
+    WHEN duplicate_function THEN NULL;
+END
+$$;
+
+COMMIT;

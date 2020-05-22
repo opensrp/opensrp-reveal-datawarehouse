@@ -1,0 +1,14 @@
+%syntax-version=1.0.0
+%project=reveal_transaction_tables
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/reveal/2-transaction_tables
+
+jurisdictions [utils:appschema] 2020-03-12T12:37:07Z mosh <kjayanoris@ona.io> # Add jurisdictions table.
+structures [jurisdictions] 2020-03-12T15:04:22Z mosh <kjayanoris@ona.io> # Add structures table.
+plans [utils:appschema] 2020-03-12T16:10:06Z mosh <kjayanoris@ona.io> # Add plans table.
+tasks [plans jurisdictions] 2020-03-12T16:15:56Z mosh <kjayanoris@ona.io> # Add tasks table.
+clients [structures] 2020-03-13T08:08:37Z mosh <kjayanoris@ona.io> # Add clients table.
+events [tasks] 2020-03-13T11:14:16Z mosh <kjayanoris@ona.io> # Add events table.
+plan_jurisdiction [plans jurisdictions] 2020-03-13T12:09:07Z mosh <kjayanoris@ona.io> # Add plan_jurisdiction table.
+goals [plans] 2020-03-13T12:38:37Z mosh <kjayanoris@ona.io> # Add goals table.
+goal_target [plans] 2020-03-13T12:39:06Z mosh <kjayanoris@ona.io> # Add goal_target table.
+actions [plans] 2020-03-13T12:39:39Z mosh <kjayanoris@ona.io> # Add actions table.

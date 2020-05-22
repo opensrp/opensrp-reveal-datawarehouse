@@ -1,0 +1,11 @@
+-- Verify reveal_migrations:query_utils on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT has_function_privilege(:'schema' || '.util_exception_query(text)', 'execute');
+
+SELECT has_function_privilege(:'schema' || '.util_explain_query(text)', 'execute');
+
+ROLLBACK;

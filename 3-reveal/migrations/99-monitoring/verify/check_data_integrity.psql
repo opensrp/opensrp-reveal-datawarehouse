@@ -1,0 +1,120 @@
+-- Verify reveal_monitoring_tables:check_data_integrity on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT has_function_privilege(:'schema' || '.check_data_integrity(varchar, reveal_object_type)', 'execute');
+
+-- first some fixtures
+INSERT INTO raw_jurisdictions
+VALUES
+('6af44acb-mosh-4981-ab68-f36f175f73d7', 0, '{}'),
+('acdde6e5-mosh-49a9-a141-424a5862a5af', 0, '{}');
+
+INSERT INTO jurisdictions
+VALUES (
+    '6af44acb-mosh-4981-ab68-f36f175f73d7',
+    NOW(),
+    '6af44acb-mosh-4981-ab68-f36f175f73d7',
+    NULL,  -- no parent
+    '6af44acb-mosh-4981-ab68-f36f175f73d7',
+    '6af44acb-mosh-4981-ab68-f36f175f73d7',
+    'KTM_1901',
+    'Active',
+    ST_GeomFromGeoJSON('{"type":"Point","coordinates":[31.7841588,-14.3052436]}'),
+    4,
+    NULL,
+    NULL,
+    0,
+    1569929318864
+);
+
+INSERT INTO jurisdictions
+VALUES (
+    'acdde6e5-mosh-49a9-a141-424a5862a5af',
+    NOW(),
+    'acdde6e5-mosh-49a9-a141-424a5862a5af',
+    'JUPITER',  -- missing parent
+    'acdde6e5-mosh-49a9-a141-424a5862a5af',
+    'acdde6e5-mosh-49a9-a141-424a5862a5af',
+    'KTM_1337',
+    'Active',
+    ST_GeomFromGeoJSON('{"type":"Point","coordinates":[31.7841588,-14.3052436]}'),
+    4,
+    NULL,
+    NULL,
+    0,
+    1569929318866
+);
+
+TRUNCATE data_integrity_validation;
+
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM data_integrity_validation) AS foo
+WHERE count = 0;  -- we have zero records
+
+SELECT check_data_integrity('orphaned_jurisdictions', 'jurisdictions');
+
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM data_integrity_validation) AS foo
+WHERE count = 1;  -- we now have 1 records
+
+-- and the record should match what we expect
+SELECT 1/COUNT(*)
+FROM data_integrity_validation
+WHERE
+name = 'orphaned_jurisdictions'
+AND type = 'jurisdictions'
+AND 'acdde6e5-mosh-49a9-a141-424a5862a5af' = ANY (object_ids);
+
+-- these should run okay
+SELECT check_data_integrity('missing_goal_actions', 'structures');
+SELECT check_data_integrity('missing_subject_tasks', 'tasks');
+
+-- lets test a situation when an existing validation entry needs to be updated
+CREATE OR REPLACE FUNCTION test_data_validation_func(num INT) RETURNS TEXT[] AS
+$$
+DECLARE result TEXT[];
+BEGIN
+    RETURN '{1337, 7331}'::TEXT ARRAY;
+END
+$$
+LANGUAGE plpgsql;
+
+-- lets insert a pre-existing record
+INSERT INTO data_integrity_validation (name, type, object_ids, last_modified)
+VALUES ('test_data_validation_func', 'structures', '{1986}', NOW());
+
+-- test that it can be updated
+SELECT check_data_integrity('test_data_validation_func', 'structures');
+
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM data_integrity_validation WHERE name = 'test_data_validation_func') AS foo
+WHERE count = 1;  -- we have one record
+
+SELECT 1/COUNT(*)
+FROM data_integrity_validation
+WHERE
+name = 'test_data_validation_func'
+AND type = 'structures'
+AND object_ids = '{1337, 7331}'::VARCHAR ARRAY;
+
+-- test that it can be removed
+DROP FUNCTION test_data_validation_func;
+CREATE OR REPLACE FUNCTION test_data_validation_func(num INT) RETURNS TEXT[] AS
+$$
+DECLARE result TEXT[];
+BEGIN
+    RETURN '{}'::TEXT ARRAY;
+END
+$$
+LANGUAGE plpgsql;
+
+SELECT check_data_integrity('test_data_validation_func', 'structures');
+
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM data_integrity_validation WHERE name = 'test_data_validation_func') AS foo
+WHERE count = 0;  -- we have no record
+
+ROLLBACK;

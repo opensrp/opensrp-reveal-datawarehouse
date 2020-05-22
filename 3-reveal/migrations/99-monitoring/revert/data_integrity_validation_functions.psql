@@ -1,0 +1,11 @@
+-- Revert reveal_monitoring_tables:data_integrity_validation_functions from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP FUNCTION IF EXISTS missing_subject_tasks(integer);
+DROP FUNCTION IF EXISTS missing_goal_actions(integer);
+DROP FUNCTION IF EXISTS orphaned_jurisdictions(integer);
+
+COMMIT;
