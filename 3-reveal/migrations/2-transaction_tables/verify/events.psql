@@ -1,0 +1,137 @@
+-- Verify reveal_transaction_tables:events on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    created_at,
+    base_entity_id,
+    location_id,
+    event_type,
+    provider_id,
+    date_created,
+    event_date,
+    entity_type,
+    form_data,
+    task_id,
+    team_id,
+    server_version
+FROM events
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'events_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check fk constraints
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_events_task'
+AND contype = 'f'
+AND 11 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- lets create the util_exception_query function
+CREATE OR REPLACE FUNCTION util_exception_query(text)
+  RETURNS SETOF text AS
+$func$
+DECLARE
+    text_msg text;
+    text_detail text;
+    text_hint text;
+BEGIN
+    EXECUTE $1;
+EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS text_msg    = MESSAGE_TEXT,
+                            text_detail = PG_EXCEPTION_DETAIL,
+                            text_hint   = PG_EXCEPTION_HINT;
+    RETURN NEXT text_msg;
+END
+$func$ LANGUAGE plpgsql;
+--- end
+
+-- you should not be able to insert an event without existing task
+SELECT 1/COUNT(*)
+FROM util_exception_query(
+$$
+INSERT INTO events
+VALUES (
+    '123e4567-mosh-12d3-a456-426655440000',
+    NOW(),
+    '123e4567-mosh-12d3-a456-426655440000',
+    '123e4567-mosh-12d3-a456-426655440000',
+    'Spray',
+    'provider_id',
+    NOW(),
+    NOW(),
+    'entity_type',
+    '{}'::jsonb,
+    -- this one does not exist yet
+    '123e4567-mosh-12d3-a456-426655440000',
+    '123e4567-mosh-12d3-a456-426655440000',
+    0
+)
+$$) AS output
+WHERE output ILIKE '%violates foreign key constraint%';
+
+-- check foreign keys
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_events_task'
+AND contype = 'f'
+AND 11 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_events_raw_events'
+AND contype = 'f'
+AND 1 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- check indices
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events'
+AND indexname = 'event_id_entity_type_status_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events'
+AND indexname = 'events_base_entity_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events'
+AND indexname = 'events_event_type_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events'
+AND indexname = 'events_entity_type_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events'
+AND indexname = 'events_task_id_idx';
+
+ROLLBACK;

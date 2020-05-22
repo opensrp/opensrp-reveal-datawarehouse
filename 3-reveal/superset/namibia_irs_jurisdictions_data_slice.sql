@@ -1,0 +1,21 @@
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    structuresfound,
+    structuressprayed,
+    targetcoverage,
+    sprayeffectiveness,
+    foundcoverage,
+    householdsnotaccessible,
+    refusalsfirst,
+    refusalsmopup,
+    lockedfirst,
+    lockedmopup,
+    target_2019
+FROM namibia_irs_jurisdictions;

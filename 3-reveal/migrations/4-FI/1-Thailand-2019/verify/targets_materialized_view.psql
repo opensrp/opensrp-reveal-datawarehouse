@@ -1,0 +1,60 @@
+-- Verify reveal_fi_thailand_2019:targets_materialized_view on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'targets_materialized_view';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    goal_id,
+    measure,
+    goal_value,
+    goal_comparator,
+    goal_unit,
+    action_code,
+    action_description,
+    action_prefix,
+    action_reason,
+    action_title,
+    task_count,
+    completed_task_count,
+    task_business_status_map
+FROM targets_materialized_view
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'targets_materialized_view'
+AND indexname = 'targets_materialized_view_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'targets_materialized_view'
+AND indexname = 'targets_materialized_view_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'targets_materialized_view'
+AND indexname = 'targets_materialized_view_goal_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'targets_materialized_view'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'targets_materialized_view_idx';
+
+ROLLBACK;

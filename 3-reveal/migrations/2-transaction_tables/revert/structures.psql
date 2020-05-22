@@ -1,0 +1,8 @@
+-- Revert reveal_migrations:structures from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+DROP TABLE structures;
+
+COMMIT;

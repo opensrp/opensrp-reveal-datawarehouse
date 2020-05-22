@@ -1,0 +1,5 @@
+%syntax-version=1.0.0
+%project=reveal_irs_generic
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/reveal/IRS/generic
+
+irs_plans [reveal_transaction_tables:plans reveal_transaction_tables:plan_jurisdiction reveal_database_views:jurisdictions_materialized_view] 2020-04-22T09:30:51Z mosh <kjayanoris@ona.io> # Add irs_plans.

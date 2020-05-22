@@ -1,0 +1,120 @@
+-- Verify reveal_irs_namibia_2019:namibia_irs_export on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'namibia_irs_export';
+
+SELECT
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    structure_geometry,
+    structure_status,
+    task_id,
+    event_id,
+    plan_id,
+    event_date,
+    nSprayableTotal,
+    nSprayableZinc,
+    nSprayableTrad,
+    nSprayableMod,
+    nSprayableCanopy,
+    nUnsprayable,
+    nSprayedTotalFirst,
+    nSprayedTotalMop,
+    nUnsprayedTotalFirst,
+    nUnsprayedTotalMop,
+    householdAccessible,
+    unsprayedReasonFirst,
+    unsprayedReasonMop,
+    refusalReasonFirst,
+    refusalReasonMop,
+    business_status,
+    ableToSprayFirst,
+    nSprayedDDTFirst,
+    nSprayedDeltaFirst,
+    nSprayedActellicFirst,
+    nUnsprayedZincFirst,
+    nUnsprayedTradFirst,
+    nUnsprayedModFirst,
+    nUnsprayedCanopyFirst,
+    refusalReasonOtherFirst,
+    mopUpVisit,
+    mopupStructuresToBeSprayed,
+    mopupStructuresToBeSprayedLabel,
+    nSprayedDDTMop,
+    nSprayedDeltaMop,
+    nSprayedActellicMop,
+    nUnsprayedTotalMopLabel,
+    refusalReasonOtherMop,
+    unsprayedReasonHH,
+    refusalReasonHH,
+    refusalReasonOtherHH,
+    popTotal,
+    nPeopleProtected,
+    nameHoH,
+    structureType,
+    unsprayedReasonFirst_values,
+    refusalReasonFirst_values,
+    unsprayedReasonMop_values,
+    refusalReasonMop_values,
+    structure_geometry_type,
+    structure_geometry_centroid,
+    structure_geometry_centroid_coordinates,
+    jurisdiction_parent1,
+    jurisdiction_parent2,
+    jurisdiction_parent3,
+    jurisdiction_name
+FROM namibia_irs_export
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_event_date_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_task_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_event_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_structure_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_irs_export_idx';
+
+ROLLBACK;

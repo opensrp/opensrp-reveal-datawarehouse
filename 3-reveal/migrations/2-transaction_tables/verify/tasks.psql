@@ -1,0 +1,147 @@
+-- Verify reveal_migrations:tasks on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    identifier,
+    created_at,
+    plan_identifier,
+    group_identifier,
+    status,
+    business_status,
+    priority,
+    code,
+    description,
+    focus,
+    task_for,
+    execution_start_date,
+    execution_end_date,
+    owner,
+    note,
+    server_version
+FROM tasks
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'tasks_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check fk constraints
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_tasks_plan'
+AND contype = 'f'
+AND 3 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_tasks_jurisdiction'
+AND contype = 'f'
+AND 4 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_tasks_raw_tasks'
+AND contype = 'f'
+AND 1 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- TODO add foreign key constraint verification that uses util_exception_query?
+
+-- check indices
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_for_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_code_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_plan_identifier_code_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_group_identifier_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_plan_identifier_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_group_n_plan_identifier_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_code_group_n_plan_identifier_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_status_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_for_status_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_business_status_code_group_plan_identifier_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_business_status_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'tasks'
+AND indexname = 'task_server_version_idx';
+
+ROLLBACK;

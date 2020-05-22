@@ -1,0 +1,9 @@
+-- Revert reveal_database_views:reporting_lag from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW reporting_lag CASCADE;
+
+COMMIT;

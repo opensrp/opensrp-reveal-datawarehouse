@@ -1,0 +1,8 @@
+-- Revert opensrp_common_transaction_tables:vaccinations from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+DROP TABLE vaccinations;
+
+COMMIT;

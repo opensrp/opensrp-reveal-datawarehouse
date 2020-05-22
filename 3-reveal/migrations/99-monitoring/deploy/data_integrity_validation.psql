@@ -1,0 +1,17 @@
+-- Deploy reveal_monitoring_tables:data_integrity_validation to pg
+-- requires: object_type
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- this table is used to store information about known data integrity issues
+CREATE TABLE IF NOT EXISTS data_integrity_validation (
+    name VARCHAR NOT NULL,
+    type REVEAL_OBJECT_TYPE NOT NULL,
+    object_ids VARCHAR ARRAY NOT NULL,
+    last_modified TIMESTAMP DEFAULT NOW (),
+    PRIMARY KEY (name)
+);
+
+COMMIT;

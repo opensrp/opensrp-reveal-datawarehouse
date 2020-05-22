@@ -1,0 +1,138 @@
+-- Verify reveal_migrations:structures on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    created_at,
+    uid,
+    jurisdiction_id,
+    code,
+    type,
+    name,
+    status,
+    geometry,
+    geographic_level,
+    effective_start_date,
+    effective_end_date,
+    version,
+    version,
+    server_version
+FROM structures
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'structures_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check fk constraints
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_structures_jurisdictions'
+AND contype = 'f'
+AND 4 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_structures_raw_structures'
+AND contype = 'f'
+AND 1 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- lets create the util_exception_query function
+CREATE OR REPLACE FUNCTION util_exception_query(text)
+  RETURNS SETOF text AS
+$func$
+DECLARE
+    text_msg text;
+    text_detail text;
+    text_hint text;
+BEGIN
+    EXECUTE $1;
+EXCEPTION WHEN OTHERS THEN
+    GET STACKED DIAGNOSTICS text_msg    = MESSAGE_TEXT,
+                            text_detail = PG_EXCEPTION_DETAIL,
+                            text_hint   = PG_EXCEPTION_HINT;
+    RETURN NEXT text_msg;
+END
+$func$ LANGUAGE plpgsql;
+--- end
+
+-- you should not be able to insert a structure without existing jurisdiction or raw_structure
+SELECT 1/COUNT(*)
+FROM util_exception_query(
+$$
+INSERT INTO structures
+VALUES (
+    '123e4567-mosh-12d3-a456-426655440000',
+    NOW(),
+    '123e4567-mosh-12d3-a456-426655440000',
+    '123e4567-mosh-12d3-a456-426655440000',
+    '123e4567-mosh-12d3-a456-426655440000',
+    'some-type',
+    'structure 1',
+    'Active',
+    ST_GeomFromGeoJSON('{"type":"MultiPolygon","coordinates":[[[]]]}'),
+    5,
+    NOW(),
+    NOW(),
+    0,
+    0
+)
+$$) AS output
+WHERE output ILIKE '%violates foreign key constraint%';
+
+-- check indices
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structures'
+AND indexname = 'structure_uid_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structures'
+AND indexname = 'structure_code_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structures'
+AND indexname = 'structures_server_version_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structures'
+AND indexname = 'structures_jurisdiction_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structures'
+AND indexname = 'structures_id_n_jurisdiction_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structures'
+AND indexdef LIKE '%gist (geometry)%'
+AND indexname = 'structures_geom_gix';
+
+ROLLBACK;

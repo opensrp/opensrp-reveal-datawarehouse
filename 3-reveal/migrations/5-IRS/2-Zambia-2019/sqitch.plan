@@ -1,0 +1,16 @@
+%syntax-version=1.0.0
+%project=reveal_irs_zambia_2019
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/reveal/IRS/zambia-2019
+
+structure_geo_hierarchy [reveal_transaction_tables:structures reveal_transaction_tables:jurisdictions] 2020-04-22T13:30:31Z mosh <kjayanoris@ona.io> # Add structure_geo_hierarchy.
+structure_geo_hierarchy_queue [structure_geo_hierarchy reveal_transaction_tables:jurisdictions reveal_transaction_tables:structures] 2020-05-12T09:20:10Z mosh <kjayanoris@ona.io> # Creates structure_geo_hierarchy_queue table
+create_structure_geo_hierarchy [structure_geo_hierarchy] 2020-04-22T14:41:07Z mosh <kjayanoris@ona.io> # Add get_structure_geo_hierarchy.
+process_structure_geo_hierarchy_queue [structure_geo_hierarchy create_structure_geo_hierarchy] 2020-05-12T09:38:05Z mosh <kjayanoris@ona.io> # Creates function to process structure_geo_hierarchy_queue
+structure_geo_hierarchy_triggers [process_structure_geo_hierarchy_queue] 2020-04-27T07:52:56Z mosh <kjayanoris@ona.io> # Add triggers for structure_geo_hierarchy.
+zambia_jurisdictions [reveal_database_views:jurisdictions_materialized_view] 2020-04-27T13:58:51Z mosh <kjayanoris@ona.io> # Add zambia_jurisdictions.
+zambia_structure_jurisdictions [zambia_jurisdictions structure_geo_hierarchy] 2020-04-28T11:26:01Z mosh <kjayanoris@ona.io> # Add zambia_structure_jurisdictions.
+zambia_plan_jurisdictions [zambia_jurisdictions reveal_database_views:jurisdictions_materialized_view reveal_transaction_tables:plan_jurisdiction] 2020-04-28T11:36:55Z mosh <kjayanoris@ona.io> # Add zambia_plan_jurisdictions.
+zambia_irs_structures [reveal_transaction_tables:structures zambia_structure_jurisdictions reveal_transaction_tables:events reveal_transaction_tables:tasks] 2020-04-28T11:56:31Z mosh <kjayanoris@ona.io> # Add zambia_irs_structures.
+zambia_focus_area_irs [reveal_transaction_tables:plans zambia_plan_jurisdictions zambia_jurisdictions zambia_irs_structures utils:count_elements utils:array_concat_agg] 2020-04-28T12:18:34Z mosh <kjayanoris@ona.io> # Add zambia_focus_area_irs.
+zambia_irs_jurisdictions [reveal_transaction_tables:plans zambia_jurisdictions zambia_focus_area_irs] 2020-04-28T15:01:19Z mosh <kjayanoris@ona.io> # Add zambia_irs_jurisdictions.
+zambia_irs_export [zambia_irs_structures zambia_jurisdictions zambia_plan_jurisdictions] 2020-05-13T12:27:45Z mosh <kjayanoris@ona.io> # Add zambia_irs_export.

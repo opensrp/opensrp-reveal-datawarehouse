@@ -1,0 +1,8 @@
+-- Revert reveal_raw_tables:raw_jurisdictions from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+DROP TABLE raw_jurisdictions;
+
+COMMIT;

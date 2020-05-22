@@ -1,0 +1,68 @@
+-- Verify reveal_irs_zambia_2019:structure_geo_hierarchy_queue on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    jurisdiction_id,
+    created_at
+FROM structure_geo_hierarchy_jurisdiction_queue
+WHERE FALSE;
+
+SELECT
+    id,
+    structure_id,
+    created_at
+FROM structure_geo_hierarchy_structure_queue
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'structure_geo_hierarchy_jurisdiction_queue_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'structure_geo_hierarchy_structure_queue_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check fk constraints
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_structure_geo_hierarchy_structure_queue'
+AND contype = 'f'
+AND 2 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_structure_geo_hierarchy_jurisdiction_queue'
+AND contype = 'f'
+AND 2 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- check indices
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structure_geo_hierarchy_structure_queue'
+AND indexname = 'structure_geo_hierarchy_structure_queue_structure_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'structure_geo_hierarchy_jurisdiction_queue'
+AND indexname = 'structure_geo_hierarchy_jurisdiction_queue_structure_id_idx';
+
+ROLLBACK;

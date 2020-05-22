@@ -1,0 +1,9 @@
+-- Revert reveal_monitoring_tables:object_type from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP TYPE REVEAL_OBJECT_TYPE;
+
+COMMIT;

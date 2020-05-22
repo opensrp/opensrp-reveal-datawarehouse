@@ -1,0 +1,35 @@
+-- Verify utils:slugify on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT has_function_privilege(:'schema' || '.slugify(text, varchar)', 'execute');
+
+-- Verify that it returns values as expected
+SELECT 1/count(*) FROM
+(SELECT slugify('I Love Food')) AS foo
+WHERE slugify = 'i_love_food';
+
+SELECT 1/count(*) FROM
+(SELECT slugify('fooBar 123 $#%')) AS foo
+WHERE slugify = 'foobar_123';
+
+SELECT 1/count(*) FROM
+(SELECT slugify('  Déjà Vu!  ')) AS foo
+WHERE slugify = 'deja_vu';
+
+SELECT 1/count(*) FROM
+(SELECT slugify('I ♥ Dogs')) AS foo
+WHERE slugify = 'i_dogs';
+
+-- verify that custom separator works
+SELECT 1/count(*) FROM
+(SELECT slugify('foo and bar', '-')) AS foo
+WHERE slugify = 'foo-and-bar';
+
+SELECT 1/count(*) FROM
+(SELECT slugify('The lazy dog is fun!', '-')) AS foo
+WHERE slugify = 'the-lazy-dog-is-fun';
+
+ROLLBACK;

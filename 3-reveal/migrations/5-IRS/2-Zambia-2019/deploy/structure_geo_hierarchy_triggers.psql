@@ -1,0 +1,58 @@
+-- Deploy reveal_irs_zambia_2019:structure_geo_hierarchy_triggers to pg
+-- requires: process_structure_geo_hierarchy_queue
+
+BEGIN;
+
+-- lets make it possible to create this function in any schema provided by the
+-- :"schema" variable - and default to public.
+SET search_path TO :"schema",public;
+
+-- this function adds a structure to the structure_geo_hierarchy_structure_queue
+-- table after insert or update on the structures table
+CREATE OR REPLACE FUNCTION process_structure_geo_hierarchy()
+RETURNS trigger AS
+$$
+BEGIN
+    INSERT INTO structure_geo_hierarchy_structure_queue (id, structure_id)
+    VALUES (NEW.id, NEW.id)
+    ON CONFLICT (id) DO NOTHING;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- DROP the trigger if it exists
+DROP TRIGGER IF EXISTS process_structure_geo_hierarchy_trigger ON structures;
+-- this trigger runs after INSERT or UPDATE on structures table
+CREATE TRIGGER process_structure_geo_hierarchy_trigger
+  AFTER INSERT OR UPDATE
+  ON structures
+  FOR EACH ROW
+  EXECUTE PROCEDURE process_structure_geo_hierarchy();
+
+-- this function adds a jurisdiction to the structure_geo_hierarchy_jurisdiction_queue
+-- table after insert or update on the jurisdictions table
+CREATE OR REPLACE FUNCTION jurisdiction_create_structure_geo_hierarchy()
+RETURNS trigger AS
+$$
+BEGIN
+    INSERT INTO structure_geo_hierarchy_jurisdiction_queue (id, jurisdiction_id)
+    VALUES (NEW.id, NEW.id)
+    ON CONFLICT (id) DO NOTHING;
+
+    RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+-- DROP the trigger if it exists
+DROP TRIGGER IF EXISTS jurisdiction_create_structure_geo_hierarchy_trigger ON structures;
+-- this trigger runs after UPDATE on jurisdictions table
+CREATE TRIGGER jurisdiction_create_structure_geo_hierarchy_trigger
+  AFTER INSERT OR UPDATE
+  ON jurisdictions
+  FOR EACH ROW
+  EXECUTE PROCEDURE jurisdiction_create_structure_geo_hierarchy();
+
+COMMIT;

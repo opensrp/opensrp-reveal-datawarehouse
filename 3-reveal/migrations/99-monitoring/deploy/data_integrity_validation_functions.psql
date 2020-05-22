@@ -1,0 +1,78 @@
+-- Deploy reveal_monitoring_tables:data_integrity_validation_functions to pg
+-- requires: data_integrity_validation
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE OR REPLACE FUNCTION orphaned_jurisdictions(INT) RETURNS TEXT[] AS
+$$
+-- Returns an array of jurisdiction ids for jurisdictions with a non-empty parent id
+-- that doesn't exist as another known jurisdiction
+DECLARE jurisdictions TEXT[];
+BEGIN
+    SELECT array(
+      SELECT DISTINCT jurisdictions.id
+      FROM jurisdictions
+        LEFT OUTER JOIN jurisdictions AS parent_jurisdictions ON parent_jurisdictions.id = jurisdictions.parent_id
+      WHERE
+        (jurisdictions.parent_id IS NOT NULL OR jurisdictions.parent_id != '')
+        AND (parent_jurisdictions.id IS NULL OR parent_jurisdictions.id = '')
+      LIMIT $1
+    ) INTO jurisdictions;
+
+    RETURN jurisdictions;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION missing_goal_actions(INT) RETURNS TEXT[] AS
+$$
+-- Returns an array of action ids for actions with goals that don't match
+-- goals in known plans
+DECLARE actions TEXT[];
+BEGIN
+    SELECT array(
+      SELECT DISTINCT actions.identifier
+      FROM actions
+        LEFT OUTER JOIN goals ON
+            goals.goal_id = actions.goal_id AND
+            goals.plan_id = actions.plan_id
+      WHERE
+        goals.goal_id IS NULL
+      LIMIT $1
+    ) INTO actions;
+
+    RETURN actions;
+END
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION missing_subject_tasks(INT) RETURNS TEXT[] AS
+$$
+-- Returns an array of task ids for tasks with subjects that don't
+-- exist as structures, jurisdictions (structures), or clients
+DECLARE tasks TEXT[];
+BEGIN
+    SELECT array(
+      SELECT DISTINCT tasks.identifier
+      FROM tasks
+        LEFT OUTER JOIN structures ON
+            structures.id = tasks.task_for
+        LEFT OUTER JOIN jurisdictions ON
+            jurisdictions.id = tasks.task_for
+        LEFT OUTER JOIN clients ON
+            clients.baseEntityId = tasks.task_for
+      WHERE
+        structures.id IS NULL AND
+        jurisdictions.id IS NULL AND
+        clients.baseEntityId IS NULL
+      LIMIT $1
+    ) INTO tasks;
+
+    RETURN tasks;
+END
+$$
+LANGUAGE plpgsql;
+
+COMMIT;

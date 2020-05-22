@@ -1,0 +1,68 @@
+-- Deploy reveal_migrations:DateDiff to pg
+-- requires: appschema
+
+BEGIN;
+
+-- lets make it possible to create this function in any schema provided by the
+-- :"schema" variable - and default to public.
+SET search_path TO :"schema",public;
+
+CREATE OR REPLACE FUNCTION DATEDIFF (units VARCHAR(30), start_t TIMESTAMP, end_t TIMESTAMP) RETURNS INT AS $$
+-- Utility to calculate the difference between 2 datetime values in
+-- seconds, minutes, hours, days, weeks, months and years in PostgreSQL.
+-- See http://www.sqlines.com/postgresql/how-to/datediff
+--
+-- Example Usage
+-- Difference between Dec 30, 2011 08:54:55 and  Dec 30, 2011 08:56:10 in seconds
+-- SELECT DATEDIFF('second', '2011-12-30 08:54:55'::timestamp, '2011-12-30 08:56:10'::timestamp);
+-- Result: 75
+DECLARE
+    diff_interval INTERVAL;
+    diff INT = 0;
+    years_diff INT = 0;
+BEGIN
+    IF units IN ('yy', 'yyyy', 'year', 'mm', 'm', 'month') THEN
+        years_diff = DATE_PART('year', end_t) - DATE_PART('year', start_t);
+
+        IF units IN ('yy', 'yyyy', 'year') THEN
+            -- SQL Server does not count full years passed (only difference between year parts)
+            RETURN years_diff;
+        ELSE
+            -- If end month is less than start month it will subtracted
+            RETURN years_diff * 12 + (DATE_PART('month', end_t) - DATE_PART('month', start_t));
+        END IF;
+    END IF;
+
+    -- Minus operator returns interval 'DDD days HH:MI:SS'
+    diff_interval = end_t - start_t;
+
+    diff = diff + DATE_PART('day', diff_interval);
+
+    IF units IN ('wk', 'ww', 'week') THEN
+        diff = diff/7;
+        RETURN diff;
+    END IF;
+
+    IF units IN ('dd', 'd', 'day') THEN
+        RETURN diff;
+    END IF;
+
+    diff = diff * 24 + DATE_PART('hour', diff_interval);
+
+    IF units IN ('hh', 'hour') THEN
+        RETURN diff;
+    END IF;
+
+    diff = diff * 60 + DATE_PART('minute', diff_interval);
+
+    IF units IN ('mi', 'n', 'minute') THEN
+        RETURN diff;
+    END IF;
+
+    diff = diff * 60 + DATE_PART('second', diff_interval);
+
+    RETURN diff;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;

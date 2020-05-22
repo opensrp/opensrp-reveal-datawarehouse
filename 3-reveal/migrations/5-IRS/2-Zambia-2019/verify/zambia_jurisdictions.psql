@@ -1,0 +1,70 @@
+-- Verify reveal_irs_zambia_2019:zambia_jurisdictions on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_jurisdictions';
+
+SELECT
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_geometry,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    jurisdiction_root_parent_id,
+    jurisdiction_root_parent_name,
+    opensrp_jurisdiction_id,
+    zambia_jurisdiction_id
+FROM zambia_jurisdictions
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_jurisdictions'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_jurisdictions_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_jurisdictions'
+AND indexname = 'zambia_jurisdictions_opensrp_jurisdiction_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_jurisdictions'
+AND indexname = 'zambia_jurisdictions_parent_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_jurisdictions'
+AND indexname = 'zambia_jurisdictions_jurisdiction_depth_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_jurisdictions'
+AND indexname = 'zambia_jurisdictions_jurisdiction_root_parent_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_jurisdictions'
+AND indexdef LIKE '%gist (jurisdiction_geometry)%'
+AND indexname = 'zambia_jurisdictions_jurisdiction_geometry_gix';
+
+ROLLBACK;

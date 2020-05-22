@@ -1,0 +1,9 @@
+-- Revert reveal_irs_namibia_2019:structure_geo_hierarchy from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP TABLE structure_geo_hierarchy;
+
+COMMIT;

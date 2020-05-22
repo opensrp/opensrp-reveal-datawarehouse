@@ -1,0 +1,72 @@
+-- Deploy reveal_fi_thailand_2019:task_structures_materialized_view to pg
+-- requires: reveal_transaction_tables:tasks
+-- requires: reveal_transaction_tables:actions
+-- requires: reveal_transaction_tables:jurisdictions
+-- requires: reveal_transaction_tables:structures
+-- requires: reveal_transaction_tables:clients
+-- requires: utils:refresh_mat_views
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS task_structures_materialized_view
+AS
+SELECT DISTINCT ON (tasks.identifier)
+    tasks.identifier AS task_identifier,
+    tasks.plan_identifier AS plan_id,
+    tasks.group_identifier AS jurisdiction_id,
+    tasks.status AS task_status,
+    tasks.business_status AS task_business_status,
+    tasks.focus AS task_focus,
+    tasks.task_for AS task_task_for,
+    tasks.execution_start_date AS task_execution_start_date,
+    tasks.execution_end_date AS task_execution_end_date,
+    actions.goal_id AS goal_id,
+    actions.code AS action_code,
+    jurisdictions.name AS jurisdiction_name,
+    jurisdictions.parent_id AS jurisdiction_parent_id,
+    COALESCE(structures_query.id, structures_query2.id) AS structure_id,
+    COALESCE(structures_query.code, structures_query2.code) AS structure_code,
+    COALESCE(structures_query.name, structures_query2.name) AS structure_name,
+    COALESCE(structures_query.type, structures_query2.type) AS structure_type,
+    COALESCE(structures_query.geometry, structures_query2.geometry) AS structure_geometry
+FROM tasks
+LEFT JOIN actions
+    ON actions.code = tasks.code AND actions.plan_id = tasks.plan_identifier
+LEFT JOIN jurisdictions
+    ON jurisdictions.id = tasks.group_identifier
+LEFT JOIN LATERAL (
+    SELECT
+        DISTINCT ON (structures.id)
+        structures.id AS id,
+        structures.code AS code,
+        structures.name AS name,
+        structures.type AS type,
+        structures.geometry AS geometry
+    FROM structures
+    WHERE structures.id = tasks.task_for
+    AND structures.jurisdiction_id = jurisdictions.id
+) AS structures_query ON true
+LEFT JOIN LATERAL (
+    SELECT
+        DISTINCT ON (structures.id)
+        structures.id AS id,
+        structures.code AS code,
+        structures.name AS name,
+        structures.type AS type,
+        structures.geometry AS geometry
+    FROM clients
+    LEFT JOIN structures
+    ON structures.id = clients.residence
+    WHERE clients.baseEntityId = tasks.task_for
+) AS structures_query2 ON true
+ORDER BY tasks.identifier;
+
+CREATE INDEX IF NOT EXISTS task_structures_materialized_view_plan_idx ON task_structures_materialized_view (plan_id);
+CREATE INDEX IF NOT EXISTS task_structures_materialized_view_jurisdiction_idx ON task_structures_materialized_view (jurisdiction_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS task_structures_materialized_view_idx ON task_structures_materialized_view (task_identifier);
+
+
+COMMIT;

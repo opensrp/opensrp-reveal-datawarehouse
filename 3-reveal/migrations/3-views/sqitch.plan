@@ -1,0 +1,8 @@
+%syntax-version=1.0.0
+%project=reveal_database_views
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/reveal/3-views
+
+jurisdictions_materialized_view [reveal_transaction_tables:jurisdictions utils:refresh_mat_views] 2020-04-21T16:07:35Z mosh <kjayanoris@ona.io> # Add jurisdictions_materialized_view table.
+plans_materialized_view [reveal_transaction_tables:plans jurisdictions_materialized_view] 2020-04-21T16:10:09Z mosh <kjayanoris@ona.io> # Add plans_materialized_view table.
+reporting_time [reveal_transaction_tables:events reveal_transaction_tables:tasks reveal_transaction_tables:plans reveal_transaction_tables:jurisdictions utils:DateDiff utils:refresh_mat_views] 2020-04-29T12:08:53Z mosh <kjayanoris@ona.io> # Add reporting_time.
+reporting_lag [reveal_transaction_tables:events reveal_transaction_tables:tasks reveal_transaction_tables:actions reveal_transaction_tables:jurisdictions utils:DateDiff utils:refresh_mat_views] 2020-04-29T12:11:34Z mosh <kjayanoris@ona.io> # Add reporting_lag.

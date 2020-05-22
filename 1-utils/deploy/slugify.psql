@@ -1,0 +1,47 @@
+-- Deploy utils:slugify to pg
+
+-- A simple function to "slugify" strings e.g.
+-- slugify('I love Food') => 'i_love_food'
+-- Adapted from the "ultimate postgres slugify function" as described here
+-- https://www.kdobson.net/2019/ultimate-postgresql-slug-function/
+-- The only modification is the addition of a "sepratator variable" whose default is
+-- an underscore ('_')
+-- Note that this functions requires the "unaccent" extension
+
+BEGIN;
+
+-- lets make it possible to create this function in any schema provided by the
+-- :"schema" variable - and default to public.
+SET search_path TO :"schema",public;
+
+CREATE OR REPLACE FUNCTION slugify("value" TEXT, "separator" VARCHAR DEFAULT '_')
+RETURNS TEXT AS $$
+  -- removes accents (diacritic signs) from a given string --
+  WITH "unaccented" AS (
+    SELECT unaccent("value") AS "value"
+  ),
+  -- lowercases the string
+  "lowercase" AS (
+    SELECT lower("value") AS "value"
+    FROM "unaccented"
+  ),
+  -- remove single and double quotes
+  "removed_quotes" AS (
+    SELECT regexp_replace("value", '[''"]+', '', 'gi') AS "value"
+    FROM "lowercase"
+  ),
+  -- replaces anything that's not a letter, number, hyphen('-'), or underscore('_') with a hyphen('-')
+  "hyphenated" AS (
+    SELECT regexp_replace("value", '[^a-z0-9\\-_]+', "separator", 'gi') AS "value"
+    FROM "removed_quotes"
+  ),
+  -- trims hyphens('-') if they exist on the head or tail of the string
+  "trimmed" AS (
+    SELECT regexp_replace(regexp_replace("value", '\' || "separator" || '+$', ''), '^\' || "separator", '') AS "value"
+    -- SELECT regexp_replace(regexp_replace("value", '\-+$', ''), '^\-', '') AS "value"
+    FROM "hyphenated"
+  )
+  SELECT "value" FROM "trimmed";
+$$ LANGUAGE SQL STRICT IMMUTABLE;
+
+COMMIT;

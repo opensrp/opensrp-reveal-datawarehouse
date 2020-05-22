@@ -1,0 +1,57 @@
+-- Deploy reveal_migrations:tasks to pg
+-- requires: plans
+-- requires: jurisdictions
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS tasks (
+    identifier VARCHAR(36) UNIQUE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    plan_identifier VARCHAR(36) NOT NULL,
+    group_identifier VARCHAR(36) NOT NULL,
+    status VARCHAR NOT NULL,
+    business_status VARCHAR NOT NULL,
+    priority VARCHAR(36) NOT NULL,
+    code VARCHAR(36) NOT NULL,
+    description VARCHAR NULL,
+    focus VARCHAR NOT NULL,
+    task_for VARCHAR(36) NOT NULL,
+    execution_start_date DATE NULL,
+    execution_end_date DATE NULL,
+    owner VARCHAR NOT NULL,
+    note JSON NULL,
+    server_version BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (identifier),
+    CONSTRAINT fk_tasks_plan
+        FOREIGN KEY (plan_identifier)
+        REFERENCES plans (identifier)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_tasks_jurisdiction
+        FOREIGN KEY (group_identifier)
+        REFERENCES jurisdictions (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_tasks_raw_tasks
+        FOREIGN KEY (identifier)
+        REFERENCES raw_tasks (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS task_for_idx ON tasks (task_for);
+CREATE INDEX IF NOT EXISTS task_code_idx ON tasks (code);
+CREATE INDEX IF NOT EXISTS task_plan_identifier_code_idx ON tasks (code, plan_identifier);
+CREATE INDEX IF NOT EXISTS task_group_identifier_idx ON tasks (group_identifier);
+CREATE INDEX IF NOT EXISTS task_plan_identifier_idx ON tasks (plan_identifier);
+CREATE INDEX IF NOT EXISTS task_group_n_plan_identifier_idx ON tasks (group_identifier, plan_identifier);
+CREATE INDEX IF NOT EXISTS task_code_group_n_plan_identifier_idx ON tasks (code, group_identifier, plan_identifier);
+CREATE INDEX IF NOT EXISTS task_status_idx ON tasks (status);
+CREATE INDEX IF NOT EXISTS task_for_status_idx ON tasks (task_for, status);
+CREATE INDEX IF NOT EXISTS task_business_status_code_group_plan_identifier_idx ON tasks (business_status, code, group_identifier, plan_identifier);
+CREATE INDEX IF NOT EXISTS task_business_status_idx ON tasks (business_status);
+CREATE INDEX IF NOT EXISTS task_server_version_idx ON tasks (server_version);
+
+COMMIT;

@@ -1,0 +1,8 @@
+-- Revert reveal_transaction_tables:goal_target from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+DROP TABLE goal_target;
+
+COMMIT;

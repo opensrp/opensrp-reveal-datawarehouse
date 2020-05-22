@@ -1,0 +1,9 @@
+-- Revert reveal_irs_generic:irs_plans from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW irs_plans CASCADE;
+
+COMMIT;

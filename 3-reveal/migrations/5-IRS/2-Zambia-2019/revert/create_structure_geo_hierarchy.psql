@@ -1,0 +1,9 @@
+-- Revert reveal_irs_zambia_2019:get_structure_geo_hierarchy from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP FUNCTION create_structure_geo_hierarchy(structures);
+
+COMMIT;

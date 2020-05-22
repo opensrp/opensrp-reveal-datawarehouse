@@ -1,0 +1,52 @@
+-- Deploy reveal_irs_zambia_2019:process_structure_geo_hierarchy_queue to pg
+-- requires: structure_geo_hierarchy
+-- requires: create_structure_geo_hierarchy
+
+BEGIN;
+
+-- lets make it possible to create this function in any schema provided by the
+-- :"schema" variable - and default to public.
+SET search_path TO :"schema",public;
+
+CREATE FUNCTION process_structure_geo_hierarchy_structure_queue(num_rows INTEGER DEFAULT 1000) RETURNS VOID AS $$
+-- this function processes all the structures in the structure_geo_hierarchy_structure_queue table
+DECLARE
+    structure_row structures%ROWTYPE;
+BEGIN
+
+    FOR structure_row IN
+        -- first get the relevant structures
+        SELECT structures.*
+        FROM structure_geo_hierarchy_structure_queue
+        LEFT JOIN structures
+        ON structures.id = structure_geo_hierarchy_structure_queue.structure_id
+        LIMIT (num_rows)
+    LOOP
+        -- next lets process them
+        PERFORM create_structure_geo_hierarchy(structure_row);
+        -- finally delete the structures from the queue
+        DELETE FROM structure_geo_hierarchy_structure_queue
+        WHERE structure_id = structure_row.id;
+    END LOOP;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION process_structure_geo_hierarchy_jurisdiction_queue() RETURNS VOID AS $$
+-- this function process all jurisdictions in the structure_geo_hierarchy_jurisdiction_queue table
+-- when we have jurisdictions in the queue, we are forced to reprocess all structures
+-- because any change in even one jurisdiction's geometry means that all structures
+-- might need to be reprocessed
+-- this function (re)processes all the structures in the structures table
+-- WARNING: this is an expensive query!!
+BEGIN
+
+    -- (re)process all structures
+    PERFORM create_structure_geo_hierarchy(structures.*) FROM structures;
+    -- then empty the queue
+    TRUNCATE structure_geo_hierarchy_jurisdiction_queue;
+
+END;
+$$ LANGUAGE plpgsql;
+
+COMMIT;

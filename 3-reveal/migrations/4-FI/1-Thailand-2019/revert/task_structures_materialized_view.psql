@@ -1,0 +1,9 @@
+-- Revert reveal_fi_thailand_2019:task_structures_materialized_view from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW task_structures_materialized_view CASCADE;
+
+COMMIT;

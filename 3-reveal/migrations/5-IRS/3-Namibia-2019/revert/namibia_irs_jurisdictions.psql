@@ -1,0 +1,9 @@
+-- Revert reveal_irs_namibia_2019:namibia_irs_jurisdictions from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW namibia_irs_jurisdictions CASCADE;
+
+COMMIT;

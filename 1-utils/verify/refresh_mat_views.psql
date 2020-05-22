@@ -1,0 +1,122 @@
+-- Verify utils:refresh_mat_views on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT has_function_privilege(:'schema' || '.refresh_mat_view(varchar, boolean)', 'execute');
+
+CREATE TABLE refresh_mat_view_users (
+    nickname  TEXT PRIMARY KEY,
+    password  TEXT NOT NULL
+);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS refresh_mat_view_users_view
+AS
+SELECT nickname FROM refresh_mat_view_users
+WHERE nickname in ('mosh', 'kelvin');
+
+CREATE TABLE refresh_mat_view_places (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS refresh_mat_view_places_view
+AS
+SELECT id, name FROM refresh_mat_view_places
+WHERE name in ('Voi', 'Bura', 'Taveta');
+CREATE UNIQUE INDEX IF NOT EXISTS refresh_mat_view_places_view_idx ON refresh_mat_view_places_view (id);
+
+TRUNCATE materialized_view_tracking;
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM materialized_view_tracking) AS foo
+WHERE count = 0;  -- we initially have zero records
+
+-- refresh first view
+SELECT refresh_mat_view('refresh_mat_view_users_view', FALSE);
+
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM materialized_view_tracking) AS foo
+WHERE count = 1;  -- we now have one records
+
+SELECT 1/COUNT(*)
+FROM materialized_view_tracking
+WHERE name = 'refresh_mat_view_users_view'
+AND finish IS NOT NULL
+AND finish >= start;
+
+-- refresh second view
+SELECT refresh_mat_view('refresh_mat_view_places_view', TRUE);
+
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM materialized_view_tracking) AS foo
+WHERE count = 2;  -- we now have two records
+
+SELECT 1/COUNT(*)
+FROM materialized_view_tracking
+WHERE name = 'refresh_mat_view_users_view'
+AND finish IS NOT NULL
+AND finish >= start;
+
+SELECT 1/COUNT(*)
+FROM materialized_view_tracking
+WHERE name = 'refresh_mat_view_places_view'
+AND finish IS NOT NULL
+AND finish >= start;
+
+-- lets update the start and finish to be in the past so that we can test they are updated
+UPDATE materialized_view_tracking
+SET
+start = NOW() - INTERVAL '2 HOURS',
+finish = NOW() - INTERVAL '1 HOUR';
+
+-- refresh first view again
+SELECT refresh_mat_view('refresh_mat_view_users_view', FALSE);
+
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM materialized_view_tracking) AS foo
+WHERE count = 2;  -- we still have two records
+
+-- the view in question changes
+SELECT 1/COUNT(*)
+FROM materialized_view_tracking
+WHERE name = 'refresh_mat_view_users_view'
+AND finish IS NOT NULL
+AND finish >= start
+AND start >= NOW() - INTERVAL '1 SECOND'
+AND finish >= NOW() - INTERVAL '1 SECOND';
+
+-- the other one does not
+SELECT 1/COUNT(*)
+FROM materialized_view_tracking
+WHERE name = 'refresh_mat_view_places_view'
+AND finish IS NOT NULL
+AND finish >= start
+AND start < NOW() - INTERVAL '1 SECOND'
+AND finish < NOW() - INTERVAL '1 SECOND';
+
+-- refresh second view again
+SELECT refresh_mat_view('refresh_mat_view_places_view');  -- didnt include the optional 2nd param this time
+
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM materialized_view_tracking) AS foo
+WHERE count = 2;  -- we still have two records
+
+-- now both views are changed
+SELECT 1/COUNT(*)
+FROM materialized_view_tracking
+WHERE name = 'refresh_mat_view_users_view'
+AND finish IS NOT NULL
+AND finish >= start
+AND start >= NOW() - INTERVAL '1 SECOND'
+AND finish >= NOW() - INTERVAL '1 SECOND';
+
+SELECT 1/COUNT(*)
+FROM materialized_view_tracking
+WHERE name = 'refresh_mat_view_places_view'
+AND finish IS NOT NULL
+AND finish >= start
+AND start >= NOW() - INTERVAL '1 SECOND'
+AND finish >= NOW() - INTERVAL '1 SECOND';
+
+ROLLBACK;

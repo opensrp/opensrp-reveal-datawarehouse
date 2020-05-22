@@ -1,0 +1,129 @@
+-- Verify reveal_irs_zambia_2019:zambia_irs_export on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_export';
+
+SELECT
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    structure_geometry,
+    structure_status,
+    task_id,
+    event_id,
+    plan_id,
+    event_date,
+    rooms_eligible,
+    rooms_sprayed,
+    eligibility,
+    structure_sprayed,
+    business_status,
+    nonresidential_type,
+    residential_noteligible,
+    residential_noteligible_reason,
+    notreseidential_eligible,
+    location,
+    datacollector,
+    sprayop_code,
+    nameHoH,
+    genderHoH,
+    structure_num,
+    partiallysprayed_reason,
+    sprayed_males,
+    sprayed_females,
+    sprayed_totalpop,
+    sprayed_pregwomen,
+    sprayed_childrenU5,
+    sprayed_nets_available,
+    sprayed_nets_use,
+    sprayed_total_uNet,
+    sprayed_pregwomen_uNet,
+    sprayed_u5_uNet,
+    new_sachet,
+    serial_number,
+    notsprayed_reason,
+    notsprayedrooms_eligible,
+    notsprayed_males,
+    notsprayed_females,
+    notsprayed_totalpop,
+    notsprayed_pregwomen,
+    notsprayed_childrenU5,
+    notsprayed_nets_available,
+    notsprayed_nets_use,
+    notsprayed_total_uNet,
+    notsprayed_pregwomen_uNet,
+    notsprayed_u5_uNet,
+    mopup,
+    sprayed_values,
+    notsprayed_reasons,
+    duplicate,
+    sprayed_duplicate,
+    structure_geometry_type,
+    structure_geometry_centroid,
+    structure_geometry_centroid_coordinates,
+    jurisdiction_parent1,
+    jurisdiction_parent2,
+    jurisdiction_parent3,
+    jurisdiction_name,
+    is_virtual_jurisdiction,
+    assigned_jurisdiction_id,
+    assigned_jurisdiction_depth,
+    assigned_jurisdiction_name,
+    geo_jurisdiction_id,
+    geo_jurisdiction_depth,
+    geo_jurisdiction_name,
+    in_plan_jurisdiction
+FROM zambia_irs_export
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_export'
+AND indexname = 'zambia_irs_export_event_date_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_export'
+AND indexname = 'zambia_irs_export_task_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_export'
+AND indexname = 'zambia_irs_export_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_export'
+AND indexname = 'zambia_irs_export_event_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_export'
+AND indexname = 'zambia_irs_export_structure_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_export'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_export_idx';
+
+ROLLBACK;

@@ -1,0 +1,33 @@
+-- Verify reveal_database_views:reporting_time on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'reporting_time';
+
+SELECT
+    id,
+    "userName",
+    "planIdentifier",
+    "planName",
+    "jurisdictionId",
+    "jurisdictionName",
+    "eventType",
+    "formOpenDateTimeDevice",
+    "formCloseDateTimeDevice",
+    "timeLagSeconds"
+FROM reporting_time
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'reporting_time'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'reporting_time_idx';
+
+ROLLBACK;

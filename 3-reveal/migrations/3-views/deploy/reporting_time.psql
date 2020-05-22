@@ -1,0 +1,40 @@
+-- Deploy reveal_database_views:reporting_time to pg
+-- requires: reveal_transaction_tables:events
+-- requires: reveal_transaction_tables:tasks
+-- requires: reveal_transaction_tables:plans
+-- requires: reveal_transaction_tables:jurisdictions
+-- requires: utils:DateDiff
+-- requires: utils:refresh_mat_views
+
+BEGIN;
+
+---
+--- CREATE REPORTING TIME
+---
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS reporting_time
+AS
+SELECT DISTINCT ON (events.id)
+    events.id,
+    events.provider_id AS "userName",
+    plans.identifier AS "planIdentifier",
+    plans.name AS "planName",
+    events.location_id AS "jurisdictionId",
+    jurisdictions.name AS "jurisdictionName",
+    events.event_type AS "eventType",
+    (events.form_data->'start'->>0)::timestamp AS "formOpenDateTimeDevice",
+    (events.form_data->'end'->>0)::timestamp AS "formCloseDateTimeDevice",
+    DATEDIFF('second', (events.form_data->'start'->>0)::timestamp, (events.form_data->'end'->>0)::timestamp) AS "timeLagSeconds"
+FROM events
+LEFT JOIN tasks ON
+    events.task_id = tasks.identifier
+LEFT JOIN jurisdictions ON
+    events.location_id = jurisdictions.id
+LEFT JOIN plans ON
+    tasks.plan_identifier = plans.identifier;
+
+CREATE UNIQUE INDEX IF NOT EXISTS reporting_time_idx ON reporting_time (id);
+
+COMMIT;

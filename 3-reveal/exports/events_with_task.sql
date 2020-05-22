@@ -1,0 +1,1 @@
+SELECT CONCAT(jsonb_set(e.json, '{task}', t.json), ',') as events_with_task FROM core.event e, core.task t  WHERE e.json->'details'->>'taskIdentifier' = t.json->>'identifier' AND t.json->>'planIdentifier' = '9afb683c-8c8b-5dfb-ac36-9dcb10c24707' AND t.json->>'status' = 'Completed';

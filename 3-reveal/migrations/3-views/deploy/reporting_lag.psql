@@ -1,0 +1,47 @@
+-- Deploy reveal_database_views:reporting_lag to pg
+-- requires: reveal_transaction_tables:events
+-- requires: reveal_transaction_tables:tasks
+-- requires: reveal_transaction_tables:actions
+-- requires: reveal_transaction_tables:jurisdictions
+-- requires: utils:DateDiff
+-- requires: utils:refresh_mat_views
+
+BEGIN;
+
+---
+--- CREATE REPORTING LAG
+---
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS reporting_lag
+AS
+SELECT DISTINCT ON (events.id)
+    events.id,
+    events.provider_id AS "userName",
+    plans.identifier AS "planIdentifier",
+    plans.name AS "planName",
+    events.location_id AS "jurisdictionId",
+    jurisdictions.name AS "jurisdictionName",
+    events.event_type AS "eventType",
+    (events.form_data->'end'->>0)::timestamp AS "formCloseDateTimeDevice",
+    (events.form_data->'end'->>0)::timestamp AS "lastEditDate",
+    to_timestamp(events.server_version/1000)::timestamp AS "serverCreatedDate",
+    COALESCE(events.created_at, to_timestamp(events.server_version/1000))::timestamp AS "dataWarehouseCreatedDate",
+    COALESCE(actions.timingPeriod_start, plans.effective_period_start) AS "planActionStart",
+    COALESCE(actions.timingPeriod_end, plans.effective_period_end) AS "planActionEnd",
+    DATEDIFF('second', (events.form_data->'end'->>0)::timestamp, to_timestamp(events.server_version/1000)::timestamp) AS "timeLagClientToServerSeconds",
+    DATEDIFF('second', (events.form_data->'end'->>0)::timestamp, COALESCE(events.created_at, to_timestamp(events.server_version/1000))::timestamp) AS "timeLagServerToDataWarehouseSeconds"
+FROM events
+LEFT JOIN tasks ON
+    events.task_id = tasks.identifier
+LEFT JOIN jurisdictions ON
+    events.location_id = jurisdictions.id
+LEFT JOIN plans ON
+    tasks.plan_identifier = plans.identifier
+LEFT JOIN actions ON
+    plans.identifier = actions.plan_id AND tasks.code = actions.code;
+
+CREATE UNIQUE INDEX IF NOT EXISTS reporting_lag_idx ON reporting_lag (id);
+
+COMMIT;

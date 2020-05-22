@@ -1,0 +1,9 @@
+-- Revert reveal_irs_zambia_2019:zambia_irs_export from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW zambia_irs_export CASCADE;
+
+COMMIT;
