@@ -1,11 +1,11 @@
--- Deploy reveal_migrations:structures to pg
+-- Deploy reveal_migrations:locations to pg
 -- requires: jurisdictions
 
 BEGIN;
 
 SET search_path TO :"schema",public;
 
-CREATE TABLE IF NOT EXISTS structures (
+CREATE TABLE IF NOT EXISTS locations (
   id VARCHAR(36) UNIQUE NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   uid VARCHAR(36) UNIQUE NOT NULL,
@@ -21,23 +21,23 @@ CREATE TABLE IF NOT EXISTS structures (
   version INT NOT NULL DEFAULT 0,
   server_version BIGINT NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
-  CONSTRAINT fk_structures_jurisdictions
+  CONSTRAINT fk_locations_jurisdictions
     FOREIGN KEY (jurisdiction_id)
     REFERENCES jurisdictions (id)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT fk_structures_raw_structures
+  CONSTRAINT fk_locations_raw_locations
     FOREIGN KEY (id)
-    REFERENCES raw_structures (id)
+    REFERENCES raw_locations (id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS structure_uid_idx ON structures (uid);
-CREATE INDEX IF NOT EXISTS structure_code_idx ON structures (code);
-CREATE INDEX IF NOT EXISTS structures_server_version_idx ON structures (server_version);
-CREATE INDEX IF NOT EXISTS structures_jurisdiction_id_idx ON structures (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS structures_id_n_jurisdiction_id_idx ON structures (id, jurisdiction_id);
-CREATE INDEX IF NOT EXISTS structures_geom_gix ON structures USING GIST (geometry);
+CREATE INDEX IF NOT EXISTS location_uid_idx ON locations (uid);
+CREATE INDEX IF NOT EXISTS location_code_idx ON locations (code);
+CREATE INDEX IF NOT EXISTS locations_server_version_idx ON locations (server_version);
+CREATE INDEX IF NOT EXISTS locations_jurisdiction_id_idx ON locations (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS locations_id_n_jurisdiction_id_idx ON locations (id, jurisdiction_id);
+CREATE INDEX IF NOT EXISTS locations_geom_gix ON locations USING GIST (geometry);
 
 COMMIT;

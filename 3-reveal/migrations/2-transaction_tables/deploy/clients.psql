@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS clients (
     PRIMARY KEY (id),
     CONSTRAINT fk_clients_residence
         FOREIGN KEY (residence)
-        REFERENCES structures (id)
+        REFERENCES locations (id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );

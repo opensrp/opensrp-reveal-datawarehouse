@@ -12,7 +12,7 @@ These are the resulting tables:
 - [jurisdictions](deploy/jurisdictions.psql): stores jurisdictions
 - [plan_jurisdiction](deploy/plan_jurisdiction.psql): maps plans to jurisdictions
 - [plans](deploy/plans.psql): stores plans
-- [structures](deploy/structures.psql): stores structures
+- [locations](deploy/locations.psql): stores locations
 - [tasks](deploy/tasks.psql): stores tasks
 
 ## ERD
