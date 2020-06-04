@@ -85,4 +85,4 @@ For Zambia IRS reports,The Reveal web UI makes use of the following tables and v
 
 If these migrations are run, this is the resulting entity relationship diagram:
 
-![Thailand Focus Investigation](zambia-2019-irs-erd.png)
+![Zambia IRS](zambia-2019-irs-erd.png)
