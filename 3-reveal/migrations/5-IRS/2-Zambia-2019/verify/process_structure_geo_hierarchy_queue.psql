@@ -48,12 +48,12 @@ VALUES (
     1569929742260
 );
 
-INSERT INTO raw_structures
+INSERT INTO raw_locations
 VALUES
 ('0006b3dc-mosh-420e-970b-5b69597d80b2', 0, '{}'),
 ('023bd6d7-mosh-4194-907a-2f5c3bfcf4bb', 0, '{}');
 
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '0006b3dc-mosh-420e-970b-5b69597d80b2',
     NOW(),
@@ -71,7 +71,7 @@ VALUES (
     1572378324112
 );
 
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb',
     NOW(),

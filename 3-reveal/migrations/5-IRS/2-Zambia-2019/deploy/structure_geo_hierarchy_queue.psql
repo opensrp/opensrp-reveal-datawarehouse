@@ -1,13 +1,13 @@
 -- Deploy reveal_irs_zambia_2019:structure_geo_hierarchy_queue to pg
 -- requires: structure_geo_hierarchy
 -- requires: reveal_transaction_tables:jurisdictions
--- requires: reveal_transaction_tables:structures
+-- requires: reveal_transaction_tables:locations
 
 BEGIN;
 
 SET search_path TO :"schema",public;
 
--- this table is used to track structures that need to be processed into the
+-- this table is used to track locations that need to be processed into the
 -- structure_geo_hierarchy table by running create_structure_geo_hierarchy on them
 CREATE TABLE IF NOT EXISTS structure_geo_hierarchy_structure_queue (
     id VARCHAR(36) UNIQUE NOT NULL,
@@ -16,17 +16,17 @@ CREATE TABLE IF NOT EXISTS structure_geo_hierarchy_structure_queue (
     PRIMARY KEY (id),
     CONSTRAINT fk_structure_geo_hierarchy_structure_queue
         FOREIGN KEY (structure_id)
-        REFERENCES structures (id)
+        REFERENCES locations (id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 CREATE INDEX IF NOT EXISTS structure_geo_hierarchy_structure_queue_structure_id_idx ON structure_geo_hierarchy_structure_queue (structure_id);
 
--- this table is used to track jurisdictions whose structures need to be processed
+-- this table is used to track jurisdictions whose locations need to be processed
 -- into the structure_geo_hierarchy table by running create_structure_geo_hierarchy
--- on them.  Typically, this would mean all structures need to be reprocessed because
+-- on them.  Typically, this would mean all locations need to be reprocessed because
 -- a change in jurisdiction geometry can potentially affect the geo location of all
--- structures that exist
+-- locations that exist
 CREATE TABLE IF NOT EXISTS structure_geo_hierarchy_jurisdiction_queue (
     id VARCHAR(36) UNIQUE NOT NULL,
     jurisdiction_id VARCHAR(36) NOT NULL,

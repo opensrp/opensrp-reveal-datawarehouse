@@ -16,19 +16,19 @@ SET search_path TO :"schema",public;
 CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_structures
 AS
 SELECT
-    structures.id AS structure_id,
-    structures.jurisdiction_id AS old_jurisdiction_id,
+    locations.id AS structure_id,
+    locations.jurisdiction_id AS old_jurisdiction_id,
     zambia_structure_jurisdictions.jurisdiction_depth AS old_jurisdiction_depth,
     zambia_structure_jurisdictions.geo_jurisdiction_id AS geo_jurisdiction_id,
     zambia_structure_jurisdictions.geo_jurisdiction_depth AS geo_jurisdiction_depth,
     zambia_structure_jurisdictions.zambia_jurisdiction_id AS zambia_jurisdiction_id,
     zambia_structure_jurisdictions.zambia_jurisdiction_depth AS zambia_jurisdiction_depth,
-    COALESCE(zambia_structure_jurisdictions.zambia_jurisdiction_id, structures.jurisdiction_id) AS structure_jurisdiction_id,
-    structures.code AS structure_code,
-    structures.name AS structure_name,
-    structures.type AS structure_type,
-    structures.geometry AS structure_geometry,
-    structures.status AS structure_status,
+    COALESCE(zambia_structure_jurisdictions.zambia_jurisdiction_id, locations.jurisdiction_id) AS structure_jurisdiction_id,
+    locations.code AS structure_code,
+    locations.name AS structure_name,
+    locations.type AS structure_type,
+    locations.geometry AS structure_geometry,
+    locations.status AS structure_status,
     COALESCE(events_query.task_id, tasks_query.identifier) AS task_id,
     COALESCE(events_query.task_status, tasks_query.status) AS task_status,
     events_query.event_id AS event_id,
@@ -43,8 +43,8 @@ SELECT
     COALESCE(events_query.notsprayed_reasons, ARRAY[]::varchar[]) AS notsprayed_reasons,
     COALESCE(events_query.duplicate, FALSE) AS duplicate,
     COALESCE(events_query.sprayed_duplicate, FALSE) AS sprayed_duplicate
-FROM structures
-INNER JOIN zambia_structure_jurisdictions ON zambia_structure_jurisdictions.id = structures.id
+FROM locations
+INNER JOIN zambia_structure_jurisdictions ON zambia_structure_jurisdictions.id = locations.id
 LEFT JOIN LATERAL (
     SELECT
         subq.task_id AS task_id,
@@ -82,7 +82,7 @@ LEFT JOIN LATERAL (
         FROM events
         LEFT JOIN tasks
             ON tasks.identifier = events.task_id
-        WHERE structures.id = events.base_entity_id
+        WHERE locations.id = events.base_entity_id
         AND events.entity_type = 'Structure'
         AND events.event_type = 'Spray'
     ) AS subq
@@ -101,12 +101,12 @@ LEFT JOIN LATERAL (
         tasks.status,
         tasks.business_status
     FROM tasks
-    WHERE tasks.task_for = structures.id
+    WHERE tasks.task_for = locations.id
     AND tasks.status != 'Cancelled'
     ORDER BY tasks.server_version DESC
     LIMIT 1
 ) AS tasks_query ON true
-WHERE structures.status != 'Inactive';
+WHERE locations.status != 'Inactive';
 
 CREATE INDEX IF NOT EXISTS zambia_irs_structures_structure_sprayed_idx ON zambia_irs_structures (structure_sprayed);
 

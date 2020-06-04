@@ -7,8 +7,8 @@ BEGIN;
 -- :"schema" variable - and default to public.
 SET search_path TO :"schema",public;
 
-CREATE FUNCTION create_structure_geo_hierarchy(the_structure structures) RETURNS VOID AS $$
--- this function takes a structure (from the structures table) and determines with jurisdiction
+CREATE FUNCTION create_structure_geo_hierarchy(the_structure locations) RETURNS VOID AS $$
+-- this function takes a structure (from the locations table) and determines with jurisdiction
 -- the structure is located in geographically.  It then inserts a record in the structure_geo_hierarchy
 -- table with this information
 -- NOTE THAT UNITS ARE GEOMETRY - SO DWITHIN USES DEGREES AND 150m / 111111m/deg ~= 0.00135 --
@@ -17,27 +17,27 @@ DECLARE
 BEGIN
 
     SELECT
-        DISTINCT ON (structures.id) structures.id AS id,
+        DISTINCT ON (locations.id) locations.id AS id,
         jurisdictions.id AS jurisdiction_id,
         jurisdictions.geographic_level AS jurisdiction_depth,
         geo_jurisdictions.id AS geo_jurisdiction_id,
         geo_jurisdictions.geographic_level AS geo_jurisdiction_depth,
-        ST_WITHIN(structures.geometry, geo_jurisdictions.geometry) AS geo_strict_within
+        ST_WITHIN(locations.geometry, geo_jurisdictions.geometry) AS geo_strict_within
     INTO STRICT geo_record
-    FROM structures
+    FROM locations
     LEFT JOIN jurisdictions
         AS geo_jurisdictions
-        ON ST_DWITHIN(structures.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0)
+        ON ST_DWITHIN(locations.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0)
     LEFT JOIN jurisdictions
         AS jurisdictions
-        ON jurisdictions.id = structures.jurisdiction_id
+        ON jurisdictions.id = locations.jurisdiction_id
     WHERE geo_jurisdictions.status = 'Active'
-    AND structures.id = the_structure.id
+    AND locations.id = the_structure.id
     ORDER BY
-        structures.id ASC,
+        locations.id ASC,
         geo_jurisdictions.geographic_level DESC,
         CASE
-            WHEN geo_jurisdictions.id = structures.jurisdiction_id THEN 0
+            WHEN geo_jurisdictions.id = locations.jurisdiction_id THEN 0
             ELSE 1
         END ASC,
         geo_jurisdictions.id ASC;

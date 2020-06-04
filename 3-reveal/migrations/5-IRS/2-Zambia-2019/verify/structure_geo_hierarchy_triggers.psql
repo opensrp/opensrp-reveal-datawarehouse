@@ -52,13 +52,13 @@ VALUES (
     1569929742260
 );
 
-INSERT INTO raw_structures
+INSERT INTO raw_locations
 VALUES
 ('0006b3dc-mosh-420e-970b-5b69597d80b2', 0, '{}'),
 ('023bd6d7-mosh-4194-907a-2f5c3bfcf4bb', 0, '{}');
 
 
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '0006b3dc-mosh-420e-970b-5b69597d80b2',
     NOW(),
@@ -76,7 +76,7 @@ VALUES (
     1572378324112
 );
 
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb',
     NOW(),
@@ -126,11 +126,11 @@ WHERE
 id = '0006b3dc-mosh-420e-970b-5b69597d80b2'
 AND structure_id = '0006b3dc-mosh-420e-970b-5b69597d80b2';
 
--- lets delete from structure_geo_hierarchy_structure_queue and then update structures
+-- lets delete from structure_geo_hierarchy_structure_queue and then update locations
 -- to ensure that triggers work on update
 TRUNCATE structure_geo_hierarchy_structure_queue;
 
-UPDATE structures
+UPDATE locations
 SET name = 'Structure 1'
 WHERE id = '0006b3dc-mosh-420e-970b-5b69597d80b2';
 
@@ -145,7 +145,7 @@ WHERE
 id = '0006b3dc-mosh-420e-970b-5b69597d80b2'
 AND structure_id = '0006b3dc-mosh-420e-970b-5b69597d80b2';
 
-UPDATE structures
+UPDATE locations
 SET name = 'Structure 2'
 WHERE id = '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb';
 
@@ -160,11 +160,11 @@ WHERE
 id = '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb'
 AND structure_id = '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb';
 
--- -- lets delete from structure_geo_hierarchy_structure_queue and then bulk update structures
+-- -- lets delete from structure_geo_hierarchy_structure_queue and then bulk update locations
 -- -- to ensure that triggers work on bulk update
 DELETE FROM structure_geo_hierarchy_structure_queue;
 
-UPDATE structures SET name = 'Shared Name (bad)';
+UPDATE locations SET name = 'Shared Name (bad)';
 
 -- should result in structure_geo_hierarchy records
 SELECT 1/COUNT(*)
@@ -172,12 +172,12 @@ FROM (SELECT count(*) FROM structure_geo_hierarchy_structure_queue) AS foo
 WHERE count = 2;  -- we now have two records
 
 -- lets confirm that when a jurisdiction is UPDATED then structure_geo_hierarchy_jurisdiction_queue
--- records for structures in the jurisdiction are updated
+-- records for locations in the jurisdiction are updated
 
 -- first lets delete all structure_geo_hierarchy_jurisdiction_queue records
 DELETE FROM structure_geo_hierarchy_jurisdiction_queue;
 
--- lets update the jurisdiction where our structures are in
+-- lets update the jurisdiction where our locations are in
 UPDATE jurisdictions
 SET name = 'Jurisdiction 1'
 WHERE id = 'acdde6e5-mosh-49a9-a141-424a5862a5af';
@@ -214,7 +214,7 @@ $func$ LANGUAGE plpgsql;
 --- end
 
 -- lets confirm that delete works
-DELETE FROM structures WHERE id = '0006b3dc-mosh-420e-970b-5b69597d80b2';
+DELETE FROM locations WHERE id = '0006b3dc-mosh-420e-970b-5b69597d80b2';
 
 -- the record should be removed from structure_geo_hierarchy_structure_queue
 SELECT 1/COUNT(*)
@@ -225,7 +225,7 @@ WHERE structure_id = '0006b3dc-mosh-420e-970b-5b69597d80b2';
 $$) AS output
 WHERE output ILIKE '%division by zero%';
 
-DELETE FROM structures WHERE id = '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb';
+DELETE FROM locations WHERE id = '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb';
 
 -- the record should be removed from structure_geo_hierarchy_structure_queue
 SELECT 1/COUNT(*)
@@ -239,7 +239,7 @@ WHERE output ILIKE '%division by zero%';
 -- lets confirm that bulk delete works
 
 -- first insert
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '0006b3dc-mosh-420e-970b-5b69597d80b2',
     NOW(),
@@ -257,7 +257,7 @@ VALUES (
     1572378324112
 );
 
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb',
     NOW(),
@@ -280,8 +280,8 @@ VALUES
 (uuid_generate_v1(), '0006b3dc-mosh-420e-970b-5b69597d80b2'),
 (uuid_generate_v1(), '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb');
 
--- bulk delete structures
-DELETE FROM structures;
+-- bulk delete locations
+DELETE FROM locations;
 
 -- we should have no records in structure_geo_hierarchy_structure_queue
 SELECT 1/COUNT(*)
@@ -291,7 +291,7 @@ WHERE count = 0;  -- we now have zero records
 -- lets confirm that TRUNCATE works
 
 -- first insert
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '0006b3dc-mosh-420e-970b-5b69597d80b2',
     NOW(),
@@ -309,7 +309,7 @@ VALUES (
     1572378324112
 );
 
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb',
     NOW(),
@@ -332,8 +332,8 @@ VALUES
 (uuid_generate_v1(), '0006b3dc-mosh-420e-970b-5b69597d80b2'),
 (uuid_generate_v1(), '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb');
 
--- truncate structures
-TRUNCATE structures CASCADE;
+-- truncate locations
+TRUNCATE locations CASCADE;
 
 -- we should have no records in structure_geo_hierarchy_structure_queue
 SELECT 1/COUNT(*)

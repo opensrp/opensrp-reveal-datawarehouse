@@ -4,6 +4,6 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-DROP FUNCTION create_structure_geo_hierarchy(structures);
+DROP FUNCTION create_structure_geo_hierarchy(locations);
 
 COMMIT;
