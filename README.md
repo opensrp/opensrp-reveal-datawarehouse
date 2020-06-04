@@ -27,7 +27,7 @@ The Reveal data comes from an [OpenSRP server](https://github.com/OpenSRP/opensr
 OpenSRP Entity|Raw Data Table
 ---|---
 Events| raw_events
-Structures|raw_structures
+Structures|raw_locations
 Jurisdictions|raw_jurisdictions
 Tasks|raw_tasks
 Plans|raw_plans
