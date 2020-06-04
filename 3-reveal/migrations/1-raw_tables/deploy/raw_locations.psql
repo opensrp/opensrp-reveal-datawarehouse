@@ -1,6 +1,6 @@
--- Deploy reveal_raw_tables:raw_structures to pg
+-- Deploy reveal_raw_tables:raw_locations to pg
 -- The following is a create table statements for
--- raw_structures in reveal. The purpose of this
+-- raw_locations in reveal. The purpose of this
 -- table is to hold data from openSRP and make it
 -- available for further processing/analysis
 
@@ -8,7 +8,7 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-CREATE TABLE IF NOT EXISTS raw_structures (
+CREATE TABLE IF NOT EXISTS raw_locations (
     id VARCHAR(36) UNIQUE NOT NULL,
     server_version BIGINT NOT NULL DEFAULT 0,
     data JSONB NOT NULL DEFAULT '{}'::jsonb,
