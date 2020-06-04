@@ -27,7 +27,7 @@ BEGIN
             'goals',
             'jurisdictions',
             'plans',
-            'structures',
+            'locations',
             'tasks'
         );
     END IF;

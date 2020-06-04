@@ -69,7 +69,7 @@ AND type = 'jurisdictions'
 AND 'acdde6e5-mosh-49a9-a141-424a5862a5af' = ANY (object_ids);
 
 -- these should run okay
-SELECT check_data_integrity('missing_goal_actions', 'structures');
+SELECT check_data_integrity('missing_goal_actions', 'locations');
 SELECT check_data_integrity('missing_subject_tasks', 'tasks');
 
 -- lets test a situation when an existing validation entry needs to be updated
@@ -84,10 +84,10 @@ LANGUAGE plpgsql;
 
 -- lets insert a pre-existing record
 INSERT INTO data_integrity_validation (name, type, object_ids, last_modified)
-VALUES ('test_data_validation_func', 'structures', '{1986}', NOW());
+VALUES ('test_data_validation_func', 'locations', '{1986}', NOW());
 
 -- test that it can be updated
-SELECT check_data_integrity('test_data_validation_func', 'structures');
+SELECT check_data_integrity('test_data_validation_func', 'locations');
 
 SELECT 1/COUNT(*)
 FROM (SELECT count(*) FROM data_integrity_validation WHERE name = 'test_data_validation_func') AS foo
@@ -97,7 +97,7 @@ SELECT 1/COUNT(*)
 FROM data_integrity_validation
 WHERE
 name = 'test_data_validation_func'
-AND type = 'structures'
+AND type = 'locations'
 AND object_ids = '{1337, 7331}'::VARCHAR ARRAY;
 
 -- test that it can be removed
@@ -111,7 +111,7 @@ END
 $$
 LANGUAGE plpgsql;
 
-SELECT check_data_integrity('test_data_validation_func', 'structures');
+SELECT check_data_integrity('test_data_validation_func', 'locations');
 
 SELECT 1/COUNT(*)
 FROM (SELECT count(*) FROM data_integrity_validation WHERE name = 'test_data_validation_func') AS foo
