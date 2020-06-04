@@ -1,5 +1,5 @@
 -- Deploy reveal_irs_namibia_2019:namibia_irs_structures to pg
--- requires: reveal_transaction_tables:structures
+-- requires: reveal_transaction_tables:locations
 -- requires: reveal_transaction_tables:events
 -- requires: reveal_transaction_tables:tasks
 -- requires: utils:refresh_mat_views
@@ -11,13 +11,13 @@ SET search_path TO :"schema",public;
 CREATE MATERIALIZED VIEW IF NOT EXISTS namibia_irs_structures
 AS
 SELECT
-    structures.id AS structure_id,
-    structures.jurisdiction_id AS structure_jurisdiction_id,
-    structures.code AS structure_code,
-    structures.name AS structure_name,
-    structures.type AS structure_type,
-    structures.geometry AS structure_geometry,
-    structures.status AS structure_status,
+    locations.id AS structure_id,
+    locations.jurisdiction_id AS structure_jurisdiction_id,
+    locations.code AS structure_code,
+    locations.name AS structure_name,
+    locations.type AS structure_type,
+    locations.geometry AS structure_geometry,
+    locations.status AS structure_status,
     events_query.event_id AS event_id,
     events_query.task_id AS task_id,
     events_query.plan_id AS plan_id,
@@ -42,7 +42,7 @@ SELECT
     COALESCE(events_query.refusalReasonFirst_values, ARRAY[]::varchar[]) AS refusalReasonFirst_values,
     COALESCE(events_query.unsprayedReasonMop_values, ARRAY[]::varchar[]) AS unsprayedReasonMop_values,
     COALESCE(events_query.refusalReasonMop_values, ARRAY[]::varchar[]) AS refusalReasonMop_values
-FROM structures
+FROM locations
 LEFT JOIN LATERAL (
     SELECT
         subq.event_id AS event_id,
@@ -98,7 +98,7 @@ LEFT JOIN LATERAL (
         FROM events
         LEFT JOIN tasks
             ON tasks.identifier = events.task_id
-        WHERE structures.id = events.base_entity_id
+        WHERE locations.id = events.base_entity_id
         AND events.entity_type = 'Structure'
         AND events.event_type = 'Spray'
         ORDER BY task_id, event_date DESC
