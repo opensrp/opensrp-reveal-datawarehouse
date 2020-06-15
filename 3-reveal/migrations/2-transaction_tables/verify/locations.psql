@@ -1,4 +1,4 @@
--- Verify reveal_migrations:structures on pg
+-- Verify reveal_migrations:locations on pg
 
 BEGIN;
 
@@ -20,14 +20,14 @@ SELECT
     version,
     version,
     server_version
-FROM structures
+FROM locations
 WHERE FALSE;
 
 -- check primary key
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_constraint
 WHERE
-conname = 'structures_pkey'
+conname = 'locations_pkey'
 AND contype = 'p'
 AND 1 = ALL(conkey);
 
@@ -35,7 +35,7 @@ AND 1 = ALL(conkey);
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_constraint
 WHERE
-conname = 'fk_structures_jurisdictions'
+conname = 'fk_locations_jurisdictions'
 AND contype = 'f'
 AND 4 = ALL(conkey)
 AND 1 = ALL(confkey);
@@ -43,7 +43,7 @@ AND 1 = ALL(confkey);
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_constraint
 WHERE
-conname = 'fk_structures_raw_structures'
+conname = 'fk_locations_raw_locations'
 AND contype = 'f'
 AND 1 = ALL(conkey)
 AND 1 = ALL(confkey);
@@ -67,11 +67,11 @@ END
 $func$ LANGUAGE plpgsql;
 --- end
 
--- you should not be able to insert a structure without existing jurisdiction or raw_structure
+-- you should not be able to insert a location without existing jurisdiction or raw_location
 SELECT 1/COUNT(*)
 FROM util_exception_query(
 $$
-INSERT INTO structures
+INSERT INTO locations
 VALUES (
     '123e4567-mosh-12d3-a456-426655440000',
     NOW(),
@@ -79,7 +79,7 @@ VALUES (
     '123e4567-mosh-12d3-a456-426655440000',
     '123e4567-mosh-12d3-a456-426655440000',
     'some-type',
-    'structure 1',
+    'location 1',
     'Active',
     ST_GeomFromGeoJSON('{"type":"MultiPolygon","coordinates":[[[]]]}'),
     5,
@@ -96,43 +96,43 @@ SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'structures'
-AND indexname = 'structure_uid_idx';
+AND tablename = 'locations'
+AND indexname = 'location_uid_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'structures'
-AND indexname = 'structure_code_idx';
+AND tablename = 'locations'
+AND indexname = 'location_code_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'structures'
-AND indexname = 'structures_server_version_idx';
+AND tablename = 'locations'
+AND indexname = 'locations_server_version_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'structures'
-AND indexname = 'structures_jurisdiction_id_idx';
+AND tablename = 'locations'
+AND indexname = 'locations_jurisdiction_id_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'structures'
-AND indexname = 'structures_id_n_jurisdiction_id_idx';
+AND tablename = 'locations'
+AND indexname = 'locations_id_n_jurisdiction_id_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'structures'
+AND tablename = 'locations'
 AND indexdef LIKE '%gist (geometry)%'
-AND indexname = 'structures_geom_gix';
+AND indexname = 'locations_geom_gix';
 
 ROLLBACK;

@@ -51,20 +51,20 @@ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION missing_subject_tasks(INT) RETURNS TEXT[] AS
 $$
 -- Returns an array of task ids for tasks with subjects that don't
--- exist as structures, jurisdictions (structures), or clients
+-- exist as locations (structures), jurisdictions, or clients
 DECLARE tasks TEXT[];
 BEGIN
     SELECT array(
       SELECT DISTINCT tasks.identifier
       FROM tasks
-        LEFT OUTER JOIN structures ON
-            structures.id = tasks.task_for
+        LEFT OUTER JOIN locations ON
+            locations.id = tasks.task_for
         LEFT OUTER JOIN jurisdictions ON
             jurisdictions.id = tasks.task_for
         LEFT OUTER JOIN clients ON
             clients.baseEntityId = tasks.task_for
       WHERE
-        structures.id IS NULL AND
+        locations.id IS NULL AND
         jurisdictions.id IS NULL AND
         clients.baseEntityId IS NULL
       LIMIT $1

@@ -8,7 +8,7 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 -- this function adds a structure to the structure_geo_hierarchy_structure_queue
--- table after insert or update on the structures table
+-- table after insert or update on the locations table
 CREATE OR REPLACE FUNCTION process_structure_geo_hierarchy()
 RETURNS trigger AS
 $$
@@ -23,11 +23,11 @@ $$
 LANGUAGE plpgsql;
 
 -- DROP the trigger if it exists
-DROP TRIGGER IF EXISTS process_structure_geo_hierarchy_trigger ON structures;
--- this trigger runs after INSERT or UPDATE on structures table
+DROP TRIGGER IF EXISTS process_structure_geo_hierarchy_trigger ON locations;
+-- this trigger runs after INSERT or UPDATE on locations table
 CREATE TRIGGER process_structure_geo_hierarchy_trigger
   AFTER INSERT OR UPDATE
-  ON structures
+  ON locations
   FOR EACH ROW
   EXECUTE PROCEDURE process_structure_geo_hierarchy();
 
@@ -47,7 +47,7 @@ $$
 LANGUAGE plpgsql;
 
 -- DROP the trigger if it exists
-DROP TRIGGER IF EXISTS jurisdiction_create_structure_geo_hierarchy_trigger ON structures;
+DROP TRIGGER IF EXISTS jurisdiction_create_structure_geo_hierarchy_trigger ON jurisdictions;
 -- this trigger runs after UPDATE on jurisdictions table
 CREATE TRIGGER jurisdiction_create_structure_geo_hierarchy_trigger
   AFTER INSERT OR UPDATE

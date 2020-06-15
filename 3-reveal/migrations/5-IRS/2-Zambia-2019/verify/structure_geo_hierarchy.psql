@@ -26,7 +26,7 @@ AND 1 = ALL(conkey);
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_constraint
 WHERE
-conname = 'fk_structure_geo_hierarchy_structures'
+conname = 'fk_structure_geo_hierarchy_locations'
 AND contype = 'f'
 AND 1 = ALL(conkey)
 AND 1 = ALL(confkey);

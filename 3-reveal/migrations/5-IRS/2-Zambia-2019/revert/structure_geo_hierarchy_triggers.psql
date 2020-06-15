@@ -5,7 +5,7 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 DROP TRIGGER IF EXISTS process_structure_geo_hierarchy_trigger
-  ON structures;
+  ON locations;
 
 DROP TRIGGER IF EXISTS jurisdiction_create_structure_geo_hierarchy_trigger
   ON jurisdictions;

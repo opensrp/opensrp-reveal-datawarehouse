@@ -27,12 +27,12 @@ The Reveal data comes from an [OpenSRP server](https://github.com/OpenSRP/opensr
 OpenSRP Entity|Raw Data Table
 ---|---
 Events| raw_events
-Structures|raw_structures
+Locations|raw_locations
 Jurisdictions|raw_jurisdictions
 Tasks|raw_tasks
 Plans|raw_plans
 
-\* "Structures" as used in this document can be defined as OpenSRP locations that are not jurisdictions, i.e. which have `is_jurisdiction=False`.
+\* "Locations" as used in this document can be defined as OpenSRP locations that are not jurisdictions, i.e. which have `is_jurisdiction=False`.
 
 More information on the raw tables is [here](2-common-migrations/README.md) (for raw_events) and [here](3-reveal/migrations/1-raw_tables/README.md) (for the rest).
 
@@ -50,7 +50,7 @@ These are the resulting "transaction" tables:
 - jurisdictions
 - plan_jurisdiction
 - plans
-- structures
+- locations
 - tasks
 
 More information [here](3-reveal/migrations/2-transaction_tables/README.md).

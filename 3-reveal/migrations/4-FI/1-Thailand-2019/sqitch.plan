@@ -2,5 +2,5 @@
 %project=reveal_fi_thailand_2019
 %uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/reveal/FI/thailand-2019
 
-task_structures_materialized_view [reveal_transaction_tables:tasks reveal_transaction_tables:actions reveal_transaction_tables:jurisdictions reveal_transaction_tables:structures reveal_transaction_tables:clients utils:refresh_mat_views] 2020-04-22T08:44:04Z mosh <kjayanoris@ona.io> # Add task_structures_materialized_view.
+task_structures_materialized_view [reveal_transaction_tables:tasks reveal_transaction_tables:actions reveal_transaction_tables:jurisdictions reveal_transaction_tables:locations reveal_transaction_tables:clients utils:refresh_mat_views] 2020-04-22T08:44:04Z mosh <kjayanoris@ona.io> # Add task_structures_materialized_view.
 targets_materialized_view [reveal_transaction_tables:goal_target reveal_transaction_tables:actions reveal_transaction_tables:plan_jurisdiction reveal_transaction_tables:tasks utils:refresh_mat_views] 2020-04-22T09:00:27Z mosh <kjayanoris@ona.io> # Add targets_materialized_view.

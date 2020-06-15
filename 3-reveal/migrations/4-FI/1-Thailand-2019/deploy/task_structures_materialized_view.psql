@@ -2,7 +2,7 @@
 -- requires: reveal_transaction_tables:tasks
 -- requires: reveal_transaction_tables:actions
 -- requires: reveal_transaction_tables:jurisdictions
--- requires: reveal_transaction_tables:structures
+-- requires: reveal_transaction_tables:locations
 -- requires: reveal_transaction_tables:clients
 -- requires: utils:refresh_mat_views
 
@@ -38,27 +38,27 @@ LEFT JOIN jurisdictions
     ON jurisdictions.id = tasks.group_identifier
 LEFT JOIN LATERAL (
     SELECT
-        DISTINCT ON (structures.id)
-        structures.id AS id,
-        structures.code AS code,
-        structures.name AS name,
-        structures.type AS type,
-        structures.geometry AS geometry
-    FROM structures
-    WHERE structures.id = tasks.task_for
-    AND structures.jurisdiction_id = jurisdictions.id
+        DISTINCT ON (locations.id)
+        locations.id AS id,
+        locations.code AS code,
+        locations.name AS name,
+        locations.type AS type,
+        locations.geometry AS geometry
+    FROM locations
+    WHERE locations.id = tasks.task_for
+    AND locations.jurisdiction_id = jurisdictions.id
 ) AS structures_query ON true
 LEFT JOIN LATERAL (
     SELECT
-        DISTINCT ON (structures.id)
-        structures.id AS id,
-        structures.code AS code,
-        structures.name AS name,
-        structures.type AS type,
-        structures.geometry AS geometry
+        DISTINCT ON (locations.id)
+        locations.id AS id,
+        locations.code AS code,
+        locations.name AS name,
+        locations.type AS type,
+        locations.geometry AS geometry
     FROM clients
-    LEFT JOIN structures
-    ON structures.id = clients.residence
+    LEFT JOIN locations
+    ON locations.id = clients.residence
     WHERE clients.baseEntityId = tasks.task_for
 ) AS structures_query2 ON true
 ORDER BY tasks.identifier;
