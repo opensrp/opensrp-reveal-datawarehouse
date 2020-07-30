@@ -35,9 +35,12 @@ SELECT * FROM
         jurisdictions_query.sprayedStruct AS sprayedStruct,
         CASE WHEN jurisdictions_query.is_virtual_jurisdiction THEN 0 ELSE jurisdictions_query.totAreas END AS totAreas,
         CASE WHEN jurisdictions_query.is_virtual_jurisdiction THEN 0 ELSE jurisdictions_query.targAreas END AS targAreas,
+        CASE WHEN jurisdictions_query.is_virtual_jurisdiction THEN 0 ELSE jurisdictions_query.visitedAreas END AS visitedAreas,
         jurisdictions_query.targStruct AS targStruct,
         jurisdictions_query.perctVisAreasEffect AS perctVisAreasEffect,
         jurisdictions_query.sprayCovTarg AS sprayCovTarg,
+        jurisdictions_query.foundCoverage AS foundCoverage,
+        jurisdictions_query.spraySuccess AS spraySuccess,
         jurisdictions_query.roomCov AS roomCov
     FROM plans
     LEFT JOIN LATERAL
@@ -63,6 +66,7 @@ SELECT * FROM
             zambia_focus_area_irs_query.totAreas AS totAreas,
             zambia_focus_area_irs_query.targAreas AS targAreas,
             zambia_focus_area_irs_query.targStruct AS targStruct,
+            zambia_focus_area_irs_query.visitedAreas AS visitedAreas,
             CASE
                 WHEN zambia_focus_area_irs_query.sprayCovAboveMin = 0 THEN 0
                 ELSE CAST(zambia_focus_area_irs_query.sprayCovHigh AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.sprayCovAboveMin AS DECIMAL(10,4))
@@ -71,6 +75,14 @@ SELECT * FROM
                 WHEN zambia_focus_area_irs_query.totStruct = 0 THEN 0
                 ELSE CAST(zambia_focus_area_irs_query.sprayedStruct AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.totStruct AS DECIMAL(10,4))
             END AS sprayCovTarg,
+            CASE
+                WHEN zambia_focus_area_irs_query.totStruct = 0 THEN 0
+                ELSE CAST(zambia_focus_area_irs_query.foundStruct AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.totStruct AS DECIMAL(10,4))
+            END AS foundCoverage,
+            CASE
+                WHEN zambia_focus_area_irs_query.foundStruct = 0 THEN 0
+                ELSE CAST(zambia_focus_area_irs_query.sprayedStruct AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.foundStruct AS DECIMAL(10,4))
+            END AS spraySuccess,
             CASE
                 WHEN zambia_focus_area_irs_query.sprayed_rooms_eligible = 0 THEN 0
                 ELSE CAST(zambia_focus_area_irs_query.sprayed_rooms_sprayed AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.sprayed_rooms_eligible AS DECIMAL(10,4))
@@ -82,6 +94,7 @@ SELECT * FROM
                 -- TODO targAreas
                 COALESCE(COUNT(jurisdiction_id), 0) AS targAreas,
                 COALESCE(SUM(targStruct), 0) AS targStruct,
+                COALESCE(COUNT(jurisdiction_id) FILTER (WHERE foundStruct > 0), 0) AS visitedAreas,
                 COALESCE(COUNT(jurisdiction_id) FILTER (WHERE sprayCov > 0.85), 0) AS sprayCovHigh,
                 COALESCE(COUNT(jurisdiction_id) FILTER (WHERE sprayCov > 0.20 AND sprayCov < 0.85), 0) AS sprayCovLow,
                 COALESCE(COUNT(jurisdiction_id) FILTER (WHERE sprayCov > 0.20), 0) AS sprayCovAboveMin,
