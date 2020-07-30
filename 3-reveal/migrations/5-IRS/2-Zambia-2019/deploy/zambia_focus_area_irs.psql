@@ -54,6 +54,7 @@ SELECT * FROM
             WHEN irs_structures.foundStruct = 0 THEN 0
             ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))/CAST(irs_structures.foundStruct AS DECIMAL(7,2))
         END AS spraySuccess,
+        (CAST(irs_structures.totStruct AS DECIMAL(7,2)) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL(7,2)) AS "structures_remaining_to_90%_se",
         CASE
             WHEN irs_structures.sprayed_rooms_eligible = 0 THEN 0
             ELSE CAST(irs_structures.sprayed_rooms_sprayed AS DECIMAL(7,2))/CAST(irs_structures.sprayed_rooms_eligible AS DECIMAL(7,2))
