@@ -42,10 +42,7 @@ SELECT * FROM
         irs_structures.sprayed_duplicates AS sprayed_duplicates,
         COALESCE(irs_structures.notsprayed_reasons, '{}') AS notsprayed_reasons,
         COALESCE(count_elements(irs_structures.notsprayed_reasons), '{}'::json) AS notsprayed_reasons_counts,
-        CASE
-            WHEN irs_structures.totStruct = 0 THEN 0
-            ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))/CAST(irs_structures.totStruct AS DECIMAL(7,2))
-        END AS sprayCov,
+        coverage_query.sprayCov AS sprayCov,
         CASE
             WHEN irs_structures.totStruct = 0 THEN 0
             ELSE CAST(irs_structures.foundStruct AS DECIMAL(7,2))/CAST(irs_structures.totStruct AS DECIMAL(7,2))
@@ -54,12 +51,16 @@ SELECT * FROM
             WHEN irs_structures.foundStruct = 0 THEN 0
             ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))/CAST(irs_structures.foundStruct AS DECIMAL(7,2))
         END AS spraySuccess,
-        (CAST(irs_structures.totStruct AS DECIMAL(7,2)) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL(7,2)) AS "structures_remaining_to_90%_se",
+        (CAST(irs_structures.totStruct AS DECIMAL(7,2)) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL(7,2)) AS structures_remaining_to_90_se,
         CASE
             WHEN irs_structures.sprayed_rooms_eligible = 0 THEN 0
             ELSE CAST(irs_structures.sprayed_rooms_sprayed AS DECIMAL(7,2))/CAST(irs_structures.sprayed_rooms_eligible AS DECIMAL(7,2))
-        END AS roomCov
-        -- TODO: Mob
+        END AS roomCov,
+        CASE
+            WHEN coverage_query.sprayCov = 0 THEN 'n/a'
+            WHEN coverage_query.sprayCov > 0.9 THEN '0'
+            ELSE 'Not done'
+        END AS reviewed_with_decision
     FROM plans
     LEFT JOIN zambia_plan_jurisdictions
         ON plans.identifier = zambia_plan_jurisdictions.plan_id
@@ -85,6 +86,13 @@ SELECT * FROM
             business_status NOT IN ('Not Eligible', 'No Tasks') AND
             (plans.identifier = zambia_irs_structures.plan_id OR zambia_irs_structures.plan_id IS NULL)
     ) AS irs_structures ON true
+    LEFT JOIN LATERAL (
+        SELECT
+            CASE
+                WHEN irs_structures.totStruct = 0 THEN 0
+                ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))/CAST(irs_structures.totStruct AS DECIMAL(7,2))
+            END AS sprayCov
+    ) AS coverage_query ON true
     LEFT JOIN LATERAL (
         SELECT
             COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('Not Eligible')), 0) AS notEligible,
