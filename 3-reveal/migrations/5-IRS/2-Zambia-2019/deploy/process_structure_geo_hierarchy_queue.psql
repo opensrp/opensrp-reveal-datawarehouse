@@ -12,6 +12,7 @@ CREATE FUNCTION process_structure_geo_hierarchy_structure_queue(num_rows INTEGER
 -- this function processes all the locations in the structure_geo_hierarchy_structure_queue table
 DECLARE
     structure_row locations%ROWTYPE;
+    structure_row_result BOOLEAN;
 BEGIN
 
     FOR structure_row IN
@@ -23,10 +24,12 @@ BEGIN
         LIMIT (num_rows)
     LOOP
         -- next lets process them
-        PERFORM create_structure_geo_hierarchy(structure_row);
-        -- finally delete the locations from the queue
-        DELETE FROM structure_geo_hierarchy_structure_queue
-        WHERE structure_id = structure_row.id;
+        SELECT create_structure_geo_hierarchy(structure_row) INTO structure_row_result;
+        IF FOUND AND structure_row_result THEN
+            -- finally delete the locations from the queue
+            DELETE FROM structure_geo_hierarchy_structure_queue
+            WHERE structure_id = structure_row.id;
+        END IF;
     END LOOP;
 
 END;
