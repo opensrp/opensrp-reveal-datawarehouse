@@ -83,11 +83,13 @@ CREATE FUNCTION process_structure_geo_hierarchy_jurisdiction_queue() RETURNS VOI
 -- might need to be reprocessed
 -- this function (re)processes all the locations in the locations table
 -- WARNING: this is an expensive query!!
+DECLARE
+    queue_count INTEGER;
 BEGIN
-
-    -- (re)process all locations
-    PERFORM process_structure_geo_hierarchy_full();
-
+    SELECT count(id) FROM structure_geo_hierarchy_jurisdiction_queue INTO queue_count;
+    IF queue_count > 0 THEN
+        PERFORM process_structure_geo_hierarchy_full();
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
