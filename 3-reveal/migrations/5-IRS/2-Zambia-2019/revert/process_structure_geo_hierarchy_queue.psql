@@ -6,5 +6,6 @@ SET search_path TO :"schema",public;
 
 DROP FUNCTION process_structure_geo_hierarchy_structure_queue;
 DROP FUNCTION process_structure_geo_hierarchy_jurisdiction_queue;
+DROP FUNCTION process_structure_geo_hierarchy_full;
 
 COMMIT;

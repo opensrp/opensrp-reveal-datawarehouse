@@ -157,6 +157,32 @@ SELECT 1/COUNT(*)
 FROM (SELECT count(*) FROM structure_geo_hierarchy_structure_queue) AS foo
 WHERE count = 1;  -- we one records
 
+-- TEST process_structure_geo_hierarchy_full
+
+-- clear data
+TRUNCATE structure_geo_hierarchy;
+TRUNCATE structure_geo_hierarchy_structure_queue;
+
+-- lets put some stuff in the queue
+INSERT INTO structure_geo_hierarchy_structure_queue
+VALUES
+(uuid_generate_v1(), '0006b3dc-mosh-420e-970b-5b69597d80b2'),
+(uuid_generate_v1(), '023bd6d7-mosh-4194-907a-2f5c3bfcf4bb'),
+(uuid_generate_v1(), '023bd6d7-mosh-4194-133a-2f5c3bfcf4bb');  -- will fail
+
+-- lets process our queue
+SELECT process_structure_geo_hierarchy_full();
+
+-- should result in structure_geo_hierarchy records
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM structure_geo_hierarchy) AS foo
+WHERE count = 2;  -- we now have two records
+
+-- the queue should be only have '023bd6d7-mosh-4194-133a-2f5c3bfcf4bb' afterwards
+SELECT 1/COUNT(*)
+FROM (SELECT count(*) FROM structure_geo_hierarchy_structure_queue) AS foo
+WHERE count = 1;  -- we one records
+
 -- TEST process_structure_geo_hierarchy_jurisdiction_queue
 
 -- clear data

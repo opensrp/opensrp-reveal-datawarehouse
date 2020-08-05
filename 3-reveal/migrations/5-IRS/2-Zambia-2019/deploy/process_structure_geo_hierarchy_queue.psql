@@ -8,6 +8,47 @@ BEGIN;
 -- :"schema" variable - and default to public.
 SET search_path TO :"schema",public;
 
+CREATE FUNCTION process_structure_geo_hierarchy_full() RETURNS VOID AS $$
+-- this function is used when we need to reprocess all locations
+-- WARNING: this is an expensive query!!
+BEGIN
+    -- first drop structure_geo_hierarchy_full
+    DROP MATERIALIZED VIEW IF EXISTS structure_geo_hierarchy_full;
+    -- then recreate it
+    CREATE MATERIALIZED VIEW structure_geo_hierarchy_full AS
+    SELECT
+            DISTINCT ON (locations.id) locations.id AS id,
+            jurisdictions.id AS jurisdiction_id,
+            jurisdictions.geographic_level AS jurisdiction_depth,
+            geo_jurisdictions.id AS geo_jurisdiction_id,
+            geo_jurisdictions.geographic_level AS geo_jurisdiction_depth,
+            public.ST_WITHIN(locations.geometry, geo_jurisdictions.geometry) AS geo_strict_within
+        FROM locations
+        LEFT JOIN jurisdictions
+            AS geo_jurisdictions
+            ON public.ST_DWITHIN(locations.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0)
+        LEFT JOIN jurisdictions
+            AS jurisdictions
+            ON jurisdictions.id = locations.jurisdiction_id
+        WHERE geo_jurisdictions.status = 'Active'
+        ORDER BY
+            locations.id ASC,
+            geo_jurisdictions.geographic_level DESC,
+            CASE
+                WHEN geo_jurisdictions.id = locations.jurisdiction_id THEN 0
+                ELSE 1
+            END ASC,
+            geo_jurisdictions.id ASC;
+    -- empty structure_geo_hierarchy
+    TRUNCATE structure_geo_hierarchy;
+    -- repopulatestructure_geo_hierarchy
+    INSERT INTO structure_geo_hierarchy SELECT * from structure_geo_hierarchy_full;
+    -- empty the queues
+    DELETE FROM structure_geo_hierarchy_structure_queue WHERE structure_id IN (SELECT id FROM structure_geo_hierarchy);
+    TRUNCATE structure_geo_hierarchy_jurisdiction_queue;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE FUNCTION process_structure_geo_hierarchy_structure_queue(num_rows INTEGER DEFAULT 1000) RETURNS VOID AS $$
 -- this function processes all the locations in the structure_geo_hierarchy_structure_queue table
 DECLARE
@@ -45,9 +86,7 @@ CREATE FUNCTION process_structure_geo_hierarchy_jurisdiction_queue() RETURNS VOI
 BEGIN
 
     -- (re)process all locations
-    PERFORM create_structure_geo_hierarchy(locations.*) FROM locations;
-    -- then empty the queue
-    TRUNCATE structure_geo_hierarchy_jurisdiction_queue;
+    PERFORM process_structure_geo_hierarchy_full();
 
 END;
 $$ LANGUAGE plpgsql;
