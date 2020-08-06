@@ -1,0 +1,19 @@
+-- Verify reveal_raw_tables:raw_clients on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT id, server_version, data
+FROM raw_clients
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'raw_clients_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+ROLLBACK;
