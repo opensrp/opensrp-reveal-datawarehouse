@@ -1,4 +1,4 @@
---DROP MATERIALIZED VIEW pending.ntd_dispense_task_report
+--DROP MATERIALIZED VIEW pending.ntd_dispense_task_report CASCADE
 CREATE MATERIALIZED VIEW pending.ntd_dispense_task_report AS
 (WITH ntd_dispense_event_details AS
     (
@@ -20,7 +20,6 @@ CREATE MATERIALIZED VIEW pending.ntd_dispense_task_report AS
         GROUP BY event_id
     )
 SELECT
-    uuid_generate_v4() AS report_id,
     ntd_client_dispense_tasks.*,
     --
     clients.baseentityid AS client_base_entity_id,
@@ -43,18 +42,19 @@ SELECT
     ntd_dispense_event_details.nPzqNondistributeReason AS nPzqNondistributeReason,
     --
     tasks.status AS task_status,
+    tasks.code AS task_code,
     tasks.business_status AS task_business_status,
-    CASE WHEN business_status <> 'Ineligile' AND code = 'Structure Visited' THEN 1 ELSE 0 END AS structures_visited,
+    CASE WHEN (tasks.business_status <> 'Ineligible' AND tasks.business_status <> 'Not Visited') AND tasks.code ='Structures Visited' THEN 1 ELSE 0 END AS structures_visited,
+    CASE WHEN (tasks.business_status <> 'Ineligible') AND tasks.code ='Structures Visited'  THEN 1 ELSE 0 END AS all_structures,
     --
     COALESCE(task_jurisdiction_paths.jurisdiction_path, client_jurisdiction_paths.jurisdiction_path) AS jurisdiction_id_path,
     COALESCE(task_jurisdiction_paths.jurisdiction_name_path, client_jurisdiction_paths.jurisdiction_name_path) AS jurisdiction_name_path
 
-FROM 
-(
+FROM pending.ntd_client_dispense_tasks AS ntd_client_dispense_tasks
+LEFT JOIN (
     SELECT *
     FROM ntd_dispense_event_details 
     WHERE nPzqDistribute IS NOT NULL ) ntd_dispense_event_details
-LEFT JOIN  pending.ntd_client_dispense_tasks AS ntd_client_dispense_tasks
     ON ntd_dispense_event_details.task_id = ntd_client_dispense_tasks.task_id
 LEFT JOIN reveal_stage.clients
     ON ntd_client_dispense_tasks.client_id = clients.id
@@ -82,6 +82,3 @@ SELECT jurisdiction_id,
        jurisdiction_root_parent_name
 FROM reveal_stage.jurisdictions_materialized_view) AS client_jurisdiction_paths
     ON ntd_client_dispense_tasks.jurisdiction_id = client_jurisdiction_paths.jurisdiction_id) WITH DATA;
-
--- Create unique ID
-CREATE UNIQUE INDEX IF NOT EXISTS ntd_dispense_task_report_index ON pending.ntd_dispense_task_report (report_id);
