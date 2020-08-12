@@ -1,6 +1,6 @@
 --DROP VIEW pending.ntd_client_dispense_tasks CASCADE
 CREATE MATERIALIZED VIEW pending.ntd_client_dispense_tasks AS
-SELECT
+(SELECT
     ntd_plans.identifier AS plan_id,
     plan_jurisdictions.jurisdiction_id AS jurisdiction_id,
     clients.id AS client_id,
@@ -57,4 +57,4 @@ LEFT JOIN
             events.server_version DESC
     ) AS task_events
     ON clients.baseentityid = task_events.base_entity_id AND
-       ntd_tasks.identifier = task_events.task_id;
+       ntd_tasks.identifier = task_events.task_id) WITH DATA;

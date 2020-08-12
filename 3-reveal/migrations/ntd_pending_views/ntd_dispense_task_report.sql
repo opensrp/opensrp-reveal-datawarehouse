@@ -1,6 +1,6 @@
---DROP MATERIALIZED VIEW pending.ntd_dispense_task_report 
+--DROP MATERIALIZED VIEW pending.ntd_dispense_task_report
 CREATE MATERIALIZED VIEW pending.ntd_dispense_task_report AS
-WITH ntd_dispense_event_details AS
+(WITH ntd_dispense_event_details AS
     (
         SELECT
             id as event_id,
@@ -20,17 +20,18 @@ WITH ntd_dispense_event_details AS
         GROUP BY event_id
     )
 SELECT
+    uuid_generate_v4() AS report_id,
     ntd_client_dispense_tasks.*,
     --
     clients.baseentityid AS client_base_entity_id,
     clients.gender as client_gender,
     clients.birthdate as client_birthdate,
-    EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd'))) as client_age,
-    CASE WHEN EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT >=  0  AND EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT < 6  THEN '< 6'
-         WHEN EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT >=  6  AND EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT <= 10  THEN '6 - 10'
-         WHEN EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT >=  11  AND EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT <= 15  THEN '11 - 15'
-         WHEN EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT >=  16  AND EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT <= 18  THEN '16 - 18'
-         WHEN EXTRACT(YEAR from AGE(to_date(clients.birthdate::text, 'yyyymmdd')))::INT > 18  THEN 'Adult'  ELSE NULL END AS client_age_category,
+    EXTRACT(YEAR from AGE(clients.birthdate)) as client_age,
+    CASE WHEN EXTRACT(YEAR from AGE(clients.birthdate))::INT >=  0  AND EXTRACT(YEAR from AGE(clients.birthdate))::INT < 6  THEN '< 6'
+         WHEN EXTRACT(YEAR from AGE(clients.birthdate))::INT >=  6  AND EXTRACT(YEAR from AGE(clients.birthdate))::INT <= 10  THEN '6 - 10'
+         WHEN EXTRACT(YEAR from AGE(clients.birthdate))::INT >=  11  AND EXTRACT(YEAR from AGE(clients.birthdate))::INT <= 15  THEN '11 - 15'
+         WHEN EXTRACT(YEAR from AGE(clients.birthdate))::INT >=  16  AND EXTRACT(YEAR from AGE(clients.birthdate))::INT <= 18  THEN '16 - 18'
+         WHEN EXTRACT(YEAR from AGE(clients.birthdate))::INT > 18  THEN 'Adult'  ELSE NULL END AS client_age_category,
     --
     ntd_dispense_event_details.event_type AS event_type,
     ntd_dispense_event_details.event_date AS event_date,
@@ -43,6 +44,7 @@ SELECT
     --
     tasks.status AS task_status,
     tasks.business_status AS task_business_status,
+    CASE WHEN business_status <> 'Ineligile' AND code = 'Structure Visited' THEN 1 ELSE 0 END AS structures_visited,
     --
     COALESCE(task_jurisdiction_paths.jurisdiction_path, client_jurisdiction_paths.jurisdiction_path) AS jurisdiction_id_path,
     COALESCE(task_jurisdiction_paths.jurisdiction_name_path, client_jurisdiction_paths.jurisdiction_name_path) AS jurisdiction_name_path
@@ -79,4 +81,7 @@ SELECT jurisdiction_id,
        jurisdiction_root_parent_id,
        jurisdiction_root_parent_name
 FROM reveal_stage.jurisdictions_materialized_view) AS client_jurisdiction_paths
-    ON ntd_client_dispense_tasks.jurisdiction_id = client_jurisdiction_paths.jurisdiction_id;
+    ON ntd_client_dispense_tasks.jurisdiction_id = client_jurisdiction_paths.jurisdiction_id) WITH DATA;
+
+-- Create unique ID
+CREATE UNIQUE INDEX IF NOT EXISTS ntd_dispense_task_report_index ON pending.ntd_dispense_task_report (report_id);

@@ -1,6 +1,6 @@
 --DROP MATERIALIZED VIEW pending.ntd_dispense_task_jurisdiction_report 
 CREATE MATERIALIZED VIEW pending.ntd_dispense_task_jurisdiction_report AS
-WITH all_plan_jurisdiction_paths AS (
+(WITH all_plan_jurisdiction_paths AS (
     SELECT
         top_level_plan_jurisdictions.plan_id,
         subset_jurisdiction_paths.*
@@ -36,7 +36,7 @@ WITH all_plan_jurisdiction_paths AS (
 -- ... now aggregate across all plan jurisdictions
 --
 SELECT
-
+    uuid_generate_v4() AS unique_id,
     all_plan_jurisdiction_paths.plan_id,
     all_plan_jurisdiction_paths.jurisdiction_id,
     MAX(all_plan_jurisdiction_paths.jurisdiction_depth) AS jurisdiction_depth,
@@ -63,5 +63,7 @@ LEFT JOIN
     ON all_plan_jurisdiction_paths.plan_id = ntd_dispense_task_report_ext.plan_id AND
        ARRAY[all_plan_jurisdiction_paths.jurisdiction_id] <@ ntd_dispense_task_report_ext.jurisdiction_id_path
 GROUP BY
-    all_plan_jurisdiction_paths.plan_id, all_plan_jurisdiction_paths.jurisdiction_id, all_plan_jurisdiction_paths.jurisdiction_depth, all_plan_jurisdiction_paths.jurisdiction_name
-    
+    all_plan_jurisdiction_paths.plan_id, all_plan_jurisdiction_paths.jurisdiction_id, all_plan_jurisdiction_paths.jurisdiction_depth, all_plan_jurisdiction_paths.jurisdiction_name)WITH DATA;
+
+ -- Create unique ID
+CREATE UNIQUE INDEX IF NOT EXISTS ntd_dispense_task_jurisdiction_report_index ON pending.ntd_dispense_task_jurisdiction_report (unique_id);  
