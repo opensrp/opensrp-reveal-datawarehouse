@@ -1,4 +1,4 @@
---DROP MATERIALIZED VIEW pending.ntd_dispense_task_jurisdiction_report;
+-- DROP MATERIALIZED VIEW pending.ntd_dispense_task_jurisdiction_report;
 CREATE MATERIALIZED VIEW pending.ntd_dispense_task_jurisdiction_report AS
 (WITH all_plan_jurisdiction_paths AS (
     SELECT
@@ -46,14 +46,15 @@ CREATE MATERIALIZED VIEW pending.ntd_dispense_task_jurisdiction_report AS
 -- ... now aggregate across all plan jurisdictions
 --
 SELECT
-    uuid_generate_v5(
+    public.uuid_generate_v5(
             '38f6f2d5-4e1e-42cc-9d21-c2e71710f2b7',
             concat(all_plan_jurisdiction_paths.plan_id, all_plan_jurisdiction_paths.jurisdiction_id)) AS id,
     all_plan_jurisdiction_paths.plan_id,
     all_plan_jurisdiction_paths.jurisdiction_id,
+    all_plan_jurisdiction_paths.jurisdiction_parent_id,
     all_plan_jurisdiction_paths.jurisdiction_name,
     MAX(all_plan_jurisdiction_paths.jurisdiction_depth) AS jurisdiction_depth,
-    MAX(all_plan_jurisdiction_paths.jurisdiction_path) AS jurisdiction_id_path,
+    MAX(all_plan_jurisdiction_paths.jurisdiction_path) AS jurisdiction_path,
     MAX(all_plan_jurisdiction_paths.jurisdiction_name_path) AS jurisdiction_name_path,
     -- Required metrics for each level
     COALESCE(SUM(registered_child), 0) AS sacregistered,
@@ -83,7 +84,15 @@ LEFT JOIN (
     ) AS settings
     ON settings.jurisdiction_id = all_plan_jurisdiction_paths.jurisdiction_id
 GROUP BY
-    id, all_plan_jurisdiction_paths.plan_id, all_plan_jurisdiction_paths.jurisdiction_id, all_plan_jurisdiction_paths.jurisdiction_depth, all_plan_jurisdiction_paths.jurisdiction_name, settings.population_total)WITH DATA;
+    id,
+    all_plan_jurisdiction_paths.plan_id,
+    all_plan_jurisdiction_paths.jurisdiction_id,
+    all_plan_jurisdiction_paths.jurisdiction_parent_id,
+    all_plan_jurisdiction_paths.jurisdiction_depth,
+    all_plan_jurisdiction_paths.jurisdiction_name,
+    settings.population_total
+) WITH DATA;
 
  -- Create unique ID
-CREATE UNIQUE INDEX IF NOT EXISTS ntd_dispense_task_jurisdiction_report_index ON pending.ntd_dispense_task_jurisdiction_report (id);  
+CREATE UNIQUE INDEX IF NOT EXISTS ntd_dispense_task_jurisdiction_report_index ON pending.ntd_dispense_task_jurisdiction_report (id);
+CREATE INDEX IF NOT EXISTS ntd_dispense_task_jurisdiction_report_plan_idx ON pending.ntd_dispense_task_jurisdiction_report (plan_id);
