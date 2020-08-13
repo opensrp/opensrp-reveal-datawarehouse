@@ -1,5 +1,6 @@
-CREATE VIEW pending.ntd_plans AS
-SELECT
+-- DROP MATERIALIZED VIEW pending.ntd_plans
+CREATE MATERIALIZED VIEW pending.ntd_plans AS
+(SELECT
     plans.identifier AS plan_id,
     plans.title AS plan_title,
     plans.name AS plan_name,
@@ -26,4 +27,7 @@ SELECT
     ) AS jurisdiction_root_parent_ids
 FROM reveal_stage.plans plans
 WHERE (plans.intervention_type = 'MDA-Point' OR plans.intervention_type = 'Dynamic-MDA' ) AND plans.status NOT IN ('draft')
-ORDER BY plans.date DESC;
+ORDER BY plans.date DESC) WITH DATA;
+
+-- Create unique ID
+CREATE UNIQUE INDEX IF NOT EXISTS ntd_plans_index ON pending.ntd_plans (plan_id);
