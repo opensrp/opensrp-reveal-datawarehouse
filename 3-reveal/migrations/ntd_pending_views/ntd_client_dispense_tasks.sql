@@ -1,6 +1,6 @@
 --DROP VIEW pending.ntd_client_dispense_tasks CASCADE
-CREATE MATERIALIZED VIEW pending.ntd_client_dispense_tasks AS
-(SELECT
+CREATE VIEW pending.ntd_client_dispense_tasks AS
+SELECT
     ntd_plans.identifier AS plan_id,
     plan_jurisdictions.jurisdiction_id AS jurisdiction_id,
     clients.id AS client_id,
@@ -17,7 +17,7 @@ FROM
         SELECT *
         FROM reveal_stage.plans
         WHERE
-            intervention_type = 'MDA-Point' AND
+            (intervention_type = 'Dynamic-MDA' OR intervention_type = 'MDA-Point')AND
             status = 'active'
     ) AS ntd_plans
 LEFT JOIN(
@@ -35,7 +35,7 @@ LEFT JOIN
     (
         SELECT *
         FROM reveal_stage.tasks
-        WHERE code = 'MDA Dispense'
+        WHERE code = 'MDA_Dispense' OR code ='NTD MDA Dispense'
     ) AS ntd_tasks
     ON ntd_plans.identifier = ntd_tasks.plan_identifier AND
        clients.baseentityid = ntd_tasks.task_for
@@ -57,4 +57,4 @@ LEFT JOIN
             events.server_version DESC
     ) AS task_events
     ON clients.baseentityid = task_events.base_entity_id AND
-       ntd_tasks.identifier = task_events.task_id) WITH DATA;
+       ntd_tasks.identifier = task_events.task_id;

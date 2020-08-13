@@ -1,6 +1,6 @@
---DROP MATERIALIZED VIEW pending.ntd_dispense_task_report CASCADE
-CREATE MATERIALIZED VIEW pending.ntd_dispense_task_report AS
-(WITH ntd_dispense_event_details AS
+--DROP VIEW pending.ntd_dispense_task_report CASCADE
+CREATE VIEW pending.ntd_dispense_task_report AS
+WITH ntd_dispense_event_details AS
     (
         SELECT
             id as event_id,
@@ -81,4 +81,4 @@ SELECT jurisdiction_id,
        jurisdiction_root_parent_id,
        jurisdiction_root_parent_name
 FROM reveal_stage.jurisdictions_materialized_view) AS client_jurisdiction_paths
-    ON ntd_client_dispense_tasks.jurisdiction_id = client_jurisdiction_paths.jurisdiction_id) WITH DATA;
+    ON ntd_client_dispense_tasks.jurisdiction_id = client_jurisdiction_paths.jurisdiction_id;
