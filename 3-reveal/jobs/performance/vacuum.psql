@@ -1,0 +1,12 @@
+--- vacuum the structures, tasks, and events tables
+--- run every night at around 3am
+
+-- stop running queries
+SELECT
+  pg_cancel_backend(pid) as canceled,
+FROM pg_stat_activity;
+
+-- vacuum stuff
+VACUUM (FULL, ANALYZE) tasks;
+VACUUM (FULL, ANALYZE) structures;
+VACUUM (FULL, ANALYZE) events;
