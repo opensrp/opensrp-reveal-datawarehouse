@@ -10,15 +10,15 @@ SELECT
     task_locations.parent_id AS task_jurisdiction_id,
     task_events.event_id AS event_id
 --
--- Get all MDA-Point plans and clients
+-- Get all Dynamic-MDA plans and clients
 --
 FROM
     (
         SELECT *
         FROM reveal_stage.plans
         WHERE
-            (intervention_type = 'Dynamic-MDA' OR intervention_type = 'MDA-Point')AND
-            status = 'active'
+            (intervention_type = 'Dynamic-MDA')AND
+            status IN ('active', 'complete')
     ) AS ntd_plans
 LEFT JOIN(
 SELECT jurisdiction_id, plan_id
@@ -35,7 +35,7 @@ LEFT JOIN
     (
         SELECT *
         FROM reveal_stage.tasks
-        WHERE code = 'MDA_Dispense' OR code ='NTD MDA Dispense'
+        WHERE code IN ( 'MDA_Dispense', 'Structure Visited')
     ) AS ntd_tasks
     ON ntd_plans.identifier = ntd_tasks.plan_identifier AND
        clients.baseentityid = ntd_tasks.task_for

@@ -45,7 +45,7 @@ SELECT
     tasks.code AS task_code,
     tasks.business_status AS task_business_status,
     CASE WHEN (tasks.business_status <> 'Ineligible' AND tasks.business_status <> 'Not Visited') AND tasks.code ='Structures Visited' THEN 1 ELSE 0 END AS structures_visited,
-    CASE WHEN (tasks.business_status <> 'Ineligible') AND tasks.code ='Structures Visited'  THEN 1 ELSE 0 END AS all_structures,
+    locations.structure_count  AS all_structures,
     --
     COALESCE(task_jurisdiction_paths.jurisdiction_path, client_jurisdiction_paths.jurisdiction_path) AS jurisdiction_id_path,
     COALESCE(task_jurisdiction_paths.jurisdiction_name_path, client_jurisdiction_paths.jurisdiction_name_path) AS jurisdiction_name_path
@@ -60,6 +60,16 @@ LEFT JOIN reveal_stage.clients
     ON ntd_client_dispense_tasks.client_id = clients.id
 LEFT JOIN reveal_stage.tasks
     ON ntd_client_dispense_tasks.task_id = tasks.identifier
+LEFT JOIN (
+    SELECT jurisdiction_id, COUNT(*) AS structure_count
+    FROM reveal_stage.locations
+    LEFT JOIN (
+        SELECT group_identifier, code, business_status
+        FROM reveal_stage.tasks
+    ) tasks ON tasks.group_identifier = locations.jurisdiction_id
+    WHERE tasks.business_status <> 'Ineligible' AND tasks.code = 'Structures Visited'
+    GROUP BY jurisdiction_id
+    ) locations ON locations.jurisdiction_id = tasks.group_identifier
 LEFT JOIN (
 SELECT jurisdiction_id,
        jurisdiction_parent_id,

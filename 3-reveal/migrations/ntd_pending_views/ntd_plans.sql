@@ -26,7 +26,7 @@ CREATE MATERIALIZED VIEW pending.ntd_plans AS
             ) AS subq
     ) AS jurisdiction_root_parent_ids
 FROM reveal_stage.plans plans
-WHERE (plans.intervention_type = 'MDA-Point' OR plans.intervention_type = 'Dynamic-MDA' ) AND plans.status NOT IN ('draft')
+WHERE (plans.intervention_type = 'Dynamic-MDA' ) AND plans.status IN ('active', 'complete')
 ORDER BY plans.date DESC) WITH DATA;
 
 -- Create unique ID

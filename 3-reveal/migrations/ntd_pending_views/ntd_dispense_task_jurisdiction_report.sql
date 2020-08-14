@@ -80,7 +80,7 @@ LEFT JOIN
 LEFT JOIN (
     SELECT key AS jurisdiction_id, identifier, data ->> 'value' AS population_total
     FROM reveal_stage.opensrp_settings
-    WHERE identifier = 'jurisdiction_metadata-risk'
+    WHERE identifier = 'jurisdiction_metadata-population'
     ) AS settings
     ON settings.jurisdiction_id = all_plan_jurisdiction_paths.jurisdiction_id
 GROUP BY
