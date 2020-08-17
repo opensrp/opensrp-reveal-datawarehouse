@@ -1,0 +1,40 @@
+-- Verify reveal_transaction_tables:opensrp_settings on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    uuid,
+    key,
+    identifier,
+    data
+FROM opensrp_settings
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'opensrp_settings_pkey'
+AND contype = 'p'
+AND 1 = ALL(conkey);
+
+-- check foreign keys
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'fk_opensrp_settings_raw_settings'
+AND contype = 'f'
+AND 1 = ALL(conkey)
+AND 1 = ALL(confkey);
+
+-- check unique uid
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'opensrp_settings_uuid_key'
+AND contype = 'u'
+AND 1 = ALL(conkey);
+
+ROLLBACK;
