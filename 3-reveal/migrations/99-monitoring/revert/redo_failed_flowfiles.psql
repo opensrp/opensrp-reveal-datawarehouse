@@ -1,0 +1,22 @@
+-- Revert reveal_monitoring_tables:redo_failed_flowfiles from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP TABLE failed_events;
+DROP TABLE failed_plans;
+DROP TABLE failed_tasks;
+DROP TABLE failed_jurisdictions;
+DROP TABLE failed_locations;
+DROP TABLE failed_clients;
+
+CREATE TABLE IF NOT EXISTS failed_flowfiles (
+    id VARCHAR (36) NOT NULL,
+    type REVEAL_OBJECT_TYPE NOT NULL,
+    last_updated TIMESTAMP DEFAULT NOW (),
+    PRIMARY KEY (id, type)
+);
+
+
+COMMIT;
