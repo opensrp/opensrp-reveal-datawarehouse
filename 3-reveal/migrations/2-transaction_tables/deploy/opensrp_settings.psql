@@ -1,0 +1,16 @@
+-- Deploy reveal_transaction_tables:opensrp_settings to pg
+-- requires: actions
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS opensrp_settings (
+    uuid VARCHAR(36) UNIQUE NOT NULL,
+    key VARCHAR(36) NOT NULL,
+    identifier VARCHAR NOT NULL,
+    data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    PRIMARY KEY (uuid)
+);
+
+COMMIT;

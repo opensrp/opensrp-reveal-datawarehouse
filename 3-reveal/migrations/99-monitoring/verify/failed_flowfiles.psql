@@ -2,18 +2,21 @@
 
 BEGIN;
 
-SET search_path TO :"schema",public;
+-- this table is deleted in a later migration so this is not needed
+-- and will break tests if activated
 
-SELECT id, type, last_updated
-FROM failed_flowfiles
-WHERE FALSE;
+-- SET search_path TO :"schema",public;
 
--- check primary key
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
-conname = 'failed_flowfiles_pkey'
-AND contype = 'p'
-AND conkey @> '{1, 2}';
+-- SELECT id, type, last_updated
+-- FROM failed_flowfiles
+-- WHERE FALSE;
+
+-- -- check primary key
+-- SELECT 1/COUNT(*)
+-- FROM pg_catalog.pg_constraint
+-- WHERE
+-- conname = 'failed_flowfiles_pkey'
+-- AND contype = 'p'
+-- AND conkey @> '{1, 2}';
 
 ROLLBACK;

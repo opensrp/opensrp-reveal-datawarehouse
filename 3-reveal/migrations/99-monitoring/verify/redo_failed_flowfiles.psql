@@ -1,0 +1,31 @@
+-- Verify reveal_monitoring_tables:redo_failed_flowfiles on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT id, last_updated, reason
+FROM failed_events
+WHERE FALSE;
+
+SELECT id, last_updated, reason
+FROM failed_plans
+WHERE FALSE;
+
+SELECT id, last_updated, reason
+FROM failed_tasks
+WHERE FALSE;
+
+SELECT id, last_updated, reason
+FROM failed_jurisdictions
+WHERE FALSE;
+
+SELECT id, last_updated, reason
+FROM failed_locations
+WHERE FALSE;
+
+SELECT id, last_updated, reason
+FROM failed_clients
+WHERE FALSE;
+
+ROLLBACK;

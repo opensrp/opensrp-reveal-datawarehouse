@@ -5,8 +5,8 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 SELECT 1/count(*)
-FROM pg_matviews
-WHERE matviewname = 'namibia_irs_structures';
+FROM pg_views
+WHERE viewname = 'namibia_irs_structures';
 
 SELECT
     structure_id,
@@ -42,49 +42,5 @@ SELECT
     refusalReasonMop_values
 FROM namibia_irs_structures
 WHERE FALSE;
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'namibia_irs_structures'
-AND indexdef LIKE '%CREATE UNIQUE INDEX%'
-AND indexname = 'namibia_irs_structures_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'namibia_irs_structures'
-AND indexname = 'namibia_irs_structures_structure_jurisdiction_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'namibia_irs_structures'
-AND indexname = 'namibia_irs_structures_plan_id_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'namibia_irs_structures'
-AND indexname = 'namibia_irs_structures_event_date_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'namibia_irs_structures'
-AND indexname = 'namibia_irs_structures_task_id_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'namibia_irs_structures'
-AND indexdef LIKE '%gist (structure_geometry)%'
-AND indexname = 'namibia_irs_structures_geom_gix';
 
 ROLLBACK;

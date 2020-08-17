@@ -7,3 +7,4 @@ failed_flowfiles [object_type] 2020-03-11T12:34:46Z mosh <kjayanoris@ona.io> # A
 data_integrity_validation [object_type] 2020-05-14T06:52:07Z mosh <kjayanoris@ona.io> # Add data_integrity_validation.
 data_integrity_validation_functions [data_integrity_validation] 2020-05-14T07:02:37Z mosh <kjayanoris@ona.io> # Add data_integrity_validation_functions.
 check_data_integrity [data_integrity_validation] 2020-05-14T08:19:40Z mosh <kjayanoris@ona.io> # Add check_data_integrity function.
+redo_failed_flowfiles [failed_flowfiles] 2020-08-17T10:23:09Z mosh <kjayanoris@ona.io> # Re-do failed_flowfiles.

@@ -4,6 +4,6 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-DROP MATERIALIZED VIEW namibia_irs_structures CASCADE;
+DROP VIEW namibia_irs_structures CASCADE;
 
 COMMIT;
