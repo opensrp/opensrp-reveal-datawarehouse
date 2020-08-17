@@ -40,7 +40,6 @@ CREATE MATERIALIZED VIEW pending.ntd_dispense_task_jurisdiction_report AS
         FROM reveal_stage.jurisdictions_materialized_view
         ) AS subset_jurisdiction_paths
         ON ARRAY[top_level_plan_jurisdictions.top_level_jurisdiction_id] <@ subset_jurisdiction_paths.jurisdiction_path
-
 )
 --
 -- ... now aggregate across all plan jurisdictions
@@ -72,11 +71,12 @@ LEFT JOIN
         SELECT
             ntd_dispense_task_report.*,
             -- Transformation of client age for better calculations
-            CASE WHEN client_age_category <> 'Adult' THEN 1 ELSE 0 END AS registered_child
+            CASE WHEN client_age_category <> 'Adult' THEN 1 ELSE 0 END AS registered_child,
+            array_append(jurisdiction_id_path,jurisdiction_id) AS jurisdiction_id_path_updated
         FROM pending.ntd_dispense_task_report
     ) AS ntd_dispense_task_report_ext
     ON all_plan_jurisdiction_paths.plan_id = ntd_dispense_task_report_ext.plan_id AND
-       ARRAY[all_plan_jurisdiction_paths.jurisdiction_id] <@ ntd_dispense_task_report_ext.jurisdiction_id_path
+      ARRAY[all_plan_jurisdiction_paths.jurisdiction_id] <@ ntd_dispense_task_report_ext.jurisdiction_id_path_updated
 LEFT JOIN (
     SELECT key AS jurisdiction_id, identifier, data ->> 'value' AS population_total
     FROM reveal_stage.opensrp_settings
