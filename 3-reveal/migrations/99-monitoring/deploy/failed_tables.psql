@@ -13,31 +13,37 @@ SET search_path TO :"schema",public;
 
 CREATE TABLE IF NOT EXISTS failed_events (
     id VARCHAR (36) NOT NULL,
+    reason VARCHAR NOT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS failed_plans (
     id VARCHAR (36) NOT NULL,
+    reason VARCHAR NOT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS failed_tasks (
     id VARCHAR (36) NOT NULL,
+    reason VARCHAR NOT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS failed_jurisdictions (
     id VARCHAR (36) NOT NULL,
+    reason VARCHAR NOT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS failed_locations (
     id VARCHAR (36) NOT NULL,
+    reason VARCHAR NOT NULL,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS failed_clients (
     id VARCHAR (36) NOT NULL,
+    reason VARCHAR NOT NULL,
     PRIMARY KEY (id)
 );
 
