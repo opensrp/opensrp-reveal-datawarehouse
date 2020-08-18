@@ -106,7 +106,7 @@ LEFT JOIN LATERAL (
     WHERE plan_jurisdiction.jurisdiction_id = namibia_village_attributes.jurisdiction_id
     ORDER BY namibia_village_attributes.vil_uid, namibia_village_attributes.village
 ) AS village_attributes ON true
-WHERE plans.intervention_type = 'IRS' AND plans.status NOT IN ('draft')
+WHERE plans.intervention_type IN ('IRS', 'Dynamic-IRS') AND plans.status NOT IN ('draft', 'retired')
 -- ensure we get only spray areas
 AND jurisdictions_materialized_view.jurisdiction_depth = 3;
 
