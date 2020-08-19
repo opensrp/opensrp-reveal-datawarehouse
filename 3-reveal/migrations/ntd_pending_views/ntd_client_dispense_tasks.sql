@@ -1,14 +1,14 @@
 --DROP VIEW pending.ntd_client_dispense_tasks CASCADE
-CREATE VIEW pending.ntd_client_dispense_tasks AS
 SELECT
-    ntd_plans.identifier AS plan_id,
+   ntd_plans.identifier AS plan_id,
     plan_jurisdictions.jurisdiction_id AS jurisdiction_id,
     clients.id AS client_id,
     clients.residence AS client_location_id,
     ntd_tasks.identifier AS task_id,
     task_locations.id AS task_location_id,
     task_locations.parent_id AS task_jurisdiction_id,
-    task_events.event_id AS event_id
+    task_events.event_id AS event_id,
+    ntd_tasks.code
 --
 -- Get all Dynamic-MDA plans and clients
 --
@@ -38,7 +38,7 @@ LEFT JOIN
         WHERE code IN ( 'MDA_Dispense', 'Structure Visited')
     ) AS ntd_tasks
     ON ntd_plans.identifier = ntd_tasks.plan_identifier AND
-       clients.baseentityid = ntd_tasks.task_for
+    ntd_tasks.task_for IN (clients.baseentityid, locations.id)
 LEFT JOIN locations AS task_locations
     ON ntd_tasks.group_identifier = task_locations.id
 --
@@ -57,4 +57,4 @@ LEFT JOIN
             events.server_version DESC
     ) AS task_events
     ON clients.baseentityid = task_events.base_entity_id AND
-       ntd_tasks.identifier = task_events.task_id;
+      ntd_tasks.identifier = task_events.task_id;

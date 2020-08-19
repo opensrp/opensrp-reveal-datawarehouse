@@ -44,11 +44,12 @@ SELECT
     tasks.status AS task_status,
     tasks.code AS task_code,
     tasks.business_status AS task_business_status,
-    CASE WHEN (tasks.business_status <> 'Ineligible' AND tasks.business_status <> 'Not Visited') AND tasks.code ='Structures Visited' THEN 1 ELSE 0 END AS structures_visited,
+    CASE WHEN tasks.business_status NOT IN ('Ineligible', 'Not Visited') AND tasks.code ='Structure Visited' THEN 1 ELSE 0 END AS structures_visited,
     locations.structure_count  AS all_structures,
     --
     COALESCE(task_jurisdiction_paths.jurisdiction_path, client_jurisdiction_paths.jurisdiction_path) AS jurisdiction_id_path,
-    COALESCE(task_jurisdiction_paths.jurisdiction_name_path, client_jurisdiction_paths.jurisdiction_name_path) AS jurisdiction_name_path
+    COALESCE(task_jurisdiction_paths.jurisdiction_name_path, client_jurisdiction_paths.jurisdiction_name_path) AS jurisdiction_name_path,
+    COALESCE(task_jurisdiction_paths.jurisdiction_name, client_jurisdiction_paths.jurisdiction_name) AS jurisdiction_name
 
 FROM pending.ntd_client_dispense_tasks AS ntd_client_dispense_tasks
 LEFT JOIN (
@@ -61,14 +62,16 @@ LEFT JOIN reveal_stage.clients
 LEFT JOIN reveal_stage.tasks
     ON ntd_client_dispense_tasks.task_id = tasks.identifier
 LEFT JOIN (
-    SELECT jurisdiction_id, COUNT(*) AS structure_count
-    FROM reveal_stage.locations
-    LEFT JOIN (
-        SELECT group_identifier, code, business_status
-        FROM reveal_stage.tasks
-    ) tasks ON tasks.group_identifier = locations.jurisdiction_id
-    WHERE tasks.business_status <> 'Ineligible' AND tasks.code = 'Structures Visited'
-    GROUP BY jurisdiction_id
+    SELECT jurisdiction_id, task_code, business_status, COUNT(*) AS structure_count
+    FROM (
+        SELECT *
+        FROM reveal_stage.locations
+        LEFT JOIN (
+            SELECT group_identifier, code as task_code, business_status
+            FROM reveal_stage.tasks) tasks ON tasks.group_identifier = locations.jurisdiction_id 
+        ) main_table
+    WHERE task_code = 'Structure Visited' AND business_status <> 'Ineligible'
+    GROUP BY jurisdiction_id, task_code, business_status
     ) locations ON locations.jurisdiction_id = tasks.group_identifier
 LEFT JOIN (
 SELECT jurisdiction_id,
