@@ -69,6 +69,7 @@ FROM all_plan_jurisdiction_paths
 LEFT JOIN
     (
         SELECT
+            DISTINCT
             ntd_dispense_task_report.*,
             -- Transformation of client age for better calculations
             CASE WHEN client_age_category <> 'Adult' THEN 1 ELSE 0 END AS registered_child,
