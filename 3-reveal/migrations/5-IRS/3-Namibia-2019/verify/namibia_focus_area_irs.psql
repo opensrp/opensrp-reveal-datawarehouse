@@ -67,6 +67,7 @@ FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
 AND tablename = 'namibia_focus_area_irs'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
 AND indexname = 'namibia_focus_area_irs_jurisdiction_idx';
 
 SELECT 1/COUNT(*)
