@@ -14,7 +14,7 @@ SET search_path TO :"schema",public;
 CREATE MATERIALIZED VIEW IF NOT EXISTS namibia_focus_area_irs
 AS
 SELECT DISTINCT ON (plans.identifier, plan_jurisdiction.jurisdiction_id)
-    uuid_generate_v5(
+    public.uuid_generate_v5(
         '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
         concat(plans.identifier, plan_jurisdiction.jurisdiction_id)) AS id,
     plans.identifier AS plan_id,
@@ -25,14 +25,15 @@ SELECT DISTINCT ON (plans.identifier, plan_jurisdiction.jurisdiction_id)
     jurisdictions_materialized_view.jurisdiction_depth AS jurisdiction_depth,
     jurisdictions_materialized_view.jurisdiction_path AS jurisdiction_path,
     jurisdictions_materialized_view.jurisdiction_name_path AS jurisdiction_name_path,
+    COALESCE(jurisdiction_target_query.target, 0) AS jurisdiction_target,
     irs_structures.structuresFound AS structuresFound,
     irs_structures.nUnsprayable AS nUnsprayable,
     irs_structures.nUnsprayedTotalFirst AS nUnsprayedTotalFirst,
     irs_structures.nUnsprayedTotalMop AS nUnsprayedTotalMop,
     irs_structures.structuresSprayed AS structuresSprayed,
     CASE
-        WHEN COALESCE(village_attributes.target_2019, 0) = 0 THEN 0
-        ELSE CAST(irs_structures.structuresSprayed AS DECIMAL(7,2))/CAST(COALESCE(village_attributes.target_2019, 0) AS DECIMAL(7,2))
+        WHEN COALESCE(jurisdiction_target_query.target, 0) = 0 THEN 1
+        ELSE CAST(irs_structures.structuresSprayed AS DECIMAL(7,2))/CAST(COALESCE(jurisdiction_target_query.target, 0) AS DECIMAL(7,2))
     END AS targetCoverage,
     -- TODO sprayEffectiveness
     CASE
@@ -71,8 +72,7 @@ SELECT DISTINCT ON (plans.identifier, plan_jurisdiction.jurisdiction_id)
     COALESCE(count_elements(irs_structures.unsprayedReasonFirst_values), '{}'::json) AS unsprayedReasonFirst_counts,
     COALESCE(count_elements(irs_structures.refusalReasonFirst_values), '{}'::json) AS refusalReasonFirst_counts,
     COALESCE(count_elements(irs_structures.unsprayedReasonMop_values), '{}'::json) AS unsprayedReasonMop_counts,
-    COALESCE(count_elements(irs_structures.refusalReasonMop_values), '{}'::json) AS refusalReasonMop_counts,
-    COALESCE(village_attributes.target_2019, 0) AS target_2019
+    COALESCE(count_elements(irs_structures.refusalReasonMop_values), '{}'::json) AS refusalReasonMop_counts
 FROM plans
 LEFT JOIN plan_jurisdiction
     ON plans.identifier = plan_jurisdiction.plan_id
@@ -100,13 +100,16 @@ LEFT JOIN LATERAL (
     AND plan_jurisdiction.jurisdiction_id = namibia_irs_structures.structure_jurisdiction_id
 ) AS irs_structures ON true
 LEFT JOIN LATERAL (
-    SELECT DISTINCT ON (namibia_village_attributes.vil_uid)
-        namibia_village_attributes.target_2019 as target_2019
-    FROM namibia_village_attributes
-    WHERE plan_jurisdiction.jurisdiction_id = namibia_village_attributes.jurisdiction_id
-    ORDER BY namibia_village_attributes.vil_uid, namibia_village_attributes.village
-) AS village_attributes ON true
-WHERE plans.intervention_type = 'IRS' AND plans.status NOT IN ('draft')
+    SELECT
+    key as jurisdiction_id,
+    COALESCE(data->>'value', '0')::INTEGER as target
+    FROM opensrp_settings
+    WHERE identifier = 'jurisdiction_metadata-target'
+    AND plan_jurisdiction.jurisdiction_id = opensrp_settings.key
+    ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+    LIMIT 1
+) AS jurisdiction_target_query ON true
+WHERE plans.intervention_type IN ('IRS', 'Dynamic-IRS') AND plans.status NOT IN ('draft', 'retired')
 -- ensure we get only spray areas
 AND jurisdictions_materialized_view.jurisdiction_depth = 3;
 
@@ -114,7 +117,7 @@ CREATE INDEX IF NOT EXISTS namibia_focus_area_irs_path_idx_gin on namibia_focus_
 
 CREATE INDEX IF NOT EXISTS namibia_focus_area_irs_plan_idx ON namibia_focus_area_irs (plan_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS namibia_focus_area_irs_jurisdiction_idx ON namibia_focus_area_irs (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS namibia_focus_area_irs_jurisdiction_idx ON namibia_focus_area_irs (jurisdiction_id);
 
 CREATE INDEX IF NOT EXISTS namibia_focus_area_irs_jurisdiction_parent_idx ON namibia_focus_area_irs (jurisdiction_parent_id);
 

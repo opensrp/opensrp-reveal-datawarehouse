@@ -15,7 +15,7 @@ SELECT * FROM
 (
     (
         SELECT DISTINCT ON (jurisdictions_materialized_view.jurisdiction_id, holding_query.plan_id)
-            uuid_generate_v5(
+            public.uuid_generate_v5(
                 '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
                 concat(jurisdictions_materialized_view.jurisdiction_id, holding_query.plan_id)) AS id,
             holding_query.plan_id AS plan_id,
@@ -26,14 +26,15 @@ SELECT * FROM
             jurisdictions_materialized_view.jurisdiction_depth AS jurisdiction_depth,
             jurisdictions_materialized_view.jurisdiction_path AS jurisdiction_path,
             jurisdictions_materialized_view.jurisdiction_name_path AS jurisdiction_name_path,
+            COALESCE(jurisdiction_target_query.target, namibia_focus_area_irs_query.focus_area_target, 0) AS jurisdiction_target,
             namibia_focus_area_irs_query.structuresFound AS structuresFound,
             namibia_focus_area_irs_query.nUnsprayable AS nUnsprayable,
             namibia_focus_area_irs_query.nUnsprayedTotalFirst AS nUnsprayedTotalFirst,
             namibia_focus_area_irs_query.nUnsprayedTotalMop AS nUnsprayedTotalMop,
             namibia_focus_area_irs_query.structuresSprayed AS structuresSprayed,
             CASE
-                WHEN namibia_focus_area_irs_query.target_2019 = 0 THEN 0
-                ELSE CAST(namibia_focus_area_irs_query.structuresSprayed AS DECIMAL(10,4))/CAST(namibia_focus_area_irs_query.target_2019 AS DECIMAL(10,4))
+                WHEN COALESCE(jurisdiction_target_query.target, namibia_focus_area_irs_query.focus_area_target, 0) = 0 THEN 1
+                ELSE CAST(namibia_focus_area_irs_query.structuresSprayed AS DECIMAL(10,4))/CAST(COALESCE(jurisdiction_target_query.target, namibia_focus_area_irs_query.focus_area_target, 0) AS DECIMAL(10,4))
             END AS targetCoverage,
             -- TODO sprayEffectiveness
             CASE
@@ -68,8 +69,7 @@ SELECT * FROM
             CAST(count_elements(namibia_focus_area_irs_query.unsprayedReasonFirst_values) AS JSONB) AS unsprayedReasonFirst_counts,
             CAST(count_elements(namibia_focus_area_irs_query.refusalReasonFirst_values) AS JSONB) AS refusalReasonFirst_counts,
             CAST(count_elements(namibia_focus_area_irs_query.unsprayedReasonMop_values) AS JSONB) AS unsprayedReasonMop_counts,
-            CAST(count_elements(namibia_focus_area_irs_query.refusalReasonMop_values) AS JSONB) AS refusalReasonMop_counts,
-            namibia_focus_area_irs_query.target_2019 AS target_2019
+            CAST(count_elements(namibia_focus_area_irs_query.refusalReasonMop_values) AS JSONB) AS refusalReasonMop_counts
         FROM jurisdictions_materialized_view
         LEFT JOIN namibia_focus_area_irs as holding_query
             ON holding_query.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id]
@@ -89,11 +89,21 @@ SELECT * FROM
                 array_concat_agg(refusalReasonFirst_values) FILTER (WHERE refusalReasonFirst_values <> '{}')  AS refusalReasonFirst_values,
                 array_concat_agg(unsprayedReasonMop_values) FILTER (WHERE unsprayedReasonMop_values <> '{}')  AS unsprayedReasonMop_values,
                 array_concat_agg(refusalReasonMop_values) FILTER (WHERE refusalReasonMop_values <> '{}')  AS refusalReasonMop_values,
-                COALESCE(SUM(target_2019), 0) AS target_2019
+                COALESCE(SUM(jurisdiction_target), 0) AS focus_area_target
             FROM namibia_focus_area_irs
             WHERE namibia_focus_area_irs.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id]
             AND holding_query.plan_id = namibia_focus_area_irs.plan_id
         ) as namibia_focus_area_irs_query ON true
+        LEFT JOIN LATERAL (
+            SELECT
+            key as jurisdiction_id,
+            COALESCE(data->>'value', '0')::INTEGER as target
+            FROM opensrp_settings
+            WHERE identifier = 'jurisdiction_metadata-target'
+            AND jurisdictions_materialized_view.jurisdiction_id = opensrp_settings.key
+            ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+            LIMIT 1
+        ) AS jurisdiction_target_query ON true
         WHERE NOT EXISTS (
             SELECT 1
             FROM namibia_focus_area_irs
@@ -115,6 +125,7 @@ SELECT * FROM
             jurisdiction_depth,
             jurisdiction_path,
             jurisdiction_name_path,
+            jurisdiction_target,
             structuresFound,
             nUnsprayable,
             nUnsprayedTotalFirst,
@@ -135,8 +146,7 @@ SELECT * FROM
             CAST(unsprayedReasonFirst_counts AS JSONB),
             CAST(refusalReasonFirst_counts AS JSONB),
             CAST(unsprayedReasonMop_counts AS JSONB),
-            CAST(refusalReasonMop_counts AS JSONB),
-            target_2019
+            CAST(refusalReasonMop_counts AS JSONB)
         FROM namibia_focus_area_irs
     )
 ) AS main_query

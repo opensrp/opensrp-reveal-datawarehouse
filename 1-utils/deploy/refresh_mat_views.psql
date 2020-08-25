@@ -17,9 +17,9 @@ BEGIN
 
     -- record the start time
     INSERT INTO materialized_view_tracking (name, start, finish)
-    VALUES (view_name, NOW(), NULL)
+    VALUES (view_name, CLOCK_TIMESTAMP(), NULL)
     ON CONFLICT (name) DO UPDATE
-    SET start = NOW(), finish = NULL;
+    SET start = CLOCK_TIMESTAMP(), finish = NULL;
 
     -- refresh the view
     IF concurrent = TRUE THEN
@@ -30,7 +30,7 @@ BEGIN
 
     -- record the end time
     UPDATE materialized_view_tracking
-    SET finish = NOW()
+    SET finish = CLOCK_TIMESTAMP()
     WHERE name = view_name;
 
 END;

@@ -1,0 +1,30 @@
+-- Revert reveal_irs_namibia_2019:drop_village_attributes from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS namibia_village_attributes
+(
+    vil_uid VARCHAR(36) UNIQUE NOT NULL,
+    jurisdiction_id VARCHAR(36) NULL, -- not unique because the source data may be dirty
+    village VARCHAR NOT NULL,
+    constituency VARCHAR NOT NULL,
+    district VARCHAR NOT NULL,
+    region VARCHAR NOT NULL,
+    target_2019 INT NOT NULL DEFAULT 0,
+    targetted_2019 BOOLEAN NOT NULL DEFAULT 'f',
+    risk_2019 DECIMAL(64,10) NOT NULL,
+    CONSTRAINT namibia_village_attributes_pkey
+        PRIMARY KEY (vil_uid),
+    CONSTRAINT fk_namibia_village_attributes_jurisdiction
+        FOREIGN KEY (jurisdiction_id)
+        REFERENCES jurisdictions (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS namibia_village_attributes_jurisdiction_id_idx ON namibia_village_attributes (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS namibia_village_attributes_targetted_2019_idx ON namibia_village_attributes (targetted_2019);
+
+COMMIT;

@@ -6,3 +6,5 @@ raw_tasks [utils:appschema] 2020-03-11T09:53:49Z mosh <kjayanoris@ona.io> # Crea
 raw_plans [raw_tasks] 2020-03-11T09:54:04Z mosh <kjayanoris@ona.io> # Creates table for raw_plans.
 raw_jurisdictions [raw_plans] 2020-03-11T09:54:26Z mosh <kjayanoris@ona.io> # Creates table for raw_jurisdictions.
 raw_locations [raw_jurisdictions] 2020-03-11T09:54:39Z mosh <kjayanoris@ona.io> # Creates table for raw_locations.
+raw_clients [raw_locations] 2020-08-06T14:04:56Z Wambere <wambere@ona.io> # Creates table for raw_clients.
+raw_settings [raw_clients] 2020-08-17T08:31:07Z Wambere <wambere@ona.io> # Creates table for raw_settings.

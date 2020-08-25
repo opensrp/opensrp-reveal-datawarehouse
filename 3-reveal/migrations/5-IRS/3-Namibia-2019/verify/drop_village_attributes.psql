@@ -1,0 +1,16 @@
+-- Verify reveal_irs_namibia_2019:drop_village_attributes on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM information_schema.tables
+    WHERE table_schema = ':schema'
+    AND table_name = 'namibia_village_attributes'
+) AS foo
+WHERE count = 0;  -- we zero records
+
+ROLLBACK;

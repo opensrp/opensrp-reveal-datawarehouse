@@ -1,0 +1,18 @@
+-- Deploy reveal_raw_tables:raw_settings to pg
+-- The following is a create table statements for
+-- raw_settings in reveal. The purpose of this
+-- table is to hold data from openSRP and make it
+-- available for further processing/analysis
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS raw_settings (
+    id VARCHAR(36) UNIQUE NOT NULL,
+    server_version BIGINT NOT NULL DEFAULT 0,
+    data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    PRIMARY KEY (id)
+);
+
+COMMIT;

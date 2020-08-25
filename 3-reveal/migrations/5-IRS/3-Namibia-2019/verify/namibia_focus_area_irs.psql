@@ -18,6 +18,7 @@ SELECT
     jurisdiction_depth,
     jurisdiction_path,
     jurisdiction_name_path,
+    jurisdiction_target,
     structuresFound,
     nUnsprayable,
     nUnsprayedTotalFirst,
@@ -42,8 +43,7 @@ SELECT
     unsprayedReasonFirst_counts,
     refusalReasonFirst_counts,
     unsprayedReasonMop_counts,
-    refusalReasonMop_counts,
-    target_2019
+    refusalReasonMop_counts
 FROM namibia_focus_area_irs
 WHERE FALSE;
 
@@ -67,7 +67,6 @@ FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
 AND tablename = 'namibia_focus_area_irs'
-AND indexdef LIKE '%CREATE UNIQUE INDEX%'
 AND indexname = 'namibia_focus_area_irs_jurisdiction_idx';
 
 SELECT 1/COUNT(*)
