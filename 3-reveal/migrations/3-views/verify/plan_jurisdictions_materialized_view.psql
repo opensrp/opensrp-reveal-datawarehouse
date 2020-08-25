@@ -1,0 +1,63 @@
+-- Verify reveal_database_views:plan_jurisdictions_materialized_view on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE schemaname = :'schema' AND matviewname = 'plan_jurisdictions_materialized_view';
+
+SELECT
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_path,
+    is_focus_area
+FROM plan_jurisdictions_materialized_view
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plan_jurisdictions_materialized_view'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'plan_jurisdictions_materialized_view_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plan_jurisdictions_materialized_view'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'plan_jurisdictions_materialized_view_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plan_jurisdictions_materialized_view'
+AND indexname = 'plan_jurisdictions_materialized_view_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plan_jurisdictions_materialized_view'
+AND indexname = 'plan_jurisdictions_materialized_view_plan_3mstk_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plan_jurisdictions_materialized_view'
+AND indexname = 'plan_jurisdictions_materialized_view_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plan_jurisdictions_materialized_view'
+AND indexname = 'plan_jurisdictions_materialized_view_is_focus_area_idx';
+
+ROLLBACK;
