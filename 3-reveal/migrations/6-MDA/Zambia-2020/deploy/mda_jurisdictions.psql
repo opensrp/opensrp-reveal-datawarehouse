@@ -54,8 +54,7 @@ LEFT JOIN LATERAL (
     SELECT
         COUNT(ntd_structures.location_id) AS structure_count,
         COALESCE(SUM(ntd_structures.structure_visited), 0) AS structures_visited,
-        COALESCE(SUM(ntd_structures.nsac), 0) AS sacregistered,
-        COALESCE(SUM(ntd_structures.nsac), 0) AS nPzqDistribute
+        COALESCE(SUM(ntd_structures.nsac), 0) AS sacregistered
         -- COALESCE(SUM(ntd_structures.nPzqDistribute), 0) AS nPzqDistribute,
         -- COALESCE(SUM(ntd_structures.nPzqDistributedQuantity), 0) AS nPzqDistributedQuantity
     FROM ntd_dispense_structures AS ntd_structures
