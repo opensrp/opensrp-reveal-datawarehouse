@@ -75,9 +75,7 @@ LEFT JOIN LATERAL (
 ) AS tasks_query ON true
 WHERE
     plans.intervention_type = 'Dynamic-MDA'
-    AND plans.status IN ('active', 'complete')
-    AND plans.identifier = '409adc15-1946-5ad9-bbd4-5afde1b8fbc2'
-    AND jurisdictions_materialized_view.jurisdiction_id = '29698616-18b2-4638-8f8b-afd8d1bd8efz';
+    AND plans.status IN ('active', 'complete');
 
 CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_path_idx_gin on ntd_mda_jurisdictions  using GIN (jurisdiction_path);
 CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_plan_idx ON ntd_mda_jurisdictions (plan_id);
