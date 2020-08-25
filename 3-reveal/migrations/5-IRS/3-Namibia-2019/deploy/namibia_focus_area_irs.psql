@@ -114,7 +114,7 @@ CREATE INDEX IF NOT EXISTS namibia_focus_area_irs_path_idx_gin on namibia_focus_
 
 CREATE INDEX IF NOT EXISTS namibia_focus_area_irs_plan_idx ON namibia_focus_area_irs (plan_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS namibia_focus_area_irs_jurisdiction_idx ON namibia_focus_area_irs (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS namibia_focus_area_irs_jurisdiction_idx ON namibia_focus_area_irs (jurisdiction_id);
 
 CREATE INDEX IF NOT EXISTS namibia_focus_area_irs_jurisdiction_parent_idx ON namibia_focus_area_irs (jurisdiction_parent_id);
 
