@@ -1,0 +1,33 @@
+-- Verify reveal_mda_zambia_2020:mda_structures on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/COUNT(*) FROM pg_views WHERE schemaname = :'schema' AND viewname = 'ntd_dispense_structures';
+SELECT 1/COUNT(*) FROM pg_views WHERE schemaname = :'schema' AND viewname = 'ntd_dispense_tasks';
+
+SELECT
+    location_id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    nsac,
+    structure_visited
+FROM ntd_dispense_structures
+WHERE FALSE;
+
+SELECT
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_path,
+    npzqdistribute,
+    npzqdistributedquantity
+FROM ntd_dispense_tasks
+WHERE FALSE;
+
+ROLLBACK;
