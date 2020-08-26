@@ -9,6 +9,7 @@ FROM pg_matviews
 WHERE matviewname = 'namibia_irs_structures';
 
 SELECT
+    id,
     structure_id,
     structure_jurisdiction_id,
     structure_code,
@@ -50,6 +51,14 @@ schemaname = :'schema'
 AND tablename = 'namibia_irs_structures'
 AND indexdef LIKE '%CREATE UNIQUE INDEX%'
 AND indexname = 'namibia_irs_structures_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_irs_structures_structure_task_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
