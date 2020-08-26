@@ -1,0 +1,33 @@
+-- Verify reveal_mda_zambia_2020:mda_plans on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE schemaname = :'schema' AND matviewname = 'mda_plans';
+
+SELECT
+    plan_id,
+    plan_title,
+    plan_name,
+    plan_status,
+    plan_date,
+    plan_effective_period_start,
+    plan_effective_period_end,
+    plan_intervention_type,
+    plan_version,
+    jurisdiction_root_parent_ids
+FROM mda_plans
+WHERE FALSE;
+
+SELECT *
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'mda_plans'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'mda_plans_index';
+
+ROLLBACK;

@@ -1,0 +1,9 @@
+-- Revert reveal_mda_zambia_2020:mda_jurisdictions from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW ntd_mda_jurisdictions CASCADE;
+
+COMMIT;

@@ -1,0 +1,7 @@
+%syntax-version=1.0.0
+%project=reveal_mda_zambia_2020
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/reveal/MDA/zambia-2020
+
+mda_plans [reveal_transaction_tables:plans reveal_transaction_tables:plan_jurisdiction reveal_database_views:jurisdictions_materialized_view] 2020-08-21T13:46:40Z mosh <kjayanoris@ona.io> # Add mda_plans.
+mda_structures [reveal_transaction_tables:plans reveal_transaction_tables:events reveal_transaction_tables:jurisdictions reveal_transaction_tables:clients reveal_transaction_tables:locations reveal_transaction_tables:tasks reveal_database_views:jurisdictions_materialized_view] 2020-08-25T07:25:30Z mosh <kjayanoris@ona.io> # Add mda_structures.
+mda_jurisdictions [mda_structures] 2020-08-25T07:29:20Z mosh <kjayanoris@ona.io> # Add mda_jurisdictions_report.

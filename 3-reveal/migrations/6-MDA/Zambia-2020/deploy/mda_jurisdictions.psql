@@ -1,0 +1,85 @@
+-- Deploy reveal_mda_zambia_2020:mda_jurisdictions to pg
+-- requires: mda_structures
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS ntd_mda_jurisdictions AS
+SELECT DISTINCT ON (plans.identifier, jurisdictions_materialized_view.jurisdiction_id)
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(plans.identifier, jurisdictions_materialized_view.jurisdiction_id)
+    ) AS id,
+    plans.identifier AS plan_id,
+    jurisdictions_materialized_view.jurisdiction_id AS jurisdiction_id,
+    jurisdictions_materialized_view.jurisdiction_parent_id AS jurisdiction_parent_id,
+    jurisdictions_materialized_view.jurisdiction_name AS jurisdiction_name,
+    jurisdictions_materialized_view.jurisdiction_depth AS jurisdiction_depth,
+    jurisdictions_materialized_view.jurisdiction_path AS jurisdiction_path,
+    jurisdictions_materialized_view.jurisdiction_name_path AS jurisdiction_name_path,
+    COALESCE(jurisdiction_target_query.target, 0) AS jurisdiction_target,
+    structures_query.structures_visited AS structures_visited,
+    COALESCE(structures_query.structure_count, 0) AS structure_count,
+    structures_query.sacregistered AS sacregistered,
+    -- structures_query.nPzqDistributedQuantity AS total_pzqdistributed,
+    tasks_query.nPzqDistributedQuantity AS total_pzqdistributed,
+    CASE WHEN COALESCE(structures_query.structure_count, 0) <> 0 THEN structures_query.structures_visited::DECIMAL/structures_query.structure_count::DECIMAL ELSE 0 END AS structures_visited_per,
+    -- CASE WHEN structures_query.sacregistered <> 0 THEN structures_query.nPzqDistribute::DECIMAL/structures_query.sacregistered::DECIMAL ELSE 0 END AS registeredchildrentreated_per,
+    CASE WHEN structures_query.sacregistered <> 0 THEN tasks_query.nPzqDistribute::DECIMAL/structures_query.sacregistered::DECIMAL ELSE 0 END AS registeredchildrentreated_per,
+    CASE WHEN COALESCE(jurisdiction_target_query.target, 0) <> 0 THEN structures_query.sacregistered::DECIMAL/jurisdiction_target_query.target::DECIMAL ELSE 0 END AS expectedchildren_found,
+    -- CASE WHEN COALESCE(jurisdiction_target_query.target, 0) <> 0 THEN structures_query.nPzqDistribute::DECIMAL/jurisdiction_target_query.target::DECIMAL ELSE 0 END AS expectedchildren_treated
+    CASE WHEN COALESCE(jurisdiction_target_query.target, 0) <> 0 THEN tasks_query.nPzqDistribute::DECIMAL/jurisdiction_target_query.target::DECIMAL ELSE 0 END AS expectedchildren_treated
+FROM plans AS plans
+LEFT JOIN jurisdictions_materialized_view AS jurisdictions_materialized_view ON
+    jurisdictions_materialized_view.jurisdiction_id IN (
+        SELECT DISTINCT(plan_jurisdictions.jurisdiction_id)
+        FROM plan_jurisdictions_materialized_view AS plan_jurisdictions
+        WHERE plan_jurisdictions.plan_id = plans.identifier
+    )
+LEFT JOIN plan_jurisdictions_materialized_view AS plan_jurisdictions
+    ON plans.identifier = plan_jurisdictions.plan_id
+    AND plan_jurisdictions.jurisdiction_id = jurisdictions_materialized_view.jurisdiction_id
+LEFT JOIN LATERAL (
+    SELECT
+    key as jurisdiction_id,
+    COALESCE(data->>'value', '0')::INTEGER AS target
+    FROM opensrp_settings
+    WHERE identifier = 'jurisdiction_metadata-population'
+    AND jurisdictions_materialized_view.jurisdiction_id = opensrp_settings.key
+    ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+    LIMIT 1
+) AS jurisdiction_target_query ON true
+LEFT JOIN LATERAL (
+    SELECT
+        COUNT(ntd_structures.location_id) AS structure_count,
+        COALESCE(SUM(ntd_structures.structure_visited), 0) AS structures_visited,
+        COALESCE(SUM(ntd_structures.nsac), 0) AS sacregistered
+        -- COALESCE(SUM(ntd_structures.nPzqDistribute), 0) AS nPzqDistribute,
+        -- COALESCE(SUM(ntd_structures.nPzqDistributedQuantity), 0) AS nPzqDistributedQuantity
+    FROM ntd_dispense_structures AS ntd_structures
+    WHERE ntd_structures.plan_id = plans.identifier
+    AND (jurisdictions_materialized_view.jurisdiction_id = ntd_structures.jurisdiction_id
+    OR ntd_structures.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id])
+) AS structures_query ON true
+LEFT JOIN LATERAL (
+    SELECT
+        COALESCE(SUM(task_report.nPzqDistribute), 0) AS nPzqDistribute,
+        COALESCE(SUM(task_report.nPzqDistributedQuantity), 0) AS nPzqDistributedQuantity
+    FROM ntd_dispense_tasks AS task_report
+    WHERE
+        task_report.plan_id = plans.identifier
+        AND (jurisdictions_materialized_view.jurisdiction_id = task_report.jurisdiction_id
+        OR task_report.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id])
+) AS tasks_query ON true
+WHERE
+    plans.intervention_type = 'Dynamic-MDA'
+    AND plans.status IN ('active', 'complete');
+
+CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_path_idx_gin on ntd_mda_jurisdictions  using GIN (jurisdiction_path);
+CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_plan_idx ON ntd_mda_jurisdictions (plan_id);
+CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_jurisdiction_idx ON ntd_mda_jurisdictions (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_jurisdiction_parent_idx ON ntd_mda_jurisdictions (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ntd_mda_jurisdictions_idx ON ntd_mda_jurisdictions (id);
+
+COMMIT;

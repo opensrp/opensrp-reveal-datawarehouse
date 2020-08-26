@@ -1,0 +1,69 @@
+-- Verify reveal_mda_zambia_2020:mda_jurisdictions on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE schemaname = :'schema' AND matviewname = 'ntd_mda_jurisdictions';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    jurisdiction_target,
+    structures_visited,
+    structure_count,
+    sacregistered,
+    total_pzqdistributed,
+    structures_visited_per,
+    registeredchildrentreated_per,
+    expectedchildren_found,
+    expectedchildren_treated
+FROM ntd_mda_jurisdictions
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'ntd_mda_jurisdictions'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'ntd_mda_jurisdictions_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'ntd_mda_jurisdictions'
+AND indexname = 'ntd_mda_jurisdictions_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'ntd_mda_jurisdictions'
+AND indexname = 'ntd_mda_jurisdictions_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'ntd_mda_jurisdictions'
+AND indexname = 'ntd_mda_jurisdictions_jurisdiction_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'ntd_mda_jurisdictions'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'ntd_mda_jurisdictions_idx';
+
+ROLLBACK;

@@ -1,0 +1,9 @@
+-- Revert reveal_database_views:plan_jurisdictions_materialized_view from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW plan_jurisdictions_materialized_view CASCADE;
+
+COMMIT;
