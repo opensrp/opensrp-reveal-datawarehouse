@@ -89,6 +89,6 @@ CREATE INDEX IF NOT EXISTS namibia_irs_export_event_id_idx ON namibia_irs_export
 
 CREATE INDEX IF NOT EXISTS namibia_irs_export_structure_jurisdiction_idx ON namibia_irs_export (structure_jurisdiction_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_export_idx ON namibia_irs_export (structure_id);
+CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_export_idx ON namibia_irs_export (structure_id, task_id);
 
 COMMIT;

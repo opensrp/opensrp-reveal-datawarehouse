@@ -15,7 +15,7 @@ SET search_path TO :"schema",public;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_structures
 AS
-SELECT
+SELECT DISTINCT ON (locations.id, events_query.task_id)
     locations.id AS structure_id,
     locations.jurisdiction_id AS old_jurisdiction_id,
     zambia_structure_jurisdictions.jurisdiction_depth AS old_jurisdiction_depth,
@@ -132,6 +132,6 @@ CREATE INDEX IF NOT EXISTS zambia_irs_structures_old_jurisdiction_idx ON zambia_
 
 CREATE INDEX IF NOT EXISTS zambia_irs_structures_geom_gix ON zambia_irs_structures USING GIST (structure_geometry);
 
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_idx ON zambia_irs_structures (structure_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_idx ON zambia_irs_structures (structure_id, task_id);
 
 COMMIT;

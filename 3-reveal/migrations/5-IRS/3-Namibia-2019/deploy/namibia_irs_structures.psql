@@ -10,7 +10,7 @@ SET search_path TO :"schema",public;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS namibia_irs_structures
 AS
-SELECT
+SELECT DISTINCT ON (locations.id, events_query.task_id)
     locations.id AS structure_id,
     locations.jurisdiction_id AS structure_jurisdiction_id,
     locations.code AS structure_code,
@@ -104,7 +104,7 @@ LEFT JOIN LATERAL (
         ORDER BY task_id, event_date DESC
     ) AS subq
 ) AS events_query ON true
-ORDER BY events_query.event_date;
+WHERE locations.status != 'Inactive';
 
 CREATE INDEX IF NOT EXISTS namibia_irs_structures_structure_jurisdiction_idx ON namibia_irs_structures (structure_jurisdiction_id);
 
@@ -116,6 +116,6 @@ CREATE INDEX IF NOT EXISTS namibia_irs_structures_task_id_idx ON namibia_irs_str
 
 CREATE INDEX IF NOT EXISTS namibia_irs_structures_geom_gix ON namibia_irs_structures USING GIST (structure_geometry);
 
-CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_structures_idx ON namibia_irs_structures (structure_id);
+CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_structures_idx ON namibia_irs_structures (structure_id, task_id);
 
 COMMIT;
