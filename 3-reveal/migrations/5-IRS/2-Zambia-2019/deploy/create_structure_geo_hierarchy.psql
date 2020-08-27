@@ -31,7 +31,7 @@ BEGIN
     LEFT JOIN jurisdictions
         AS jurisdictions
         ON jurisdictions.id = locations.jurisdiction_id
-    WHERE geo_jurisdictions.status = 'Active'
+    WHERE geo_jurisdictions.status != 'Inactive'
     AND locations.id = the_structure.id
     ORDER BY
         locations.id ASC,
