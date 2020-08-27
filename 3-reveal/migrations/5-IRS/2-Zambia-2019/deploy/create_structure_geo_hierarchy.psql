@@ -63,9 +63,10 @@ BEGIN
                 );
             END IF;
         END;
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
     END IF;
-
-    RETURN FOUND;
 END;
 $$ LANGUAGE plpgsql;
 
