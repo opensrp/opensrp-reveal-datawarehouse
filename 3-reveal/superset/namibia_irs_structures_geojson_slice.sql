@@ -1,4 +1,5 @@
 SELECT
+    id,
     structure_id,
     structure_jurisdiction_id as jurisdiction_id,
     task_id,
@@ -11,6 +12,7 @@ SELECT
     ) AS geojson
 FROM (
     SELECT
+        id,
         structure_id,
         structure_jurisdiction_id,
         structure_code,

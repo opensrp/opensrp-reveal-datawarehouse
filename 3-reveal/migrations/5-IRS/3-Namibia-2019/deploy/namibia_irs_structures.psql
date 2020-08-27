@@ -11,6 +11,9 @@ SET search_path TO :"schema",public;
 CREATE MATERIALIZED VIEW IF NOT EXISTS namibia_irs_structures
 AS
 SELECT DISTINCT ON (locations.id, events_query.task_id)
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(locations.id, events_query.task_id)) AS id,
     locations.id AS structure_id,
     locations.jurisdiction_id AS structure_jurisdiction_id,
     locations.code AS structure_code,
@@ -72,9 +75,9 @@ LEFT JOIN LATERAL (
     FROM
     (
         SELECT
-            DISTINCT ON (events.task_id)
+            DISTINCT ON (tasks.identifier)
             events.id AS event_id,
-            events.task_id AS task_id,
+            tasks.identifier AS task_id,
             events.event_date AS event_date,
             tasks.plan_identifier AS plan_id,
             -- get fields from JSON --
@@ -95,12 +98,13 @@ LEFT JOIN LATERAL (
             COALESCE (events.form_data->'refusalReasonMop'->>0, '')::text AS refusalReasonMop,
             COALESCE (events.form_data->'business_status'->>0, 'Not Visited')::text AS business_status
             -- end get fields from JSON --
-        FROM events
-        LEFT JOIN tasks
+        FROM tasks
+        LEFT JOIN events
             ON tasks.identifier = events.task_id
-        WHERE locations.id = events.base_entity_id
-        AND events.entity_type = 'Structure'
-        AND events.event_type = 'Spray'
+            AND events.entity_type = 'Structure'
+            AND events.event_type = 'Spray'
+        WHERE locations.id = tasks.task_for
+        AND tasks.status != 'Cancelled'
         ORDER BY task_id, event_date DESC
     ) AS subq
 ) AS events_query ON true
@@ -116,6 +120,8 @@ CREATE INDEX IF NOT EXISTS namibia_irs_structures_task_id_idx ON namibia_irs_str
 
 CREATE INDEX IF NOT EXISTS namibia_irs_structures_geom_gix ON namibia_irs_structures USING GIST (structure_geometry);
 
-CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_structures_idx ON namibia_irs_structures (structure_id, task_id);
+CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_structures_structure_task_idx ON namibia_irs_structures (structure_id, task_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_structures_idx ON namibia_irs_structures (id);
 
 COMMIT;
