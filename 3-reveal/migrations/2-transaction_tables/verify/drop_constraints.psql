@@ -1,0 +1,133 @@
+-- Verify reveal_transaction_tables:drop_constraints on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- check jurisdictions
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_jurisdictions_raw_jurisdictions'
+    AND contype = 'f'
+    AND 1 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+-- check locations
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_locations_raw_locations'
+    AND contype = 'f'
+    AND 1 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_locations_jurisdictions'
+    AND contype = 'f'
+    AND 4 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+-- check plans
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_plans_raw_plans'
+    AND contype = 'f'
+    AND 1 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+-- check clients
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_clients_residence'
+    AND contype = 'f'
+    AND 15 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+-- -- check tasks
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_tasks_plan'
+    AND contype = 'f'
+    AND 3 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_tasks_jurisdiction'
+    AND contype = 'f'
+    AND 4 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_tasks_raw_tasks'
+    AND contype = 'f'
+    AND 1 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+-- check events
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_events_raw_events'
+    AND contype = 'f'
+    AND 1 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_events_task'
+    AND contype = 'f'
+    AND 11 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+ROLLBACK;
