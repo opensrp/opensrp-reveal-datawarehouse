@@ -27,7 +27,7 @@ BEGIN
     FROM locations
     LEFT JOIN jurisdictions
         AS geo_jurisdictions
-        ON public.ST_DWITHIN(locations.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0, FALSE)
+        ON public.ST_DWITHIN(locations.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0)
     LEFT JOIN jurisdictions
         AS jurisdictions
         ON jurisdictions.id = locations.jurisdiction_id
