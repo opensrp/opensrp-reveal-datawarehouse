@@ -30,15 +30,6 @@ conname = 'jurisdictions_pkey'
 AND contype = 'p'
 AND 1 = ALL(conkey);
 
--- check foreign keys
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
-conname = 'fk_jurisdictions_raw_jurisdictions'
-AND contype = 'f'
-AND 1 = ALL(conkey)
-AND 1 = ALL(confkey);
-
 -- check unique uid
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_constraint
