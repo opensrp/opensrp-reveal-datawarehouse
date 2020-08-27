@@ -32,33 +32,6 @@ conname = 'tasks_pkey'
 AND contype = 'p'
 AND 1 = ALL(conkey);
 
--- check fk constraints
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
-conname = 'fk_tasks_plan'
-AND contype = 'f'
-AND 3 = ALL(conkey)
-AND 1 = ALL(confkey);
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
-conname = 'fk_tasks_jurisdiction'
-AND contype = 'f'
-AND 4 = ALL(conkey)
-AND 1 = ALL(confkey);
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
-conname = 'fk_tasks_raw_tasks'
-AND contype = 'f'
-AND 1 = ALL(conkey)
-AND 1 = ALL(confkey);
-
--- TODO add foreign key constraint verification that uses util_exception_query?
-
 -- check indices
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes

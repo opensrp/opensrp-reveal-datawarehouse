@@ -13,3 +13,6 @@ goals [plans] 2020-03-13T12:38:37Z mosh <kjayanoris@ona.io> # Add goals table.
 goal_target [plans] 2020-03-13T12:39:06Z mosh <kjayanoris@ona.io> # Add goal_target table.
 actions [plans] 2020-03-13T12:39:39Z mosh <kjayanoris@ona.io> # Add actions table.
 opensrp_settings [actions] 2020-08-17T08:35:14Z Wambere <wambere@Lenny> # Add opensrp_settings table.
+drop_constraints [jurisdictions tasks plans events clients locations] 2020-08-27T15:22:33Z mosh <kjayanoris@ona.io> # Drop constraints.
+nullable_client_residence [clients] 2020-08-27T16:04:12Z mosh <kjayanoris@ona.io> # Make client residence nullable.
+location_status_indices [jurisdictions locations] 2020-08-27T17:52:14Z mosh <kjayanoris@ona.io> # Add location status indices.

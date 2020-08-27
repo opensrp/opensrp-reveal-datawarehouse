@@ -1,0 +1,12 @@
+-- Deploy reveal_transaction_tables:location_status_indices to pg
+-- requires: jurisdictions
+-- requires: locations
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE INDEX IF NOT EXISTS jurisdiction_status_idx ON jurisdictions (status);
+CREATE INDEX IF NOT EXISTS locations_status_idx ON locations (status);
+
+COMMIT;

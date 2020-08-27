@@ -1,0 +1,15 @@
+-- Verify reveal_transaction_tables:nullable_client_residence on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/COUNT(*) FROM
+INFORMATION_SCHEMA.COLUMNS
+WHERE
+    table_schema = :'schema'
+    AND table_name = 'clients'
+    AND column_name = 'residence'
+    AND is_nullable = 'YES';
+
+ROLLBACK;
