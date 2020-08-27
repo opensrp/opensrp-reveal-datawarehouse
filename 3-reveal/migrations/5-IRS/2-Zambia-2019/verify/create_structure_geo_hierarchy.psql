@@ -114,4 +114,30 @@ AND geo_jurisdiction_id = '6af44acb-mosh-4981-ab68-f36f175f73d7'
 AND geo_jurisdiction_depth = 4
 AND geo_strict_within = 'False';
 
+-- what happens when we process a structure with no jurisdiction
+INSERT INTO raw_locations
+VALUES
+('023bd6d7-mosh-4194-133a-2f5c3bfcf4bb', 0, '{}');
+INSERT INTO locations
+VALUES (
+    '023bd6d7-mosh-4194-133a-2f5c3bfcf4bb',
+    NOW(),
+    '023bd6d7-mosh-4194-133a-2f5c3bfcf4bb',
+    'acdde6e5-mosh-49a9-a141-424a5862a5af',
+    '023bd6d7-mosh-4194-133a-2f5c3bfcf4bb',
+    '023bd6d7-mosh-4194-133a-2f5c3bfcf4bb',
+    '622574979',
+    'Active',
+    public.ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[[5.1325511, 12.6921346], [5.1326329, 12.6921471], [5.1326411, 12.6920956], [5.1325593, 12.6920831], [5.1325511, 12.6921346]]]]}'),
+    5,
+    NULL,
+    NULL,
+    0,
+    1570473981872
+);
+INSERT INTO structure_geo_hierarchy_structure_queue
+VALUES
+(public.uuid_generate_v1(), '023bd6d7-mosh-4194-133a-2f5c3bfcf4bb');
+SELECT create_structure_geo_hierarchy(locations.*) FROM locations;
+
 ROLLBACK;

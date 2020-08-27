@@ -7,7 +7,7 @@ BEGIN;
 -- :"schema" variable - and default to public.
 SET search_path TO :"schema",public;
 
-CREATE FUNCTION create_structure_geo_hierarchy(the_structure locations) RETURNS VOID AS $$
+CREATE FUNCTION create_structure_geo_hierarchy(the_structure locations) RETURNS BOOLEAN AS $$
 -- this function takes a structure (from the locations table) and determines with jurisdiction
 -- the structure is located in geographically.  It then inserts a record in the structure_geo_hierarchy
 -- table with this information
@@ -22,16 +22,16 @@ BEGIN
         jurisdictions.geographic_level AS jurisdiction_depth,
         geo_jurisdictions.id AS geo_jurisdiction_id,
         geo_jurisdictions.geographic_level AS geo_jurisdiction_depth,
-        ST_WITHIN(locations.geometry, geo_jurisdictions.geometry) AS geo_strict_within
-    INTO STRICT geo_record
+        public.ST_WITHIN(locations.geometry, geo_jurisdictions.geometry) AS geo_strict_within
+    INTO geo_record
     FROM locations
     LEFT JOIN jurisdictions
         AS geo_jurisdictions
-        ON ST_DWITHIN(locations.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0)
+        ON public.ST_DWITHIN(locations.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0)
     LEFT JOIN jurisdictions
         AS jurisdictions
         ON jurisdictions.id = locations.jurisdiction_id
-    WHERE geo_jurisdictions.status = 'Active'
+    WHERE geo_jurisdictions.status != 'Inactive'
     AND locations.id = the_structure.id
     ORDER BY
         locations.id ASC,
@@ -41,28 +41,32 @@ BEGIN
             ELSE 1
         END ASC,
         geo_jurisdictions.id ASC;
-
-    BEGIN
-        UPDATE structure_geo_hierarchy
-            SET
-                jurisdiction_id = geo_record.jurisdiction_id,
-                jurisdiction_depth = geo_record.jurisdiction_depth,
-                geo_jurisdiction_id = geo_record.geo_jurisdiction_id,
-                geo_jurisdiction_depth = geo_record.geo_jurisdiction_depth,
-                geo_strict_within = geo_record.geo_strict_within
-            WHERE id = geo_record.id;
-        IF NOT FOUND THEN
-        INSERT INTO structure_geo_hierarchy
-            VALUES (
-                geo_record.id,
-                geo_record.jurisdiction_id,
-                geo_record.jurisdiction_depth,
-                geo_record.geo_jurisdiction_id,
-                geo_record.geo_jurisdiction_depth,
-                geo_record.geo_strict_within
-            );
-        END IF;
-    END;
+    IF FOUND THEN
+        BEGIN
+            UPDATE structure_geo_hierarchy
+                SET
+                    jurisdiction_id = geo_record.jurisdiction_id,
+                    jurisdiction_depth = geo_record.jurisdiction_depth,
+                    geo_jurisdiction_id = geo_record.geo_jurisdiction_id,
+                    geo_jurisdiction_depth = geo_record.geo_jurisdiction_depth,
+                    geo_strict_within = geo_record.geo_strict_within
+                WHERE id = geo_record.id;
+            IF NOT FOUND THEN
+            INSERT INTO structure_geo_hierarchy
+                VALUES (
+                    geo_record.id,
+                    geo_record.jurisdiction_id,
+                    geo_record.jurisdiction_depth,
+                    geo_record.geo_jurisdiction_id,
+                    geo_record.geo_jurisdiction_depth,
+                    geo_record.geo_strict_within
+                );
+            END IF;
+        END;
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
