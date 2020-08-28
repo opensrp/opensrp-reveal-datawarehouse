@@ -103,7 +103,7 @@ SELECT * FROM
             business_status IN ('Not Eligible', 'No Tasks') AND
             (plans.identifier = zambia_irs_structures.plan_id OR zambia_irs_structures.plan_id IS NULL)
     ) AS inactive_irs_structures ON true
-    WHERE plans.intervention_type = 'IRS' AND plans.status NOT IN ('draft')
+    WHERE plans.intervention_type IN ('IRS', 'Dynamic-IRS') AND plans.status NOT IN ('draft', 'retired')
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
