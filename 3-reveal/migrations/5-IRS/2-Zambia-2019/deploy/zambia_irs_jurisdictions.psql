@@ -122,7 +122,7 @@ SELECT * FROM
         -- get only jurisdictions with spray areas
         AND zambia_focus_area_irs_query.totAreas > 0
     ) AS jurisdictions_query ON true
-    WHERE plans.intervention_type = 'IRS' AND plans.status NOT IN ('draft')
+    WHERE plans.intervention_type IN ('IRS', 'Dynamic-IRS') AND plans.status NOT IN ('draft', 'retired')
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
