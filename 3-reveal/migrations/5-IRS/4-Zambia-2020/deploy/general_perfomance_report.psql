@@ -1,0 +1,98 @@
+-- requires: events
+-- requires: tasks
+-- requires: jurisdictions
+-- requires: jurisdictions_materialized_view
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS spray_event_materialized_view AS
+SELECT
+   event_date AS event_date,
+   data_collector AS data_collector,
+   sop AS sop,
+   notsprayed_reason As notsprayed_reason,
+   location_id AS location_id,
+   task_id AS task_id,
+   jurisdiction_name AS jurisdiction_name,
+   jurisdiction_depth As jurisdiction_depth,
+   jurisdiction_parent_id As jurisdiction_parent_id,
+   jurisdiction_name_path AS jurisdiction_name_path,
+   jurisdiction_path AS jurisdiction_path,
+   jurisdiction_id AS jurisdiction_id,
+   plan_id AS plan_id,
+   found AS found,
+   sprayed AS sprayed,
+   refused AS refused,
+   other_reason AS other_reason,
+   field_duration AS field_duration,
+   start_time AS start_time,
+   end_time AS end_time,
+   code AS code,
+   district_name AS district_name,
+   district_id AS district_id
+FROM
+(
+    SELECT
+        event.id AS id,
+        date(event.event_date) AS event_date,
+        event.task_id as task_id,
+        event.form_data->>'end' AS end_time,
+        event.form_data->>'start' AS start_time,
+        event.form_data->>'sprayop_code' AS sop,
+        event.form_data->>'datacollector' AS data_collector,
+        event.form_data->>'notsprayed_reason' AS notsprayed_reason,
+        event.location_id AS jurisdiction_id,
+        event.base_entity_id AS location_id,
+        DATEDIFF('second', (event.form_data->>'start')::timestamp, (event.form_data->>'end')::timestamp) AS field_duration,
+        CASE
+            WHEN event.form_data->>'eligibility' = 'eligible' THEN 1
+            ELSE 1
+        END AS found,
+        CASE
+            WHEN event.form_data->>'structure_sprayed' = 'yes' THEN 1
+            ELSE 0
+        END AS sprayed,
+        CASE
+            WHEN (event.form_data->>'structure_sprayed' != 'yes' AND form_data->>'notsprayed_reason' = 'refused') THEN 1
+            ELSE 0
+        END AS refused,
+        CASE
+            WHEN (event.form_data->>'structure_sprayed' != 'yes' AND form_data->>'notsprayed_reason' != 'refused') THEN 1
+            ELSE 0
+        END AS other_reason,
+        materialized_jur.jurisdiction_parent_id AS jurisdiction_parent_id,
+        materialized_jur.jurisdiction_name AS jurisdiction_name,
+        materialized_jur.jurisdiction_depth AS jurisdiction_depth,
+        materialized_jur.jurisdiction_path AS jurisdiction_path,
+        materialized_jur.jurisdiction_name_path AS jurisdiction_name_path,
+        tasks_query.plan_identifier AS plan_id,
+        tasks_query.code AS code,
+        jurisdiction_querry.district_id AS district_id,
+        jurisdiction_querry.district_name AS district_name
+    FROM events as event
+    LEFT JOIN jurisdictions_materialized_view AS materialized_jur
+        ON event.location_id = materialized_jur.jurisdiction_id
+    LEFT JOIN tasks As tasks_query
+        ON event.task_id = tasks_query.identifier
+    LEFT JOIN LATERAL (
+        SELECT
+            jurisdictions.id AS district_id,
+            jurisdictions.name AS district_name
+        FROM jurisdictions AS jurisdictions
+        WHERE materialized_jur.jurisdiction_path @> ARRAY[jurisdictions.id]
+        AND jurisdictions.geographic_level=2
+    ) AS jurisdiction_querry ON TRUE
+    WHERE
+        event.event_type = 'Spray'
+        AND event.form_data->>'eligibility' != 'notEligible'
+        And form_data->>'districtName' IS NOT NULL
+        AND form_data->>'datacollector' IS NOT NULL
+        AND form_data->>'sprayop_code' IS NOT NULL
+        AND form_data->>'districtName' = 'Nchelenge District (2020)'
+        AND tasks_query.plan_identifier IS NOT NULL
+        AND tasks_query.plan_identifier != ''
+) AS subq;
+
+COMMIT;
