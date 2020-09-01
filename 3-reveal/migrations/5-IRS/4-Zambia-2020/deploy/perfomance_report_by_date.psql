@@ -1,0 +1,25 @@
+-- requires: spray_event_materialized_view
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS sop_date_materialized_view AS
+SELECT DISTINCT ON (plan_id, district_id, data_collector, sop)
+  public.uuid_generate_v5(
+    '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    concat(district_id, plan_id, data_collector, sop)
+  ) AS id,
+  event_date as event_date,
+  sum(found) as found,
+  sum(sprayed) as sprayed,
+  sum(refused) as refused,
+  sum(other_reason) as other_reason,
+  (sum(refused) + sum(other_reason)) as not_sprayed,
+  MIN(start_time::timestamp) AS start_time,
+  MAX(end_time::timestamp) AS end_time,
+  DATEDIFF('minute', MIN(start_time::timestamp), MAX(end_time::timestamp)) AS field_duration
+FROM spray_event_materialized_view
+GROUP BY event_date,sop, data_collector,district_id, plan_id;
+
+COMMIT;
