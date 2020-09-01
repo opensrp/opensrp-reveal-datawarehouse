@@ -16,23 +16,23 @@ DECLARE
     geo_record RECORD;
 BEGIN
 
-    SELECT
-        DISTINCT ON (locations.id) locations.id AS id,
-        jurisdictions.id AS jurisdiction_id,
-        jurisdictions.geographic_level AS jurisdiction_depth,
+    SELECT DISTINCT ON (locations.id)
+        locations.id AS id,
+        locations.jurisdiction_id AS jurisdiction_id,
+        COALESCE(geo_jurisdictions.geographic_level, jurisdictions.geographic_level) AS jurisdiction_depth,
         geo_jurisdictions.id AS geo_jurisdiction_id,
         geo_jurisdictions.geographic_level AS geo_jurisdiction_depth,
         public.ST_WITHIN(locations.geometry, geo_jurisdictions.geometry) AS geo_strict_within
     INTO geo_record
     FROM locations
-    LEFT JOIN jurisdictions
-        AS geo_jurisdictions
-        ON public.ST_DWITHIN(locations.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0)
-    LEFT JOIN jurisdictions
-        AS jurisdictions
+    LEFT JOIN jurisdictions AS jurisdictions
         ON jurisdictions.id = locations.jurisdiction_id
-    WHERE geo_jurisdictions.status != 'Inactive'
-    AND locations.id = the_structure.id
+    LEFT JOIN jurisdictions AS geo_jurisdictions
+        ON public.ST_DWITHIN(locations.geometry, geo_jurisdictions.geometry, 150.0 / 111111.0)
+    WHERE
+        geo_jurisdictions.id IS NOT NULL
+        AND geo_jurisdictions.status != 'Inactive'
+        AND locations.id = the_structure.id
     ORDER BY
         locations.id ASC,
         geo_jurisdictions.geographic_level DESC,
