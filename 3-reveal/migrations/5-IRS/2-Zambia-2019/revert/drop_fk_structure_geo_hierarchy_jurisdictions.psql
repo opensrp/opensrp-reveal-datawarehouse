@@ -1,0 +1,14 @@
+-- Revert reveal_irs_zambia_2019:drop_fk_structure_geo_hierarchy_jurisdictions from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE structure_geo_hierarchy
+ADD CONSTRAINT fk_structure_geo_hierarchy_jurisdictions
+    FOREIGN KEY (jurisdiction_id)
+    REFERENCES jurisdictions (id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE;
+
+COMMIT;

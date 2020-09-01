@@ -34,14 +34,6 @@ AND 1 = ALL(confkey);
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_constraint
 WHERE
-conname = 'fk_structure_geo_hierarchy_jurisdictions'
-AND contype = 'f'
-AND 2 = ALL(conkey)
-AND 1 = ALL(confkey);
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
 conname = 'fk_structure_geo_hierarchy_geo_jurisdictions'
 AND contype = 'f'
 AND 4 = ALL(conkey)

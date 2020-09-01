@@ -1,0 +1,11 @@
+-- Deploy reveal_irs_zambia_2019:drop_fk_structure_geo_hierarchy_jurisdictions to pg
+-- requires: structure_geo_hierarchy
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE structure_geo_hierarchy
+DROP CONSTRAINT IF EXISTS fk_structure_geo_hierarchy_jurisdictions;
+
+COMMIT;
