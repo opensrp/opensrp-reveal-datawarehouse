@@ -1,0 +1,15 @@
+-- Verify reveal_transaction_tables:nullable_task_focus on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/COUNT(*) FROM
+INFORMATION_SCHEMA.COLUMNS
+WHERE
+    table_schema = :'schema'
+    AND table_name = 'tasks'
+    AND column_name = 'focus'
+    AND is_nullable = 'YES';
+
+ROLLBACK;

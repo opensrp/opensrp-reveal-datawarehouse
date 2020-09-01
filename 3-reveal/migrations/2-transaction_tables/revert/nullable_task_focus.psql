@@ -1,0 +1,9 @@
+-- Revert reveal_transaction_tables:nullable_task_focus from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE tasks ALTER COLUMN focus SET NOT NULL;
+
+COMMIT;
