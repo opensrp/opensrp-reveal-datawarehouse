@@ -1,0 +1,43 @@
+-- requires: spray_event_materialized_view
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS districts_materialized_view AS
+SELECT
+  public.uuid_generate_v5(
+    '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    concat(district_id, plan_id)
+  ) AS id,
+  district_id,
+  district_name,
+  plan_id,
+  days_worked,
+  found,
+  sprayed,
+  refused,
+  other_reason,
+  start_time,
+  end_time,
+  end_time -start_time AS field_duration,
+  COALESCE(found / NULLIF(days_worked, 0)::float, found) AS avg_found,
+  COALESCE(sprayed / NULLIF(days_worked, 0)::float, sprayed) AS avg_sprayed,
+  COALESCE(refused / NULLIF(days_worked, 0)::float, refused) AS avg_refused
+FROM (
+  SELECT 
+    DISTINCT (plan_id) as plan_id,
+    district_id,
+    district_name,
+    sum(found) as found,
+    sum(sprayed) as sprayed,
+    sum(refused) as refused,
+    sum(other_reason) as other_reason,
+    AVG(start_time::time) AS start_time,
+    AVG(end_time::time) AS end_time,
+    DATEDIFF('day', MIN(event_date::timestamp), MAX(event_date::timestamp)) as days_worked
+  FROM spray_event_materialized_view
+  GROUP BY district_id, plan_id, district_name
+) as subq;
+
+COMMIT;
