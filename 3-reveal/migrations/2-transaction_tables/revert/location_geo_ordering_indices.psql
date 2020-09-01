@@ -1,0 +1,11 @@
+-- Revert reveal_transaction_tables:location_geo_ordering_indices from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP INDEX locations_asc_id_idx;
+DROP INDEX jurisdictions_asc_id_idx;
+DROP INDEX jurisdictions_desc_geographic_level_idx;
+
+COMMIT;

@@ -1,0 +1,13 @@
+-- Deploy reveal_transaction_tables:location_geo_ordering_indices to pg
+-- requires: jurisdictions
+-- requires: locations
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE INDEX locations_asc_id_idx ON locations (id ASC NULLS LAST);
+CREATE INDEX jurisdictions_asc_id_idx ON jurisdictions (id ASC NULLS LAST);
+CREATE INDEX jurisdictions_desc_geographic_level_idx ON jurisdictions (geographic_level DESC NULLS LAST);
+
+COMMIT;
