@@ -14,3 +14,4 @@ zambia_irs_structures [reveal_transaction_tables:locations zambia_structure_juri
 zambia_focus_area_irs [reveal_transaction_tables:plans zambia_plan_jurisdictions zambia_jurisdictions zambia_irs_structures utils:count_elements utils:array_concat_agg] 2020-04-28T12:18:34Z mosh <kjayanoris@ona.io> # Add zambia_focus_area_irs.
 zambia_irs_jurisdictions [reveal_transaction_tables:plans zambia_jurisdictions zambia_focus_area_irs] 2020-04-28T15:01:19Z mosh <kjayanoris@ona.io> # Add zambia_irs_jurisdictions.
 zambia_irs_export [zambia_irs_structures zambia_jurisdictions zambia_plan_jurisdictions] 2020-05-13T12:27:45Z mosh <kjayanoris@ona.io> # Add zambia_irs_export.
+drop_fk_structure_geo_hierarchy_jurisdictions [structure_geo_hierarchy] 2020-09-01T12:27:39Z mosh <kjayanoris@ona.io> # Drop jurisdictions foreign key constraint from structure_geo_hierarchy.

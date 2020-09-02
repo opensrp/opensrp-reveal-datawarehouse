@@ -16,6 +16,6 @@ FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
 AND tablename = 'jurisdictions'
-AND indexname = 'jurisdiction_uid_idx';
+AND indexname = 'jurisdiction_status_idx';
 
 ROLLBACK;
