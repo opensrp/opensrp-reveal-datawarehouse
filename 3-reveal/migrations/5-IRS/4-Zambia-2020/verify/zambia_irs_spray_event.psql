@@ -1,0 +1,7 @@
+-- Verify reveal_irs_zambia_2020:zambia_irs_spray_event on pg
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;
