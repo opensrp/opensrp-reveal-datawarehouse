@@ -93,6 +93,7 @@ FROM
         AND form_data->>'districtName' = 'Nchelenge District (2020)'
         AND tasks_query.plan_identifier IS NOT NULL
         AND tasks_query.plan_identifier != ''
+        AND jurisdiction_querry.district_id IS NOT NULL
 ) AS subq;
 
 COMMIT;
