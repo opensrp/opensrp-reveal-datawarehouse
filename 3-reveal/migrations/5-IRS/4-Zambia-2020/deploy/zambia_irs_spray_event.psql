@@ -1,13 +1,13 @@
--- requires: events
--- requires: tasks
--- requires: jurisdictions
--- requires: jurisdictions_materialized_view
+-- Deploy reveal_irs_zambia_2020:zambia_irs_spray_event to pg
+-- requires: reveal_transaction_tables:events
+-- requires: reveal_transaction_tables:tasks
+-- requires: reveal_database_views:jurisdictions_materialized_view
 
 BEGIN;
 
 SET search_path TO :"schema",public;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS spray_event_materialized_view AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_spray_event AS
 SELECT
    event_date AS event_date,
    data_collector AS data_collector,

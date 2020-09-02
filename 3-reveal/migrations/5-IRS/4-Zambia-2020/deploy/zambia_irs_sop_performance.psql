@@ -1,15 +1,17 @@
--- requires: spray_event_materialized_view
+-- Deploy reveal_irs_zambia_2020:zambia_irs_sop_performance to pg
+-- requires: zambia_irs_spray_event
 
 BEGIN;
 
 SET search_path TO :"schema",public;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS data_collector_materialized_view AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_sop_performance AS
 SELECT
   id,
   plan_id,
   district_id,
   data_collector,
+  sop,
   days_worked,
   start_time,
   end_time,
@@ -17,16 +19,18 @@ SELECT
   sprayed,
   refused,
   other_reason,
+  (found - sprayed) AS not_sprayed,
   end_time -start_time AS field_duration,
   COALESCE(found / NULLIF(days_worked, 0)::float, found) AS avg_found,
   COALESCE(sprayed / NULLIF(days_worked, 0)::float, sprayed) AS avg_sprayed,
   COALESCE(refused / NULLIF(days_worked, 0)::float, refused) AS avg_refused
 FROM (
-  SELECT DISTINCT ON (plan_id, district_id)
+  SELECT DISTINCT ON (plan_id, district_id, data_collector)
     public.uuid_generate_v5(
       '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-      concat(district_id, plan_id)
+      concat(district_id, plan_id, data_collector)
     ) AS id,
+    sop as sop,
     plan_id,
     district_id,
     data_collector,
@@ -36,9 +40,9 @@ FROM (
     sum(other_reason) as other_reason,
     AVG(start_time::time) AS start_time,
     AVG(end_time::time) AS end_time,
-    DATEDIFF('day', MIN(event_date::timestamp), MAX(event_date::timestamp)) as days_worked
-  FROM spray_event_materialized_view
-  GROUP BY data_collector, plan_id, district_id
+    DATEDIFF('day', MIN(event_date::timestamp), MAX(event_date::timestamp)) AS days_worked
+  FROM zambia_irs_spray_event
+  GROUP BY sop, plan_id, district_id, data_collector
 ) AS subq;
 
 COMMIT;
