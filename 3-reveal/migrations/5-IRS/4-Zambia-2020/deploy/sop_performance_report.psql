@@ -7,6 +7,10 @@ SET search_path TO :"schema",public;
 CREATE MATERIALIZED VIEW IF NOT EXISTS sop_materialized_view AS
 SELECT
   id,
+  sop,
+  plan_id,
+  district_id,
+  data_collector,
   days_worked,
   start_time,
   end_time,
@@ -26,6 +30,9 @@ FROM (
       concat(district_id, plan_id, data_collector)
     ) AS id,
     sop as sop,
+    plan_id,
+    district_id,
+    data_collector,
     sum(found) as found,
     sum(sprayed) as sprayed,
     sum(refused) as refused,
