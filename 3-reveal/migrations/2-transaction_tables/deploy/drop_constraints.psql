@@ -11,25 +11,25 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 ALTER TABLE jurisdictions
-DROP CONSTRAINT fk_jurisdictions_raw_jurisdictions;
+DROP CONSTRAINT IF EXISTS fk_jurisdictions_raw_jurisdictions;
 
 ALTER TABLE tasks
-DROP CONSTRAINT fk_tasks_plan,
-DROP CONSTRAINT fk_tasks_jurisdiction,
-DROP CONSTRAINT fk_tasks_raw_tasks;
+DROP CONSTRAINT IF EXISTS fk_tasks_plan,
+DROP CONSTRAINT IF EXISTS fk_tasks_jurisdiction,
+DROP CONSTRAINT IF EXISTS fk_tasks_raw_tasks;
 
 ALTER TABLE plans
-DROP CONSTRAINT fk_plans_raw_plans;
+DROP CONSTRAINT IF EXISTS fk_plans_raw_plans;
 
 ALTER TABLE events
-DROP CONSTRAINT fk_events_task,
-DROP CONSTRAINT fk_events_raw_events;
+DROP CONSTRAINT IF EXISTS fk_events_task,
+DROP CONSTRAINT IF EXISTS fk_events_raw_events;
 
 ALTER TABLE clients
-DROP CONSTRAINT fk_clients_residence;
+DROP CONSTRAINT IF EXISTS fk_clients_residence;
 
 ALTER TABLE locations
-DROP CONSTRAINT fk_locations_jurisdictions,
-DROP CONSTRAINT fk_locations_raw_locations;
+DROP CONSTRAINT IF EXISTS fk_locations_jurisdictions,
+DROP CONSTRAINT IF EXISTS fk_locations_raw_locations;
 
 COMMIT;

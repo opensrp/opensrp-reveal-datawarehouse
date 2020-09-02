@@ -1,0 +1,20 @@
+-- Verify reveal_irs_zambia_2019:drop_fk_structure_geo_hierarchy_jurisdictions on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_constraint
+    WHERE
+    conname = 'fk_structure_geo_hierarchy_jurisdictions'
+    AND conrelid = CONCAT(:'schema', '.structure_geo_hierarchy')::regclass
+    AND contype = 'f'
+    AND 2 = ALL(conkey)
+    AND 1 = ALL(confkey)
+) AS foo
+WHERE count = 0;
+
+ROLLBACK;

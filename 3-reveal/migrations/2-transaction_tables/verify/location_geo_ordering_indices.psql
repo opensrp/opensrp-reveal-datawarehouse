@@ -1,0 +1,28 @@
+-- Verify reveal_transaction_tables:location_geo_ordering_indices on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'locations'
+AND indexname = 'locations_asc_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions'
+AND indexname = 'jurisdictions_asc_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions'
+AND indexname = 'jurisdictions_desc_geographic_level_idx';
+
+ROLLBACK;
