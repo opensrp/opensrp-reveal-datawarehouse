@@ -1,0 +1,7 @@
+-- Verify reveal_transaction_tables:rework_plan_sub_tables on pg
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;
