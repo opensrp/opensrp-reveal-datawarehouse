@@ -23,27 +23,12 @@ AND 1 = ALL(conkey);
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_constraint
 WHERE
-conname = 'fk_jurisdiction_plan_jurisdiction'
-AND contype = 'f'
-AND 2 = ALL(conkey)
-AND 5 = ALL(confkey);
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
 conname = 'fk_plan_plan_jurisdiction'
 AND contype = 'f'
 AND 3 = ALL(conkey)
 AND 1 = ALL(confkey);
 
 -- check indices
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'plan_jurisdiction'
-AND indexname = 'plan_jurisdiction_jurisdiction_id_plan_id_key';
-
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE

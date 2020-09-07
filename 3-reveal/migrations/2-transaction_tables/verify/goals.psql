@@ -73,13 +73,6 @@ FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
 AND tablename = 'goals'
-AND indexname = 'goals_goal_id_plan_id_key';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'goals'
 AND indexname = 'goal_id_idx';
 
 ROLLBACK;
