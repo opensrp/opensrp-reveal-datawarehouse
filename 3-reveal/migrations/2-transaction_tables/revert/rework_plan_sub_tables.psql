@@ -1,0 +1,26 @@
+-- Revert reveal_transaction_tables:rework_plan_sub_tables from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE plan_jurisdiction
+ADD CONSTRAINT fk_jurisdiction_plan_jurisdiction
+    FOREIGN KEY (jurisdiction_id)
+    REFERENCES jurisdictions (code)
+    ON DELETE RESTRICT,
+ADD CONSTRAINT plan_jurisdiction_jurisdiction_id_plan_id_key
+    UNIQUE (jurisdiction_id, plan_id);
+
+ALTER TABLE goals
+ADD CONSTRAINT goals_goal_id_plan_id_key
+    UNIQUE (goal_id, plan_id);
+
+ALTER TABLE goal_target
+ADD CONSTRAINT goal_target_goal_id_plan_id_key
+    UNIQUE (goal_id, plan_id);
+
+DROP INDEX IF EXISTS goals_goal_id_plan_id_idx;
+DROP INDEX IF EXISTS goal_target_goal_id_plan_id_idx;
+
+COMMIT;

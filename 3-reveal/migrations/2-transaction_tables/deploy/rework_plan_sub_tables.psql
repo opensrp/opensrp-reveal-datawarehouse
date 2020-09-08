@@ -1,0 +1,30 @@
+-- Deploy reveal_transaction_tables:rework_plan_sub_tables to pg
+-- requires: actions
+-- requires: goal_target
+-- requires: plan_jurisdiction
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- remove FK to jurisdictions
+-- remove UNIQUE on jurisdiction id and plan id
+ALTER TABLE plan_jurisdiction
+DROP CONSTRAINT IF EXISTS fk_jurisdiction_plan_jurisdiction,
+DROP CONSTRAINT IF EXISTS plan_jurisdiction_jurisdiction_id_plan_id_key;
+
+-- remove UNIQUE on goal id and plan id
+ALTER TABLE goals
+DROP CONSTRAINT IF EXISTS goals_goal_id_plan_id_key;
+
+-- remove UNIQUE on goal id and plan id
+ALTER TABLE goal_target
+DROP CONSTRAINT IF EXISTS goal_target_goal_id_plan_id_key;
+
+-- Add goals indices
+CREATE INDEX IF NOT EXISTS goals_goal_id_plan_id_idx ON goals (goal_id, plan_id);
+
+-- Add goal_target indices
+CREATE INDEX IF NOT EXISTS goal_target_goal_id_plan_id_idx ON goal_target (goal_id, plan_id);
+
+COMMIT;
