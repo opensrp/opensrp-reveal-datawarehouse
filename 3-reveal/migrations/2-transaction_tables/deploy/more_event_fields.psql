@@ -1,0 +1,18 @@
+-- Deploy reveal_transaction_tables:more_event_fields to pg
+-- requires: events
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- adds missing event fields
+ALTER TABLE events
+ADD COLUMN structure_id VARCHAR(36) NULL,
+ADD COLUMN plan_id VARCHAR(36) NULL,
+ADD COLUMN details JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+-- add indices for some of the above
+CREATE INDEX IF NOT EXISTS events_structure_id_idx ON events (structure_id);
+CREATE INDEX IF NOT EXISTS events_plan_id_idx ON events (plan_id);
+
+COMMIT;
