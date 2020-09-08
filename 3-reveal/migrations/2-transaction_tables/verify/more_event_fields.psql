@@ -1,0 +1,41 @@
+-- Verify reveal_transaction_tables:more_event_fields on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    created_at,
+    base_entity_id,
+    location_id,
+    structure_id,
+    event_type,
+    provider_id,
+    date_created,
+    event_date,
+    entity_type,
+    form_data,
+    details,
+    task_id,
+    plan_id,
+    team_id,
+    server_version
+FROM events
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events'
+AND indexname = 'events_structure_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events'
+AND indexname = 'events_plan_id_idx';
+
+ROLLBACK;
