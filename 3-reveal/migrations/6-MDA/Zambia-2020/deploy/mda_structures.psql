@@ -12,29 +12,27 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 CREATE OR REPLACE VIEW ntd_dispense_structures AS
-SELECT DISTINCT ON (locations.id, plans.identifier)
-    locations.id AS location_id,
+SELECT
     plans.identifier AS plan_id,
+    locations.id AS location_id,
     jurisdictions.jurisdiction_id AS jurisdiction_id,
     jurisdictions.jurisdiction_parent_id AS jurisdiction_parent_id,
     jurisdictions.jurisdiction_name AS jurisdiction_name,
     jurisdictions.jurisdiction_depth AS jurisdiction_depth,
     jurisdictions.jurisdiction_path AS jurisdiction_path,
     jurisdictions.jurisdiction_name_path AS jurisdiction_name_path,
-    -- COALESCE(mda_dispence_query.nPzqDistribute, 0) AS nPzqDistribute,
-    -- COALESCE(mda_dispence_query.availableForTreatment, 0) AS availableForTreatment,
-    -- COALESCE(mda_dispence_query.nPzqDistributedQuantity, 0) AS nPzqDistributedQuantity,
+    COALESCE(mda_dispence_query.nPzqDistribute, 0) AS nPzqDistribute,
+    COALESCE(mda_dispence_query.availableForTreatment, 0) AS availableForTreatment,
+    COALESCE(mda_dispence_query.nPzqDistributedQuantity, 0) AS nPzqDistributedQuantity,
     COALESCE(client_info_query.nsac, 0) AS nsac,
     COALESCE(client_info_query.visited, 0) AS structure_visited
-FROM locations AS locations
+FROM plans
 LEFT JOIN plan_jurisdiction AS plan_jurisdiction
+    ON plans.identifier = plan_jurisdiction.plan_id
+LEFT JOIN locations AS locations
     ON locations.jurisdiction_id = plan_jurisdiction.jurisdiction_id
-LEFT JOIN plans AS plans
-    ON plan_jurisdiction.plan_id = plans.identifier
-    AND plans.intervention_type = 'Dynamic-MDA'
-    AND plans.status IN ('active', 'complete')
 LEFT JOIN jurisdictions_materialized_view AS jurisdictions
-    ON locations.jurisdiction_id = jurisdictions.jurisdiction_id
+    ON plan_jurisdiction.jurisdiction_id = jurisdictions.jurisdiction_id
 LEFT JOIN LATERAL (
     SELECT
         COUNT(DISTINCT t1.identifier) AS visited,
@@ -44,58 +42,38 @@ LEFT JOIN LATERAL (
         ON t1.identifier = e2.task_id
     LEFT JOIN clients AS c1
         ON e2.base_entity_id = c1.baseentityid
-    WHERE t1.group_identifier = jurisdictions.jurisdiction_id
+    WHERE t1.group_identifier = plan_jurisdiction.jurisdiction_id
     AND t1.task_for = locations.id
     AND t1.plan_identifier = plans.identifier
     AND t1.code IN ('Structure_Visited', 'Structure Visited')
     AND t1.status IN ('Completed')
 ) AS client_info_query ON true
--- lets investigate if we can enable this section
--- LEFT JOIN LATERAL (
---     SELECT
---         CASE
---             WHEN e1.form_data->>'nPzqDistribute' = 'Yes' THEN 1
---             ELSE 0
---         END AS nPzqDistribute,
---         CASE
---             WHEN e1.form_data->>'availableForTreatment' = 'Yes' THEN 1
---             ELSE 0
---         END AS availableForTreatment,
---         CASE
---             WHEN e1.form_data->>'nPzqDistributedQuantity' IS NULL THEN 0
---             ELSE CAST(e1.form_data->>'nPzqDistributedQuantity' AS DECIMAL)
---         END AS nPzqDistributedQuantity
---     FROM tasks AS t2
---     LEFT JOIN events AS e1
---         ON t2.identifier = e1.task_id
---     -- LEFT JOIN clients AS c2
---     --     ON e1.base_entity_id = c2.baseentityid
---     WHERE t2.group_identifier = jurisdictions.jurisdiction_id
---     AND t2.plan_identifier = plans.identifier
---     AND t2.code IN ('MDA_Dispense')
---     AND t2.business_status NOT IN ('Not Visited')
---     AND t2.status NOT IN ('Cancelled')
---     -- AND c2.residence = locations.id
--- ) AS mda_dispence_query ON true
-WHERE plans.identifier IS NOT NULL;
-
--- it may be possible to not need this view if the info can be gotten
--- through ntd_dispense_structures
-CREATE OR REPLACE VIEW ntd_dispense_tasks AS
-SELECT
-    tasks.plan_identifier AS plan_id,
-    jurisdictions.jurisdiction_id AS jurisdiction_id,
-    jurisdictions.jurisdiction_path AS jurisdiction_path,
-    COALESCE(COUNT(id) FILTER (WHERE events.form_data->>'nPzqDistribute' = 'Yes'), 0) AS nPzqDistribute,
-    COALESCE(SUM(coalesce(form_data->>'nPzqDistributedQuantity', '0')::DECIMAL), 0) AS nPzqDistributedQuantity
-FROM events
-LEFT JOIN tasks AS tasks ON
-    events.task_id = tasks.identifier
-LEFT JOIN jurisdictions_materialized_view AS jurisdictions
-    ON tasks.group_identifier = jurisdictions.jurisdiction_id
-WHERE tasks.code IN ('MDA_Dispense')
-AND tasks.status NOT IN ('Cancelled')
-AND tasks.business_status NOT IN ('Not Visited')
-GROUP BY tasks.plan_identifier, jurisdictions.jurisdiction_id, jurisdictions.jurisdiction_path;
+LEFT JOIN LATERAL (
+    SELECT
+        CASE
+            WHEN e1.form_data->>'nPzqDistribute' = 'Yes' THEN 1
+            ELSE 0
+        END AS nPzqDistribute,
+        CASE
+            WHEN e1.form_data->>'availableForTreatment' = 'Yes' THEN 1
+            ELSE 0
+        END AS availableForTreatment,
+        COALESCE(COALESCE(e1.form_data->>'nPzqDistributedQuantity', '0')::DECIMAL, 0) AS nPzqDistributedQuantity
+    FROM tasks AS t2
+    LEFT JOIN events AS e1
+        ON t2.identifier = e1.task_id
+    LEFT JOIN clients AS c1
+        ON t2.task_for = c1.baseentityid
+    WHERE c1.residence = locations.id
+    AND t2.group_identifier = plan_jurisdiction.jurisdiction_id
+    AND t2.plan_identifier = plans.identifier
+    AND t2.code IN ('MDA_Dispense')
+    AND t2.business_status NOT IN ('Not Visited')
+    AND t2.status NOT IN ('Cancelled')
+) AS mda_dispence_query ON true
+WHERE
+    plans.intervention_type = 'Dynamic-MDA'
+    AND plans.status IN ('active', 'complete')
+    AND locations.id IS NOT NULL;
 
 COMMIT;
