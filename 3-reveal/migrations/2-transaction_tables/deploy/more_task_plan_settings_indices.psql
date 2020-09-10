@@ -1,0 +1,21 @@
+-- Deploy reveal_transaction_tables:more_task_plan_settings_indices to pg
+-- requires: tasks
+-- requires: opensrp_settings
+-- requires: plans
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE INDEX IF NOT EXISTS opensrp_settings_key_idx ON opensrp_settings (key);
+CREATE INDEX IF NOT EXISTS opensrp_settings_identifier_idx ON opensrp_settings (identifier);
+CREATE INDEX IF NOT EXISTS opensrp_settings_identifier_key_idx ON opensrp_settings (identifier, key);
+
+CREATE INDEX IF NOT EXISTS plans_status_idx ON plans (status);
+CREATE INDEX IF NOT EXISTS plans_intervention_type_idx ON plans (intervention_type);
+CREATE INDEX IF NOT EXISTS plans_status_intervention_type_idx ON plans (status, intervention_type);
+
+CREATE INDEX IF NOT EXISTS task_for_plan_code_status_idx ON tasks (task_for, plan_identifier, code, status);
+CREATE INDEX IF NOT EXISTS task_plan_code_bsuiness_status_status_idx ON tasks (plan_identifier, code, business_status, status);
+
+COMMIT;
