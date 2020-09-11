@@ -1,0 +1,45 @@
+-- Deploy reveal_raw_tables:sync_column to pg
+-- requires: raw_clients
+-- requires: raw_jurisdictions
+-- requires: raw_locations
+-- requires: raw_plans
+-- requires: raw_settings
+-- requires: raw_tasks
+-- requires: raw_events
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- adds synced column to the raw data tables
+ALTER TABLE raw_clients
+ADD COLUMN synced BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE raw_jurisdictions
+ADD COLUMN synced BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE raw_locations
+ADD COLUMN synced BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE raw_plans
+ADD COLUMN synced BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE raw_settings
+ADD COLUMN synced BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE raw_tasks
+ADD COLUMN synced BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE raw_events
+ADD COLUMN synced BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- add indices
+CREATE INDEX IF NOT EXISTS synced_raw_clients_idx ON raw_clients(synced);
+CREATE INDEX IF NOT EXISTS synced_raw_jurisdictions_idx ON raw_jurisdictions(synced);
+CREATE INDEX IF NOT EXISTS synced_raw_locations_idx ON raw_locations(synced);
+CREATE INDEX IF NOT EXISTS synced_raw_plans_idx ON raw_plans(synced);
+CREATE INDEX IF NOT EXISTS synced_raw_settings_idx ON raw_settings(synced);
+CREATE INDEX IF NOT EXISTS synced_raw_tasks_idx ON raw_tasks(synced);
+CREATE INDEX IF NOT EXISTS synced_raw_events_idx ON raw_events(synced);
+
+COMMIT;
