@@ -1,0 +1,36 @@
+-- Revert reveal_raw_tables:sync_column from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP INDEX synced_raw_clients_idx;
+DROP INDEX synced_raw_jurisdictions_idx;
+DROP INDEX synced_raw_locations_idx;
+DROP INDEX synced_raw_plans_idx;
+DROP INDEX synced_raw_settings_idx;
+DROP INDEX synced_raw_tasks_idx;
+DROP INDEX synced_raw_events_idx;
+
+ALTER TABLE raw_clients
+DROP COLUMN synced;
+
+ALTER TABLE raw_jurisdictions
+DROP COLUMN synced;
+
+ALTER TABLE raw_locations
+DROP COLUMN synced;
+
+ALTER TABLE raw_plans
+DROP COLUMN synced;
+
+ALTER TABLE raw_settings
+DROP COLUMN synced;
+
+ALTER TABLE raw_tasks
+DROP COLUMN synced;
+
+ALTER TABLE raw_events
+DROP COLUMN synced;
+
+COMMIT;

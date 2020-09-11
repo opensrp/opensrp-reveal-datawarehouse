@@ -1,0 +1,98 @@
+-- Verify reveal_raw_tables:sync_column on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- clients
+SELECT
+    synced
+FROM raw_clients
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'raw_clients'
+AND indexname = 'synced_raw_clients_idx';
+
+-- jurisdictions
+SELECT
+    synced
+FROM raw_jurisdictions
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'raw_jurisdictions'
+AND indexname = 'synced_raw_jurisdictions_idx';
+
+-- locations
+SELECT
+    synced
+FROM raw_locations
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'raw_locations'
+AND indexname = 'synced_raw_locations_idx';
+
+-- plans
+SELECT
+    synced
+FROM raw_plans
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'raw_plans'
+AND indexname = 'synced_raw_plans_idx';
+
+-- settings
+SELECT
+    synced
+FROM raw_settings
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'raw_settings'
+AND indexname = 'synced_raw_settings_idx';
+
+-- tasks
+SELECT
+    synced
+FROM raw_tasks
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'raw_tasks'
+AND indexname = 'synced_raw_tasks_idx';
+
+-- events
+SELECT
+    synced
+FROM raw_events
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'raw_events'
+AND indexname = 'synced_raw_events_idx';
+
+ROLLBACK;
