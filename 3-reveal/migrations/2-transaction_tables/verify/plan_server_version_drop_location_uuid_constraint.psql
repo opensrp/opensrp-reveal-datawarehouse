@@ -1,0 +1,35 @@
+-- Verify reveal_transaction_tables:plan_server_version_drop_location_uuid_constraint on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/COUNT(*)
+FROM (
+    SELECT COUNT(*)
+    FROM pg_catalog.pg_indexes
+    WHERE
+    schemaname = :'schema'
+    AND tablename = 'locations'
+    AND indexname = 'locations_uid_key'
+) AS foo
+WHERE count = 0;
+
+SELECT
+    identifier,
+    created_at,
+    version,
+    name,
+    title,
+    status,
+    fi_status,
+    fi_reason,
+    intervention_type,
+    date,
+    server_version,
+    effective_period_start,
+    effective_period_end
+FROM plans
+WHERE FALSE;
+
+ROLLBACK;
