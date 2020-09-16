@@ -10,4 +10,6 @@ DROP COLUMN server_version;
 ALTER TABLE locations
 ADD CONSTRAINT locations_uid_key UNIQUE (uid);
 
+ALTER TABLE events ALTER COLUMN task_id SET NOT NULL;
+
 COMMIT;

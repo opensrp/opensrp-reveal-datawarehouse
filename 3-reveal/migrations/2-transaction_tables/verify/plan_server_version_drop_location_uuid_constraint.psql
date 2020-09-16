@@ -32,4 +32,12 @@ SELECT
 FROM plans
 WHERE FALSE;
 
+SELECT 1/COUNT(*) FROM
+INFORMATION_SCHEMA.COLUMNS
+WHERE
+    table_schema = :'schema'
+    AND table_name = 'events'
+    AND column_name = 'task_id'
+    AND is_nullable = 'YES';
+
 ROLLBACK;

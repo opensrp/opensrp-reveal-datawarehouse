@@ -12,4 +12,7 @@ ADD COLUMN server_version BIGINT NOT NULL DEFAULT 0;
 ALTER TABLE locations
 DROP CONSTRAINT locations_uid_key;
 
+ALTER TABLE events
+ALTER COLUMN task_id DROP NOT NULL;
+
 COMMIT;
