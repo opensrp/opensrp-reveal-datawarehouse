@@ -21,3 +21,4 @@ nullable_task_focus [tasks] 2020-09-01T12:13:14Z mosh <kjayanoris@ona.io> # Make
 rework_plan_sub_tables [actions goal_target plan_jurisdiction] 2020-09-07T15:58:07Z mosh <kjayanoris@ona.io> # Rework plan sub tables.
 more_event_fields [events] 2020-09-08T12:40:38Z mosh <kjayanoris@ona.io> # Add more event fields.
 more_task_plan_settings_indices [tasks opensrp_settings plans] 2020-09-10T16:43:09Z mosh <kjayanoris@ona.io> # Add more indices for tasks, plans, and settings.
+plan_server_version_drop_location_uuid_constraint [locations plans] 2020-09-15T08:26:38Z mosh <kjayanoris@ona.io> # Add plan server version and drop location uuid unique.
