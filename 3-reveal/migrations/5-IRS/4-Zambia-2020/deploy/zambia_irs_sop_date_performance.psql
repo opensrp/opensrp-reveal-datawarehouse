@@ -23,7 +23,7 @@ SELECT DISTINCT ON (plan_id, district_id, data_collector, sop)
   (sum(refused) + sum(other_reason)) as not_sprayed,
   to_char(MIN(start_time::timestamp), 'HH24:MI') AS start_time,
   to_char(MAX(end_time::timestamp), 'HH24:MI') AS end_time,
-  DATEDIFF('minute', MIN(start_time::timestamp), MAX(end_time::timestamp)) AS field_duration
+  to_char(MAX(end_time::timestamp) - MIN(start_time::timestamp), 'HH24:MI') AS field_duration
 FROM zambia_irs_spray_event
 GROUP BY event_date,sop, data_collector,district_id, plan_id;
 
