@@ -4,7 +4,7 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-SELECT has_function_privilege(:'schema' || '.refresh_mat_view(varchar, boolean)', 'execute');
+SELECT has_function_privilege(:'schema' || '.refresh_mat_view(varchar, boolean, boolean)', 'execute');
 
 CREATE TABLE refresh_mat_view_users (
     nickname  TEXT PRIMARY KEY,
