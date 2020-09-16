@@ -58,7 +58,7 @@ DECLARE
 BEGIN
     -- check if we are already running this query
     SELECT COUNT(*) FROM pg_stat_activity
-    -- INTO existing_queries
+    INTO existing_queries
     WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes'
     AND query ILIKE '%process_structure_geo_hierarchy_structure_queue%';
     -- only process the queue if not already doing it
