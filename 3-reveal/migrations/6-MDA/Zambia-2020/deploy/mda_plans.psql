@@ -28,13 +28,15 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS mda_plans AS
                     jurisdictions_materialized_view.jurisdiction_root_parent_id AS jurisdiction_root_parent_id,
                     COALESCE(jurisdictions_materialized_view.jurisdiction_path, '{}') AS jurisdiction_path
                 FROM plan_jurisdiction
+                LEFT JOIN plans on plan_jurisdiction.plan_id = plans.identifier
                 LEFT JOIN jurisdictions_materialized_view
                     ON plan_jurisdiction.jurisdiction_id = jurisdictions_materialized_view.jurisdiction_id
-                WHERE plans.identifier = plan_jurisdiction.plan_id
+                -- WHERE plans.identifier = plan_jurisdiction.plan_id
+                WHERE (plans.intervention_type = 'Dynamic-MDA') AND plans.status IN ('active', 'complete')
             ) AS subq
     ) AS jurisdiction_root_parent_ids
 FROM plans plans
-WHERE (plans.intervention_type = 'Dynamic-MDA' ) AND plans.status IN ('active', 'complete')
+WHERE (plans.intervention_type = 'Dynamic-MDA') AND plans.status IN ('active', 'complete')
 ORDER BY plans.date DESC) WITH DATA;
 
 -- Create unique ID

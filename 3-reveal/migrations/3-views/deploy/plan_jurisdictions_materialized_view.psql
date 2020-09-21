@@ -14,6 +14,7 @@ SELECT DISTINCT ON (plan_id, jurisdiction_id)
     plan_jurisdiction.plan_id,
     plan_hierarchy.jurisdiction_id AS jurisdiction_id,
     plan_hierarchy.jurisdiction_path AS jurisdiction_path,
+    COALESCE(child_query.children, '{}') AS jurisdiction_children,
     plan_hierarchy.is_focus_area AS is_focus_area
 FROM plan_jurisdiction AS plan_jurisdiction
 LEFT JOIN lateral (
@@ -26,7 +27,18 @@ LEFT JOIN lateral (
         FROM jurisdictions_materialized_view
         WHERE jurisdiction_id = plan_jurisdiction.jurisdiction_id
     )
-) AS plan_hierarchy ON true;
+) AS plan_hierarchy ON true
+LEFT JOIN LATERAL (
+    SELECT array_concat_agg(DISTINCT jurisdictions.jurisdiction_path) AS children
+    FROM jurisdictions_materialized_view AS jurisdictions
+    -- WHERE jurisdictions.jurisdiction_id = 'ce7e08b3-896b-4e74-9ef3-45d71143c70z';
+    -- WHERE jurisdictions.jurisdiction_path @> '{ce7e08b3-896b-4e74-9ef3-45d71143c70z}';
+    WHERE
+        jurisdictions.jurisdiction_path @> ARRAY[plan_hierarchy.jurisdiction_id]
+        AND plan_hierarchy.is_focus_area = FALSE
+        AND jurisdictions.jurisdiction_path @> ARRAY[plan_hierarchy.jurisdiction_id]
+) AS child_query ON true
+WHERE plan_jurisdiction.plan_id = 'c9d28842-f5df-5112-b4ae-2ac24d20795f';
 
 CREATE INDEX IF NOT EXISTS plan_jurisdictions_materialized_view_path_idx_gin ON plan_jurisdictions_materialized_view using GIN (jurisdiction_path);
 

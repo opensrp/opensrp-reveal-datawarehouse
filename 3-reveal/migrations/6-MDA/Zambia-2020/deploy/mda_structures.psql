@@ -12,41 +12,51 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 CREATE OR REPLACE VIEW ntd_dispense_structures AS
+SELECT DISTINCT ON (plans.identifier, locations.id, jurisdictions.jurisdiction_id)
 SELECT
-    plans.identifier AS plan_id,
+    SUM(foo.nPzqDistributedQuantity) AS nPzqDistributedQuantity,
+    SUM(foo.nsac) AS nsac,
+    COUNT(foo.location_id) AS countYY
+FROM (
+SELECT
+SELECT DISTINCT ON (plans.identifier, locations.id, jurisdictions.jurisdiction_id)
+-- SELECT DISTINCT ON (plans.identifier, locations.id, jurisdictions.jurisdiction_id)
+    -- plans.identifier AS plan_id,
     locations.id AS location_id,
-    jurisdictions.jurisdiction_id AS jurisdiction_id,
-    jurisdictions.jurisdiction_parent_id AS jurisdiction_parent_id,
-    jurisdictions.jurisdiction_name AS jurisdiction_name,
-    jurisdictions.jurisdiction_depth AS jurisdiction_depth,
-    jurisdictions.jurisdiction_path AS jurisdiction_path,
-    jurisdictions.jurisdiction_name_path AS jurisdiction_name_path,
+    -- jurisdictions.jurisdiction_id AS jurisdiction_id,
+    -- jurisdictions.jurisdiction_parent_id AS jurisdiction_parent_id,
+    -- jurisdictions.jurisdiction_name AS jurisdiction_name,
+    -- jurisdictions.jurisdiction_depth AS jurisdiction_depth,
+    -- jurisdictions.jurisdiction_path AS jurisdiction_path,
+    -- jurisdictions.jurisdiction_name_path AS jurisdiction_name_path,
     COALESCE(mda_dispence_query.nPzqDistribute, 0) AS nPzqDistribute,
-    COALESCE(mda_dispence_query.availableForTreatment, 0) AS availableForTreatment,
-    COALESCE(mda_dispence_query.nPzqDistributedQuantity, 0) AS nPzqDistributedQuantity,
+    -- COALESCE(mda_dispence_query.availableForTreatment, 0) AS availableForTreatment,
+    -- COALESCE(mda_dispence_query.nPzqDistributedQuantity, 0) AS nPzqDistributedQuantity,
     COALESCE(client_info_query.nsac, 0) AS nsac,
     COALESCE(client_info_query.visited, 0) AS structure_visited
 FROM plans
 LEFT JOIN plan_jurisdiction AS plan_jurisdiction
     ON plans.identifier = plan_jurisdiction.plan_id
-LEFT JOIN locations AS locations
+LEFT JOIN structures AS locations
     ON locations.jurisdiction_id = plan_jurisdiction.jurisdiction_id
 LEFT JOIN jurisdictions_materialized_view AS jurisdictions
     ON plan_jurisdiction.jurisdiction_id = jurisdictions.jurisdiction_id
 LEFT JOIN LATERAL (
     SELECT
         COUNT(DISTINCT t1.identifier) AS visited,
-        COALESCE(SUM(COALESCE(c1.attributes->>'nsac', '0')::INTEGER), 0) AS nsac
+        MAX(COALESCE(c1.attributes->>'nsac', '0')::INTEGER) AS nsac
     FROM tasks AS t1
     LEFT JOIN events AS e2
         ON t1.identifier = e2.task_id
     LEFT JOIN clients AS c1
         ON e2.base_entity_id = c1.baseentityid
+        AND e2.event_type IN ('Family Registration', 'Family_Registration')
     WHERE t1.group_identifier = plan_jurisdiction.jurisdiction_id
     AND t1.task_for = locations.id
     AND t1.plan_identifier = plans.identifier
     AND t1.code IN ('Structure_Visited', 'Structure Visited')
     AND t1.status IN ('Completed')
+    -- GROUP BY t1.identifier
 ) AS client_info_query ON true
 LEFT JOIN LATERAL (
     SELECT
@@ -73,7 +83,112 @@ LEFT JOIN LATERAL (
 ) AS mda_dispence_query ON true
 WHERE
     plans.intervention_type = 'Dynamic-MDA'
+    AND plans.identifier = 'c9d28842-f5df-5112-b4ae-2ac24d20795f'
+    AND jurisdictions.jurisdiction_id = '842f7aff-572b-44bc-b1ce-c6387b1afafz'
     AND plans.status IN ('active', 'complete')
     AND locations.id IS NOT NULL;
+-- GROUP BY
+--     plans.identifier,
+--     locations.id,
+--     jurisdictions.jurisdiction_id,
+--     jurisdictions.jurisdiction_parent_id,
+--     jurisdictions.jurisdiction_name,
+--     jurisdictions.jurisdiction_depth,
+--     jurisdictions.jurisdiction_path,
+--     jurisdictions.jurisdiction_name_path,
+--     COALESCE(mda_dispence_query.nPzqDistribute, 0),
+--     COALESCE(mda_dispence_query.availableForTreatment, 0),
+--     COALESCE(mda_dispence_query.nPzqDistributedQuantity, 0),
+--     COALESCE(client_info_query.nsac, 0),
+--     COALESCE(client_info_query.visited, 0)
+) AS foo;
+ORDER BY COALESCE(mda_dispence_query.nPzqDistributedQuantity, 0) DESC) AS foo;
+
+
+SELECT
+    COUNT(DISTINCT t1.identifier) AS visited,
+    MAX(COALESCE(c1.attributes->>'nsac', '0')) AS nsac
+FROM tasks AS t1
+LEFT JOIN events AS e2
+    ON t1.identifier = e2.task_id
+LEFT JOIN clients AS c1
+    ON e2.base_entity_id = c1.baseentityid
+    AND e2.event_type IN ('Family Registration', 'Family_Registration')
+WHERE t1.code IN ('Structure_Visited', 'Structure Visited')
+AND t1.status IN ('Completed')
+AND t1.plan_identifier = 'c9d28842-f5df-5112-b4ae-2ac24d20795f'
+AND t1.group_identifier = '842f7aff-572b-44bc-b1ce-c6387b1afafz';
+GROUP BY t1.identifier;
+
+SELECT
+    t1.identifier AS task_id,
+    t1.plan_identifier AS plan_id,
+    t1.group_identifier AS jurisdiction_id,
+    COALESCE(c1.attributes->>'nsac', '0') AS nsac
+FROM tasks AS t1
+LEFT JOIN events AS e1
+    ON t1.identifier = e1.task_id AND e1.event_type IN ('Family Registration', 'Family_Registration')
+LEFT JOIN clients AS c1
+    ON e1.base_entity_id = c1.baseentityid
+WHERE t1.code IN ('Structure_Visited', 'Structure Visited')
+AND t1.status IN ('Completed')
+AND t1.plan_identifier = 'c9d28842-f5df-5112-b4ae-2ac24d20795f'
+AND t1.group_identifier = '842f7aff-572b-44bc-b1ce-c6387b1afafz';
+GROUP BY t1.identifier;
+
+SELECT
+    tasks.plan_identifier AS plan_id,
+    tasks.group_identifier AS jurisdiction_id,
+    -- clients.residence AS residence,
+    -- task_id, base_entity_id, residence,
+    CASE
+        WHEN events.form_data->>'nPzqDistribute' = 'Yes' THEN 1
+        ELSE 0
+    END AS nPzqDistribute,
+    CASE
+        WHEN events.form_data->>'availableForTreatment' = 'Yes' THEN 1
+        ELSE 0
+    END AS availableForTreatment,
+    COALESCE(COALESCE(events.form_data->>'nPzqDistributedQuantity', '0')::DECIMAL, 0) AS nPzqDistributedQuantity
+from events
+LEFT JOIN clients ON clients.baseentityid = events.base_entity_id
+LEFT JOIN tasks ON events.task_id = tasks.identifier
+where event_type = 'mda_dispense'
+AND tasks.plan_identifier = 'c9d28842-f5df-5112-b4ae-2ac24d20795f'
+AND tasks.group_identifier = '842f7aff-572b-44bc-b1ce-c6387b1afafz';
+
+SELECT
+    t2.identifier AS task_id,
+    e1.id AS event,
+    c1.id AS client,
+    CASE
+        WHEN e1.form_data->>'nPzqDistribute' = 'Yes' THEN 1
+        ELSE 0
+    END AS nPzqDistribute
+    -- CASE
+    --     WHEN e1.form_data->>'availableForTreatment' = 'Yes' THEN 1
+    --     ELSE 0
+    -- END AS availableForTreatment,
+    -- COALESCE(COALESCE(e1.form_data->>'nPzqDistributedQuantity', '0')::DECIMAL, 0) AS nPzqDistributedQuantity
+FROM tasks AS t2
+LEFT JOIN events AS e1
+    ON t2.identifier = e1.task_id
+LEFT JOIN clients AS c1
+    ON t2.task_for = c1.baseentityid
+-- LEFT JOIN structures AS locations ON 
+-- WHERE c1.residence = locations.id
+-- AND t2.group_identifier = plan_jurisdiction.jurisdiction_id
+-- AND t2.plan_identifier = plans.identifier
+WHERE
+t2.code IN ('MDA_Dispense')
+AND t2.business_status NOT IN ('Not Visited')
+AND t2.status NOT IN ('Cancelled')
+AND t2.plan_identifier = 'c9d28842-f5df-5112-b4ae-2ac24d20795f'
+AND t2.group_identifier = '842f7aff-572b-44bc-b1ce-c6387b1afafz';
+
+SELECT SUM(nPzqDistributedQuantity)
+FROM ntd_dispense_structures
+WHERE plan_id = 'c9d28842-f5df-5112-b4ae-2ac24d20795f'
+AND jurisdiction_id = '842f7aff-572b-44bc-b1ce-c6387b1afafz'
 
 COMMIT;

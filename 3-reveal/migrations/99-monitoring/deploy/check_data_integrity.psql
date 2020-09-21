@@ -11,6 +11,7 @@ CREATE OR REPLACE FUNCTION check_data_integrity(func_name VARCHAR, object_type R
 -- example usage:
 --      SELECT check_data_integrity('missing_goal_actions', 'actions');
 --      SELECT check_data_integrity('missing_subject_tasks', 'tasks');
+--      SELECT check_data_integrity('orphaned_jurisdictions', 'jurisdictions');
 DECLARE result_row RECORD;
 DECLARE result_length INTEGER DEFAULT 0;
 BEGIN

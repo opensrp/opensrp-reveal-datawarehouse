@@ -62,7 +62,9 @@ LEFT JOIN LATERAL (
 ) AS structures_query ON true
 WHERE
     plans.intervention_type = 'Dynamic-MDA'
-    AND plans.status IN ('active', 'complete');
+    AND plans.status IN ('active', 'complete')
+    AND plans.identifier = 'c9d28842-f5df-5112-b4ae-2ac24d20795f'
+    AND jurisdictions_materialized_view.jurisdiction_id = '842f7aff-572b-44bc-b1ce-c6387b1afafz';
 
 CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_path_idx_gin on ntd_mda_jurisdictions  using GIN (jurisdiction_path);
 CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_plan_idx ON ntd_mda_jurisdictions (plan_id);
@@ -71,3 +73,9 @@ CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_jurisdiction_parent_idx ON ntd_
 CREATE UNIQUE INDEX IF NOT EXISTS ntd_mda_jurisdictions_idx ON ntd_mda_jurisdictions (id);
 
 COMMIT;
+
+
+SELECT DISTINCT(UNNEST(array_concat_agg(jurisdictions_materialized_view.jurisdiction_path))
+FROM plan_jurisdiction LEFT JOIN jurisdictions_materialized_view ON
+    jurisdictions_materialized_view.jurisdiction_id = plan_jurisdiction.jurisdiction_id
+WHERE plan_id = 'c9d28842-f5df-5112-b4ae-2ac24d20795f'
