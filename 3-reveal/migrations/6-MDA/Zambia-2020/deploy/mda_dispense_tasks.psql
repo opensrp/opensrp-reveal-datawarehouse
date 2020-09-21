@@ -1,0 +1,68 @@
+-- Deploy reveal_mda_zambia_2020:mda_dispense_tasks to pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- Identify dispense tasks and metadata
+CREATE VIEW ntd_dispense_tasks AS
+SELECT
+    DISTINCT ON (tasks.identifier, events.id)
+    tasks.plan_identifier AS plan_id,
+    tasks.group_identifier AS jurisdiction_id,
+    tasks.identifier AS task_id,
+    events.id AS event_id,
+    events.base_entity_id AS client_base_entity_id,
+    clients.id AS client_id
+FROM tasks
+LEFT JOIN events
+    ON events.task_id = tasks.identifier
+LEFT JOIN clients ON clients.baseentityid = events.base_entity_id
+WHERE tasks.code = 'MDA_Dispense'
+ORDER BY tasks.identifier, events.id, events.server_version DESC;
+
+-- Compute single-jurisdiction metrics
+CREATE MATERIALIZED VIEW ntd_dispense_task_metrics AS
+WITH metrics AS
+(
+    SELECT
+        ntd_dispense_tasks.plan_id,
+        ntd_dispense_tasks.jurisdiction_id,
+        COALESCE(COUNT(events.id) FILTER (WHERE events.form_data->>'nPzqDistribute' IN ('Yes')), 0) AS nPzqDistribute,
+        COALESCE(COUNT(events.id) FILTER (WHERE events.form_data->>'availableForTreatment' IN ('Yes')), 0) AS availableForTreatment,
+        COALESCE(SUM(COALESCE(events.form_data->>'nPzqDistributedQuantity', '0')::DECIMAL), 0) AS nPzqDistributedQuantity
+    FROM ntd_dispense_tasks
+    LEFT JOIN events ON events.id = ntd_dispense_tasks.event_id
+    LEFT JOIN jurisdictions_materialized_view AS jurisdiction_hierarchy
+        ON jurisdiction_hierarchy.jurisdiction_id = ntd_dispense_tasks.jurisdiction_id
+    WHERE
+        ntd_dispense_tasks.event_id IS NOT NULL
+        AND events.event_type = 'mda_dispense'
+    GROUP BY ntd_dispense_tasks.plan_id, ntd_dispense_tasks.jurisdiction_id
+)
+SELECT
+    metrics.*,
+    jurisdiction_hierarchy.jurisdiction_path || jurisdiction_hierarchy.jurisdiction_id AS full_jurisdiction_path
+FROM metrics
+LEFT JOIN jurisdictions_materialized_view AS jurisdiction_hierarchy
+    ON jurisdiction_hierarchy.jurisdiction_id = metrics.jurisdiction_id;
+
+CREATE INDEX IF NOT EXISTS ntd_dispense_task_metrics_plan_id_jurisdiction_id_idx ON ntd_dispense_task_metrics (plan_id, jurisdiction_id);
+CREATE INDEX IF NOT EXISTS ntd_dispense_task_metrics_plan_id_full_jurisdiction_path_idx ON ntd_dispense_task_metrics USING GIN(full_jurisdiction_path);
+
+-- Compute aggregate jurisdiction metrics
+CREATE MATERIALIZED VIEW ntd_dispense_plan_metrics AS
+SELECT
+    plan_hierarchy.plan_id,
+    plan_hierarchy.jurisdiction_id,
+    BOOL_AND(plan_hierarchy.is_focus_area) AS irs_focus_area,
+    SUM(ntd_dispense_task_metrics.nPzqDistribute) AS nPzqDistribute,
+    SUM(ntd_dispense_task_metrics.availableForTreatment) AS availableForTreatment,
+    SUM(ntd_dispense_task_metrics.nPzqDistributedQuantity) AS nPzqDistributedQuantity
+FROM plan_jurisdictions_materialized_view AS plan_hierarchy
+LEFT JOIN ntd_dispense_task_metrics
+    ON ntd_dispense_task_metrics.plan_id = plan_hierarchy.plan_id
+    AND plan_hierarchy.jurisdiction_id = ANY(ntd_dispense_task_metrics.full_jurisdiction_path)
+GROUP BY plan_hierarchy.plan_id, plan_hierarchy.jurisdiction_id;
+
+COMMIT;

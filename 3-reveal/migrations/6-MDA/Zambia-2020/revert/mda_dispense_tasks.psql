@@ -1,0 +1,11 @@
+-- Revert reveal_mda_zambia_2020:mda_dispense_tasks from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP VIEW pending.ntd_dispense_plan_metrics;
+DROP MATERIALIZED VIEW pending.ntd_dispense_task_metrics;
+DROP MATERIALIZED VIEW pending.ntd_dispense_tasks;
+
+COMMIT;
