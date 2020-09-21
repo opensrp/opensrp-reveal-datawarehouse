@@ -4,8 +4,19 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-DROP VIEW pending.ntd_dispense_plan_metrics;
-DROP MATERIALIZED VIEW pending.ntd_dispense_task_metrics;
-DROP MATERIALIZED VIEW pending.ntd_dispense_tasks;
+DROP MATERIALIZED VIEW ntd_mda_jurisdictions;
+ALTER MATERIALIZED VIEW deprecated.ntd_mda_jurisdictions SET SCHEMA public;
+
+DROP MATERIALIZED VIEW ntd_structure_plan_metrics;
+DROP MATERIALIZED VIEW ntd_structure_metrics;
+
+DROP MATERIALIZED VIEW ntd_visit_structure_plan_metrics;
+DROP MATERIALIZED VIEW ntd_visit_structure_task_metrics;
+
+DROP MATERIALIZED VIEW ntd_dispense_plan_metrics;
+DROP MATERIALIZED VIEW ntd_dispense_task_metrics;
+DROP VIEW VIEW ntd_dispense_tasks;
+
+ALTER VIEW deprecated.ntd_dispense_tasks SET SCHEMA public;
 
 COMMIT;
