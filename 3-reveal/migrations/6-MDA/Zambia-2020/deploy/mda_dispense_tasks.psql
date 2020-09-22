@@ -4,43 +4,33 @@ BEGIN;
 
 --SET search_path TO :"schema",public;
 
-ALTER VIEW ntd_dispense_tasks SET SCHEMA deprecated;
-
--- Identify dispense tasks and metadata
-CREATE VIEW ntd_dispense_tasks AS
-SELECT
-    DISTINCT ON (tasks.identifier, events.id)
-    tasks.plan_identifier AS plan_id,
-    tasks.group_identifier AS jurisdiction_id,
-    tasks.identifier AS task_id,
-    events.id AS event_id,
-    events.base_entity_id AS client_base_entity_id,
-    clients.id AS client_id
-FROM tasks
-LEFT JOIN events
-    ON events.task_id = tasks.identifier
-LEFT JOIN clients ON clients.baseentityid = events.base_entity_id
-WHERE tasks.code = 'MDA_Dispense'
-ORDER BY tasks.identifier, events.id, events.server_version DESC;
-
 -- Compute single-jurisdiction metrics
 CREATE MATERIALIZED VIEW ntd_dispense_task_metrics AS
 WITH metrics AS
 (
     SELECT
-        ntd_dispense_tasks.plan_id,
-        ntd_dispense_tasks.jurisdiction_id,
-        COALESCE(COUNT(events.id) FILTER (WHERE events.form_data->>'nPzqDistribute' IN ('Yes')), 0) AS nPzqDistribute,
-        COALESCE(COUNT(events.id) FILTER (WHERE events.form_data->>'availableForTreatment' IN ('Yes')), 0) AS availableForTreatment,
-        COALESCE(SUM(COALESCE(events.form_data->>'nPzqDistributedQuantity', '0')::DECIMAL), 0) AS nPzqDistributedQuantity
-    FROM ntd_dispense_tasks
-    LEFT JOIN events ON events.id = ntd_dispense_tasks.event_id
-    LEFT JOIN jurisdictions_materialized_view AS jurisdiction_hierarchy
-        ON jurisdiction_hierarchy.jurisdiction_id = ntd_dispense_tasks.jurisdiction_id
+        tasks.plan_identifier AS plan_id,
+        tasks.group_identifier AS jurisdiction_id,
+        COALESCE(COUNT(latest_events.id) FILTER (WHERE latest_events.form_data->>'nPzqDistribute' IN ('Yes')), 0) AS nPzqDistribute,
+        COALESCE(COUNT(latest_events.id) FILTER (WHERE latest_events.form_data->>'availableForTreatment' IN ('Yes')), 0) AS availableForTreatment,
+        COALESCE(SUM(COALESCE(latest_events.form_data->>'nPzqDistributedQuantity', '0')::DECIMAL), 0) AS nPzqDistributedQuantity
+    FROM tasks
+    LEFT JOIN LATERAL
+    	(
+    		SELECT
+    			events.*
+    		FROM events
+    		WHERE
+    			events.task_id = tasks.identifier
+    			AND events.event_type = 'mda_dispense'
+    		ORDER BY events.server_version DESC
+    		LIMIT 1
+    	) AS latest_events
+    	ON TRUE
     WHERE
-        ntd_dispense_tasks.event_id IS NOT NULL
-        AND events.event_type = 'mda_dispense'
-    GROUP BY ntd_dispense_tasks.plan_id, ntd_dispense_tasks.jurisdiction_id
+    	tasks.code = 'MDA_Dispense'
+        AND latest_events.id IS NOT NULL
+    GROUP BY tasks.plan_identifier, tasks.group_identifier
 )
 SELECT
     metrics.*,

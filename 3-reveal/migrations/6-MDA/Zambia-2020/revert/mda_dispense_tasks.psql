@@ -15,7 +15,6 @@ DROP MATERIALIZED VIEW ntd_visit_structure_task_metrics;
 
 DROP MATERIALIZED VIEW ntd_dispense_plan_metrics;
 DROP MATERIALIZED VIEW ntd_dispense_task_metrics;
-DROP VIEW VIEW ntd_dispense_tasks;
 
 ALTER VIEW deprecated.ntd_dispense_tasks SET SCHEMA public;
 
