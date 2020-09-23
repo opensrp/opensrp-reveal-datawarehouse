@@ -1,0 +1,30 @@
+-- Deploy reveal_irs_zambia_2020:zambia_irs_sop_date_performance to pg
+-- requires: zambia_irs_spray_event
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_sop_date_performance AS
+SELECT DISTINCT ON (plan_id, district_id, data_collector, sop)
+  public.uuid_generate_v5(
+    '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    concat(district_id, plan_id, data_collector, sop)
+  ) AS id,
+  plan_id,
+  district_id,
+  data_collector,
+  sop,
+  event_date as event_date,
+  sum(found) as found,
+  sum(sprayed) as sprayed,
+  sum(refused) as refused,
+  sum(other_reason) as other_reason,
+  (sum(refused) + sum(other_reason)) as not_sprayed,
+  to_char(MIN(start_time::timestamp), 'HH24:MI') AS start_time,
+  to_char(MAX(end_time::timestamp), 'HH24:MI') AS end_time,
+  to_char(MAX(end_time::timestamp) - MIN(start_time::timestamp), 'HH24:MI') AS field_duration
+FROM zambia_irs_spray_event
+GROUP BY event_date,sop, data_collector,district_id, plan_id;
+
+COMMIT;

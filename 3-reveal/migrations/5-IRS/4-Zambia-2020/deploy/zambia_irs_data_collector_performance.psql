@@ -1,0 +1,45 @@
+-- Deploy reveal_irs_zambia_2020:zambia_irs_data_collector_performance to pg
+-- requires: zambia_irs_spray_event
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_data_collector_performance AS
+SELECT
+  id,
+  plan_id,
+  district_id,
+  data_collector,
+  days_worked,
+  found,
+  sprayed,
+  refused,
+  other_reason,
+  to_char(start_time,'HH24:MI') AS start_time,
+  to_char(end_time,'HH24:MI') AS end_time,
+  to_char(end_time -start_time ,'HH24:MI') AS field_duration,
+  COALESCE(found / NULLIF(days_worked, 0)::float, found) AS avg_found,
+  COALESCE(sprayed / NULLIF(days_worked, 0)::float, sprayed) AS avg_sprayed,
+  COALESCE(refused / NULLIF(days_worked, 0)::float, refused) AS avg_refused
+FROM (
+  SELECT DISTINCT ON (plan_id, district_id)
+    public.uuid_generate_v5(
+      '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      concat(district_id, plan_id)
+    ) AS id,
+    plan_id,
+    district_id,
+    data_collector,
+    sum(found) as found,
+    sum(sprayed) as sprayed,
+    sum(refused) as refused,
+    sum(other_reason) as other_reason,
+    AVG(start_time::time) AS start_time,
+    AVG(end_time::time) AS end_time,
+    DATEDIFF('day', MIN(event_date::timestamp), MAX(event_date::timestamp)) as days_worked
+  FROM zambia_irs_spray_event
+  GROUP BY data_collector, plan_id, district_id
+) AS subq;
+
+COMMIT;
