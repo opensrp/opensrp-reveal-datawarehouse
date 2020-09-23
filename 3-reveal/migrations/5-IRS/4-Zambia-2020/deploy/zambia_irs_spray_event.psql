@@ -90,7 +90,6 @@ FROM
         And form_data->>'districtName' IS NOT NULL
         AND form_data->>'datacollector' IS NOT NULL
         AND form_data->>'sprayop_code' IS NOT NULL
-        AND form_data->>'districtName' = 'Nchelenge District (2020)'
         AND tasks_query.plan_identifier IS NOT NULL
         AND tasks_query.plan_identifier != ''
         AND jurisdiction_querry.district_id IS NOT NULL
