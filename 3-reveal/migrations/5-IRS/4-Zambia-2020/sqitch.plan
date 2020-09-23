@@ -7,3 +7,4 @@ zambia_irs_district_performance [zambia_irs_spray_event] 2020-09-02T14:44:28Z On
 zambia_irs_data_collector_performance [zambia_irs_spray_event] 2020-09-02T14:48:23Z Ona,,, <ona@ona-ThinkPad-T470> # Creates irs data collectors report materialized view.
 zambia_irs_sop_performance [zambia_irs_spray_event] 2020-09-02T14:53:31Z Ona,,, <ona@ona-ThinkPad-T470> # Creates irs sop report materialized view.
 zambia_irs_sop_date_performance [zambia_irs_spray_event] 2020-09-02T15:03:33Z Ona,,, <ona@ona-ThinkPad-T470> # Creates irs sop by date report materialized view.
+zambia_irs_mop_up 2020-09-23T08:58:51Z gstuder,,, <gstuder@gstuder-ThinkPad-T490> # Zambia IRS mop-up reports
