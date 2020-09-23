@@ -57,8 +57,7 @@ FROM (
 ) As subq
 LEFT JOIN zambia_daily_summary_event as daily_summary
   ON daily_summary.location_id = subq.jurisdiction_id
-  AND daily_summary.event_date = subq.event_date
+  AND daily_summary.event_date = subq.event_date;
   -- AND daily_summary.plan_id = subq.plan_id
-LIMIT 2;
 
 COMMIT;

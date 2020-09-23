@@ -23,25 +23,47 @@ SELECT
   to_char(end_time -start_time ,'HH24:MI') AS field_duration,
   COALESCE(found / NULLIF(days_worked, 0)::float, found) AS avg_found,
   COALESCE(sprayed / NULLIF(days_worked, 0)::float, sprayed) AS avg_sprayed,
-  COALESCE(refused / NULLIF(days_worked, 0)::float, refused) AS avg_refused
+  COALESCE(refused / NULLIF(days_worked, 0)::float, refused) AS avg_refused,
+  bottles_full AS bottles_full,
+  bottles_accounted AS bottles_accounted,
+  bottles_empty AS bottles_empty,
+  bottles_lostdamaged AS bottles_lostdamaged,
+  bottles_start AS bottles_start,
+  daily_found AS daily_found,
+  daily_sprayed AS daily_sprayed,
+  found_diff AS found_diff,
+  sprayed_diff AS sprayed_diff,
+  sprayed / bottles_empty AS usage_rate
 FROM (
   SELECT DISTINCT ON (plan_id, district_id, data_collector)
     public.uuid_generate_v5(
       '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       concat(district_id, plan_id, data_collector)
     ) AS id,
-    sop as sop,
+    sop AS sop,
     plan_id,
     district_id,
-    data_collector,
-    sum(found) as found,
-    sum(sprayed) as sprayed,
-    sum(refused) as refused,
-    sum(other_reason) as other_reason,
+    spray_event.data_collector AS data_collector,
+    sum(found) AS found,
+    sum(sprayed) AS sprayed,
+    sum(refused) AS refused,
+    sum(other_reason) AS other_reason,
     AVG(start_time::time) AS start_time,
     AVG(end_time::time) AS end_time,
-    DATEDIFF('day', MIN(event_date::timestamp), MAX(event_date::timestamp)) AS days_worked
-  FROM zambia_irs_spray_event
+    DATEDIFF('day', MIN(spray_event.event_date::timestamp), MAX(spray_event.event_date::timestamp)) AS days_worked,
+    sum(daily_summary.bottles_full) AS bottles_full,
+    sum(daily_summary.bottles_accounted) AS bottles_accounted,
+    sum(daily_summary.bottles_empty) AS bottles_empty,
+    sum(daily_summary.bottles_lostdamaged) AS bottles_lostdamaged,
+    sum(daily_summary.bottles_start) AS bottles_start,
+    sum(daily_summary.daily_found) AS daily_found,
+    sum(daily_summary.daily_sprayed) AS daily_sprayed,
+    sum(sprayed) - sum(daily_summary.daily_sprayed) AS sprayed_diff,
+    sum(found) - sum(daily_summary.daily_found) AS found_diff
+  FROM zambia_irs_spray_event AS spray_event
+  LEFT JOIN zambia_daily_summary_event AS daily_summary
+    ON daily_summary.location_id = spray_event.jurisdiction_id
+    -- AND daily_summary.plan_id = subq.plan_id
   GROUP BY sop, plan_id, district_id, data_collector
 ) AS subq;
 
