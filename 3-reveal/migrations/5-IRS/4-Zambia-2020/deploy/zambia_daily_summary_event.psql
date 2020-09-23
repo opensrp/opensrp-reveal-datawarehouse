@@ -1,0 +1,32 @@
+-- Deploy reveal_irs_zambia_2020:zambia_daily_summary_event to pg
+-- requires: reveal_transaction_tables:events
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_daily_summary_event AS
+SELECT 
+  id,
+  base_entity_id,
+  location_id,
+  event_type,
+  provider_id,
+  date_created,
+  event_date,
+  entity_type,
+  task_id,
+  team_id,
+  server_version,
+  created_at,
+  (form_data->>'bottles_full')::int AS bottles_full,
+  (form_data->>'bottles_accounted')::int AS bottles_accounted,
+  (form_data->>'bottles_empty')::int AS bottles_empty,
+  (form_data->>'bottles_lostdamaged')::int AS bottles_lostdamaged,
+  (form_data->>'bottles_start')::int AS bottles_start,
+  (form_data->>'found')::int AS daily_found,
+  (form_data->>'sprayed')::int AS daily_sprayed
+FROM events
+WHERE event_type = 'daily_summary';
+
+COMMIT;

@@ -6,25 +6,59 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_sop_date_performance AS
-SELECT DISTINCT ON (plan_id, district_id, data_collector, sop)
-  public.uuid_generate_v5(
-    '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-    concat(district_id, plan_id, data_collector, sop)
-  ) AS id,
-  plan_id,
-  district_id,
-  data_collector,
-  sop,
-  event_date as event_date,
-  sum(found) as found,
-  sum(sprayed) as sprayed,
-  sum(refused) as refused,
-  sum(other_reason) as other_reason,
-  (sum(refused) + sum(other_reason)) as not_sprayed,
-  to_char(MIN(start_time::timestamp), 'HH24:MI') AS start_time,
-  to_char(MAX(end_time::timestamp), 'HH24:MI') AS end_time,
-  to_char(MAX(end_time::timestamp) - MIN(start_time::timestamp), 'HH24:MI') AS field_duration
-FROM zambia_irs_spray_event
-GROUP BY event_date,sop, data_collector,district_id, plan_id;
+SELECT
+  subq.id AS id,
+  subq.plan_id AS plan_id,
+  subq.district_id AS district_id,
+  subq.data_collector AS data_collector,
+  subq.jurisdiction_id As jurisdiction_id,
+  subq.sop AS sop,
+  subq.event_date AS event_date,
+  subq.found AS found,
+  subq.sprayed AS sprayed,
+  subq.refused AS refused,
+  subq.other_reason AS other_reason,
+  subq.not_sprayed AS not_sprayed,
+  subq.start_time AS start_time,
+  subq.end_time AS end_time,
+  subq.field_duration AS field_duration,
+  daily_summary.bottles_full AS bottles_full,
+  daily_summary.bottles_accounted AS bottles_accounted,
+  daily_summary.bottles_empty AS bottles_empty,
+  daily_summary.bottles_lostdamaged AS bottles_lostdamaged,
+  daily_summary.bottles_start AS bottles_start,
+  daily_summary.daily_found AS daily_found,
+  daily_summary.daily_sprayed AS daily_sprayed,
+  daily_summary.event_date AS daily_event_date,
+  (subq.sprayed - daily_summary.daily_sprayed) AS sprayed_diff,
+  (subq.found - daily_summary.daily_found) AS found_diff
+FROM (
+  SELECT DISTINCT ON (plan_id, district_id, data_collector, sop)
+    public.uuid_generate_v5(
+      '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      concat(district_id, plan_id, data_collector, sop)
+    ) AS id,
+    plan_id,
+    district_id,
+    data_collector,
+    jurisdiction_id,
+    sop,
+    event_date as event_date,
+    sum(found) as found,
+    sum(sprayed) as sprayed,
+    sum(refused) as refused,
+    sum(other_reason) as other_reason,
+    (sum(refused) + sum(other_reason)) as not_sprayed,
+    to_char(MIN(start_time::timestamp), 'HH24:MI') AS start_time,
+    to_char(MAX(end_time::timestamp), 'HH24:MI') AS end_time,
+    to_char(MAX(end_time::timestamp) - MIN(start_time::timestamp), 'HH24:MI') AS field_duration
+  FROM zambia_irs_spray_event
+  GROUP BY event_date,sop, data_collector, district_id, plan_id, jurisdiction_id
+) As subq
+LEFT JOIN zambia_daily_summary_event as daily_summary
+  ON daily_summary.location_id = subq.jurisdiction_id
+  AND daily_summary.event_date = subq.event_date
+  -- AND daily_summary.plan_id = subq.plan_id
+LIMIT 2;
 
 COMMIT;

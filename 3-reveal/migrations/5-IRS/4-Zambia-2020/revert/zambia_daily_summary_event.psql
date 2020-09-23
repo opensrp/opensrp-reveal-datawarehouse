@@ -1,0 +1,9 @@
+-- Revert reveal_irs_zambia_2020:zambia_daily_summary_event from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW zambia_daily_summary_event CASCADE;
+
+COMMIT;
