@@ -175,6 +175,7 @@ SELECT
     ntd_visit_structure_plan_metrics.structures_visited AS structures_visited,
     COALESCE(ntd_structure_plan_metrics.structure_count, 0) AS structure_count,
     ntd_visit_structure_plan_metrics.sacregistered AS sacregistered,
+    ntd_dispense_plan_metrics.nPzqDistribute AS n_events_where_pzqdistributed,
     ntd_dispense_plan_metrics.nPzqDistributedQuantity AS total_pzqdistributed,
     CASE WHEN COALESCE(ntd_structure_plan_metrics.structure_count, 0) <> 0 THEN ntd_visit_structure_plan_metrics.structures_visited::DECIMAL/ntd_structure_plan_metrics.structure_count::DECIMAL ELSE 0 END AS structures_visited_per,
     CASE WHEN ntd_visit_structure_plan_metrics.sacregistered <> 0 THEN ntd_dispense_plan_metrics.nPzqDistribute::DECIMAL/ntd_visit_structure_plan_metrics.sacregistered::DECIMAL ELSE 0 END AS registeredchildrentreated_per,
