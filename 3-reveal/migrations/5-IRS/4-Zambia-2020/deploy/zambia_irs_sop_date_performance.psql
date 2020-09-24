@@ -11,7 +11,7 @@ SELECT
   subq.plan_id AS plan_id,
   subq.district_id AS district_id,
   subq.data_collector AS data_collector,
-  subq.jurisdiction_id As jurisdiction_id,
+  subq.location_id As location_id,
   subq.sop AS sop,
   subq.event_date AS event_date,
   subq.found AS found,
@@ -41,7 +41,7 @@ FROM (
     plan_id,
     district_id,
     data_collector,
-    jurisdiction_id,
+    location_id,
     sop,
     event_date as event_date,
     sum(found) as found,
@@ -53,11 +53,11 @@ FROM (
     to_char(MAX(end_time::timestamp), 'HH24:MI') AS end_time,
     to_char(MAX(end_time::timestamp) - MIN(start_time::timestamp), 'HH24:MI') AS field_duration
   FROM zambia_irs_spray_event
-  GROUP BY event_date,sop, data_collector, district_id, plan_id, jurisdiction_id
+  GROUP BY event_date,sop, data_collector, district_id, plan_id, location_id
 ) As subq
-LEFT JOIN zambia_daily_summary_event as daily_summary
-  ON daily_summary.location_id = subq.jurisdiction_id
-  AND daily_summary.event_date = subq.event_date;
-  -- AND daily_summary.plan_id = subq.plan_id
+INNER JOIN zambia_daily_summary_event as daily_summary
+  ON daily_summary.location_id = subq.location_id
+  AND daily_summary.event_date = subq.event_date
+  AND daily_summary.plan_id = subq.plan_id
 
 COMMIT;

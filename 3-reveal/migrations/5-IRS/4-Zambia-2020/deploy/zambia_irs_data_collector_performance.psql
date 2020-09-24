@@ -31,14 +31,14 @@ SELECT
   daily_sprayed AS daily_sprayed,
   found_diff AS found_diff,
   sprayed_diff AS sprayed_diff,
-  sprayed / bottles_empty AS usage_rate
+  daily_sprayed / bottles_empty::float AS usage_rate
 FROM (
-  SELECT DISTINCT ON (plan_id, district_id)
+  SELECT DISTINCT ON (spray_event.plan_id, district_id)
     public.uuid_generate_v5(
       '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-      concat(district_id, plan_id)
+      concat(district_id, spray_event.plan_id)
     ) AS id,
-    plan_id,
+    spray_event.plan_id,
     district_id,
     data_collector,
     sum(found) AS found,
@@ -58,10 +58,11 @@ FROM (
     sum(sprayed) - sum(daily_summary.daily_sprayed) AS sprayed_diff,
     sum(found) - sum(daily_summary.daily_found) AS found_diff
   FROM zambia_irs_spray_event AS spray_event
-  LEFT JOIN zambia_daily_summary_event AS daily_summary
-    ON daily_summary.location_id = spray_event.jurisdiction_id
-    -- AND daily_summary.plan_id = subq.plan_id
-  GROUP BY data_collector, plan_id, district_id
+  INNER JOIN zambia_daily_summary_event AS daily_summary
+    ON daily_summary.location_id = spray_event.location_id
+    AND daily_summary.plan_id = spray_event.plan_id
+    AND daily_summary.event_date = spray_event.event_date
+  GROUP BY data_collector, spray_event.plan_id, district_id
 ) AS subq;
 
 COMMIT;
