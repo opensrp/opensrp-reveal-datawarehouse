@@ -34,7 +34,10 @@ SELECT
   daily_sprayed AS daily_sprayed,
   found_diff AS found_diff,
   sprayed_diff AS sprayed_diff,
-  sprayed / bottles_empty::float AS usage_rate
+  sprayed / bottles_empty::float AS usage_rate,
+  CASE
+    WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
+  END AS data_quality_check
 FROM (
   SELECT 
     DISTINCT (spray_event.plan_id) as plan_id,

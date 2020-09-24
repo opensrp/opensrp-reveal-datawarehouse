@@ -31,12 +31,17 @@ SELECT
   daily_summary.daily_sprayed AS daily_sprayed,
   daily_summary.event_date AS daily_event_date,
   (subq.sprayed - daily_summary.daily_sprayed) AS sprayed_diff,
-  (subq.found - daily_summary.daily_found) AS found_diff
+  (subq.found - daily_summary.daily_found) AS found_diff,
+  CASE
+    WHEN ((subq.found - daily_summary.daily_found) = 0 AND (subq.sprayed - daily_summary.daily_sprayed) = 0 )
+    THEN TRUE
+    ELSE FALSE
+  END AS data_quality_check
 FROM (
-  SELECT DISTINCT ON (plan_id, district_id, data_collector, sop)
+  SELECT DISTINCT ON (plan_id, district_id, data_collector, sop, location_id)
     public.uuid_generate_v5(
       '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-      concat(district_id, plan_id, data_collector, sop)
+      concat(district_id, plan_id, data_collector, sop, location_id)
     ) AS id,
     plan_id,
     district_id,
@@ -59,5 +64,6 @@ INNER JOIN zambia_daily_summary_event as daily_summary
   ON daily_summary.location_id = subq.location_id
   AND daily_summary.event_date = subq.event_date
   AND daily_summary.plan_id = subq.plan_id
+  AND daily_summary.provider_id = subq.data_collector;
 
 COMMIT;

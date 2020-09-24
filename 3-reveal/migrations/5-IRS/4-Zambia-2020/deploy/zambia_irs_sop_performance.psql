@@ -33,7 +33,10 @@ SELECT
   daily_sprayed AS daily_sprayed,
   found_diff AS found_diff,
   sprayed_diff AS sprayed_diff,
-  sprayed / bottles_empty::float AS usage_rate
+  sprayed / bottles_empty::float AS usage_rate,
+  CASE
+    WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
+  END AS data_quality_check
 FROM (
   SELECT DISTINCT ON (spray_event.plan_id, district_id, data_collector)
     public.uuid_generate_v5(
@@ -65,6 +68,7 @@ FROM (
     ON daily_summary.location_id = spray_event.location_id
     AND daily_summary.plan_id = spray_event.plan_id
     AND daily_summary.event_date = spray_event.event_date
+    AND daily_summary.provider_id = spray_event.data_collector
   GROUP BY sop, spray_event.plan_id, district_id, data_collector
 ) AS subq;
 
