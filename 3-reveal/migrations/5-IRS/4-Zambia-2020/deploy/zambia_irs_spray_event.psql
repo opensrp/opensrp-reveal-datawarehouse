@@ -41,7 +41,7 @@ FROM
         event.form_data->>'end' AS end_time,
         event.form_data->>'start' AS start_time,
         event.form_data->>'sprayop_code' AS sop,
-        event.form_data->>'datacollector' AS data_collector,
+        event.provider_id AS data_collector,
         event.form_data->>'notsprayed_reason' AS notsprayed_reason,
         event.location_id AS location_id,
         event.base_entity_id AS base_entity_id,
@@ -87,7 +87,7 @@ FROM
     WHERE
         event.event_type = 'Spray'
         AND event.form_data->>'eligibility' != 'notEligible'
-        AND form_data->>'datacollector' IS NOT NULL
+        AND provider_id IS NOT NULL
         AND form_data->>'sprayop_code' IS NOT NULL
         AND tasks_query.plan_identifier IS NOT NULL
         AND tasks_query.plan_identifier != ''
