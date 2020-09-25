@@ -19,9 +19,9 @@ SELECT
   to_char(start_time,'HH24:MI') AS start_time,
   to_char(end_time,'HH24:MI') AS end_time,
   to_char(end_time -start_time ,'HH24:MI') AS field_duration,
-  COALESCE(found / NULLIF(days_worked, 0)::float, found) AS avg_found,
-  COALESCE(sprayed / NULLIF(days_worked, 0)::float, sprayed) AS avg_sprayed,
-  COALESCE(refused / NULLIF(days_worked, 0)::float, refused) AS avg_refused,
+  COALESCE(found / NULLIF(days_worked, 0)::DECIMAL, found) AS avg_found,
+  COALESCE(sprayed / NULLIF(days_worked, 0)::DECIMAL, sprayed) AS avg_sprayed,
+  COALESCE(refused / NULLIF(days_worked, 0)::DECIMAL, refused) AS avg_refused,
   bottles_full AS bottles_full,
   bottles_accounted AS bottles_accounted,
   bottles_empty AS bottles_empty,
@@ -31,7 +31,7 @@ SELECT
   daily_sprayed AS daily_sprayed,
   found_diff AS found_diff,
   sprayed_diff AS sprayed_diff,
-  daily_sprayed / bottles_empty::float AS usage_rate,
+  bottles_empty / daily_sprayed::DECIMAL AS usage_rate,
   CASE
     WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
   END AS data_quality_check
