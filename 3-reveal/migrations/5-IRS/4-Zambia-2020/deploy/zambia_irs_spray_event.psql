@@ -59,7 +59,6 @@ WHERE
     AND tasks_query.plan_identifier IS NOT NULL
     AND tasks_query.plan_identifier != ''
     AND jurisdiction_querry.id IS NOT NULL
-    AND jurisdiction_querry.name IS NOT NULL
-    LIMIT 20;
+    AND jurisdiction_querry.name IS NOT NULL;
 
 COMMIT;
