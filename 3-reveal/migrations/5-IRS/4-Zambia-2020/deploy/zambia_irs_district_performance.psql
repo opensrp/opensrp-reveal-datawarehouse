@@ -6,40 +6,12 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_district_performance AS
-SELECT
-  public.uuid_generate_v5(
-    '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-    concat(district_id, plan_id)
-  ) AS id,
-  district_id,
-  district_name,
-  plan_id,
-  days_worked,
-  found,
-  sprayed,
-  refused,
-  other_reason,
-  to_char(start_time,'HH24:MI') AS start_time,
-  to_char(end_time,'HH24:MI') AS end_time,
-  to_char(end_time -start_time ,'HH24:MI') AS field_duration,
-  COALESCE(found / NULLIF(days_worked, 0)::DECIMAL, found) AS avg_found,
-  COALESCE(sprayed / NULLIF(days_worked, 0)::DECIMAL, sprayed) AS avg_sprayed,
-  COALESCE(refused / NULLIF(days_worked, 0)::DECIMAL, refused) AS avg_refused,
-  bottles_full AS bottles_full,
-  bottles_accounted AS bottles_accounted,
-  bottles_empty AS bottles_empty,
-  bottles_lostdamaged AS bottles_lostdamaged,
-  bottles_start AS bottles_start,
-  daily_found AS daily_found,
-  daily_sprayed AS daily_sprayed,
-  found_diff AS found_diff,
-  sprayed_diff AS sprayed_diff,
-  bottles_empty / daily_sprayed::DECIMAL AS usage_rate,
-  CASE
-    WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
-  END AS data_quality_check
-FROM (
+WITH aggregates as(
   SELECT
+    public.uuid_generate_v5(
+      '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      concat(district_id, spray_event.plan_id)
+    ) AS id,
     spray_event.plan_id,
     district_id,
     district_name,
@@ -47,8 +19,8 @@ FROM (
     sum(sprayed) as sprayed,
     sum(refused) as refused,
     sum(other_reason) as other_reason,
-    AVG(start_time::time) AS start_time,
-    AVG(end_time::time) AS end_time,
+    to_char(AVG(start_time::time), 'HH24:MI') AS start_time,
+    to_char(AVG(end_time::time), 'HH24:MI') AS end_time,
     DATEDIFF('day', MIN(spray_event.event_date::timestamp), MAX(spray_event.event_date::timestamp)) as days_worked,
     sum(daily_summary.bottles_full) AS bottles_full,
     sum(daily_summary.bottles_accounted) AS bottles_accounted,
@@ -65,6 +37,17 @@ FROM (
     AND daily_summary.plan_id = daily_summary.plan_id
     AND daily_summary.event_date = spray_event.event_date
   GROUP BY spray_event.plan_id, district_id, spray_event.plan_id, district_name
-) as subq;
+)
+  SELECT
+  aggregates.*,
+  to_char(end_time::time -start_time::time ,'HH24:MI') AS field_duration,
+  COALESCE(found / NULLIF(days_worked, 0)::DECIMAL, found) AS avg_found,
+  COALESCE(sprayed / NULLIF(days_worked, 0)::DECIMAL, sprayed) AS avg_sprayed,
+  COALESCE(refused / NULLIF(days_worked, 0)::DECIMAL, refused) AS avg_refused,
+  bottles_empty / daily_sprayed::DECIMAL AS usage_rate,
+  CASE
+    WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
+  END AS data_quality_check
+FROM aggregates;
 
 COMMIT;
