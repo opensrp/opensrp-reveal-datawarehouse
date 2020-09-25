@@ -78,7 +78,7 @@ WITH metrics AS
     LEFT JOIN clients
         ON events.base_entity_id = clients.baseentityid
     WHERE
-        tasks.code IN ('Structure_Visited', 'Structure Visited')
+        tasks.code IN ('Structure_Visited', 'Structure Visited', 'Floating Family Registration')
         AND tasks.status IN ('Completed')
     GROUP BY tasks.plan_identifier, tasks.group_identifier
 )
@@ -186,7 +186,7 @@ LEFT JOIN plan_jurisdictions_materialized_view AS plan_hierarchy
 	ON plan_hierarchy.plan_id = plans.identifier
 LEFT JOIN jurisdictions_materialized_view
 	ON jurisdictions_materialized_view.jurisdiction_id = plan_hierarchy.jurisdiction_id
-LEFT JOIN LATERAL 
+LEFT JOIN LATERAL
 	(
 	    SELECT
 	        key as jurisdiction_id,
@@ -199,7 +199,7 @@ LEFT JOIN LATERAL
 	    LIMIT 1
 	) AS jurisdiction_target_query
 	ON TRUE
-LEFT JOIN ntd_structure_plan_metrics 
+LEFT JOIN ntd_structure_plan_metrics
 	ON ntd_structure_plan_metrics.plan_id = plans.identifier
 	AND ntd_structure_plan_metrics.jurisdiction_id = plan_hierarchy.jurisdiction_id
 LEFT JOIN ntd_dispense_plan_metrics
