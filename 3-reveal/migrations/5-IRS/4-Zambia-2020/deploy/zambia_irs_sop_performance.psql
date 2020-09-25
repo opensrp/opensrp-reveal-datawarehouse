@@ -38,10 +38,10 @@ SELECT
     WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
   END AS data_quality_check
 FROM (
-  SELECT DISTINCT ON (spray_event.plan_id, district_id, data_collector)
+  SELECT
     public.uuid_generate_v5(
       '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-      concat(district_id, spray_event.plan_id, data_collector)
+      concat(district_id, spray_event.plan_id, data_collector, sop)
     ) AS id,
     sop AS sop,
     spray_event.plan_id,
