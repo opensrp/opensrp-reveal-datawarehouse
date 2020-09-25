@@ -52,4 +52,9 @@ SELECT
   END AS data_quality_check
 FROM aggregates;
 
+CREATE INDEX IF NOT EXISTS zambia_irs_data_collector_performance_plan_id_idx ON zambia_irs_data_collector_performance (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_data_collector_performance_district_id_idx ON zambia_irs_data_collector_performance (district_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_data_collector_performance_data_collector_idx ON zambia_irs_data_collector_performance (data_collector);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_data_collector_performance_idx ON zambia_irs_data_collector_performance (id);
+
 COMMIT;

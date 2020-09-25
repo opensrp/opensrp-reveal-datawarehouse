@@ -52,4 +52,10 @@ SELECT
   END AS data_quality_check
 FROM aggregates;
 
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_performance_plan_id_idx ON zambia_irs_sop_performance (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_performance_district_id_idx ON zambia_irs_sop_performance (district_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_performance_data_collector_idx ON zambia_irs_sop_performance (data_collector);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_performance_sop_idx ON zambia_irs_sop_performance (sop);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_sop_performance_idx ON zambia_irs_sop_performance (id);
+
 COMMIT;

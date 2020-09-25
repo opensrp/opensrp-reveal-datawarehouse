@@ -66,4 +66,11 @@ INNER JOIN zambia_daily_summary_event as daily_summary
   AND daily_summary.plan_id = subq.plan_id
   AND daily_summary.provider_id = subq.data_collector;
 
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_plan_id_idx ON zambia_irs_sop_date_performance (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_district_id_idx ON zambia_irs_sop_date_performance (district_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_data_collector_idx ON zambia_irs_sop_date_performance (data_collector);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_sop_idx ON zambia_irs_sop_date_performance (sop);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_event_date_idx ON zambia_irs_sop_date_performance (event_date);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_idx ON zambia_irs_sop_date_performance (id);
+
 COMMIT;
