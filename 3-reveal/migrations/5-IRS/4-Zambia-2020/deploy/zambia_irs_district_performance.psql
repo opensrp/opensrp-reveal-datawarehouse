@@ -39,8 +39,8 @@ SELECT
     WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
   END AS data_quality_check
 FROM (
-  SELECT 
-    DISTINCT (spray_event.plan_id) as plan_id,
+  SELECT
+    spray_event.plan_id,
     district_id,
     district_name,
     sum(found) as found,
@@ -64,7 +64,7 @@ FROM (
     ON daily_summary.location_id = spray_event.location_id
     AND daily_summary.plan_id = daily_summary.plan_id
     AND daily_summary.event_date = spray_event.event_date
-  GROUP BY district_id, spray_event.plan_id, district_name
+  GROUP BY spray_event.plan_id, district_id, spray_event.plan_id, district_name
 ) as subq;
 
 COMMIT;
