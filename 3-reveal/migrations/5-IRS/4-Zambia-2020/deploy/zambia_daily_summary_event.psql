@@ -34,5 +34,7 @@ CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_event_date_idx ON zambia_d
 CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_location_id_idx ON zambia_daily_summary_event (location_id);
 CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_provider_id_idx ON zambia_daily_summary_event (provider_id);
 CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_plan_id_idx ON zambia_daily_summary_event (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_event_date_location_id_provider_id_plan_id_idx ON zambia_daily_summary_event (event_date, location_id, provider_id, plan_id);
+CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_event_date_location_id_plan_id_idx ON zambia_daily_summary_event (event_date, location_id, plan_id);
 
 COMMIT;
