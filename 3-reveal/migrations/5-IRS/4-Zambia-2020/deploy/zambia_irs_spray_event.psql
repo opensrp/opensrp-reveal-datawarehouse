@@ -61,4 +61,9 @@ WHERE
     AND jurisdiction_querry.id IS NOT NULL
     AND jurisdiction_querry.name IS NOT NULL;
 
+CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_plan_id_idx ON zambia_irs_spray_event (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_district_id_idx ON zambia_irs_spray_event (district_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_data_collector_idx ON zambia_irs_spray_event (data_collector);
+CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_sop_idx ON zambia_irs_spray_event (sop);
+
 COMMIT;
