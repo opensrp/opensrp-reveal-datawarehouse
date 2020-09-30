@@ -6,49 +6,57 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_district_performance AS
-WITH aggregates as(
-  SELECT
-    public.uuid_generate_v5(
-      '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-      concat(district_id, spray_event.plan_id)
-    ) AS id,
-    spray_event.plan_id,
-    district_id,
-    district_name,
-    sum(found) as found,
-    sum(sprayed) as sprayed,
-    sum(refused) as refused,
-    sum(other_reason) as other_reason,
-    to_char(min(start_time::time), 'HH24:MI') AS start_time,
-    to_char(max(end_time::time), 'HH24:MI') AS end_time,
-    DATEDIFF('day', MIN(spray_event.event_date::timestamp), MAX(spray_event.event_date::timestamp)) as days_worked,
-    sum(daily_summary.bottles_full) AS bottles_full,
-    sum(daily_summary.bottles_accounted) AS bottles_accounted,
-    sum(daily_summary.bottles_empty) AS bottles_empty,
-    sum(daily_summary.bottles_lostdamaged) AS bottles_lostdamaged,
-    sum(daily_summary.bottles_start) AS bottles_start,
-    sum(daily_summary.daily_found) AS daily_found,
-    sum(daily_summary.daily_sprayed) AS daily_sprayed,
-    sum(sprayed) - sum(daily_summary.daily_sprayed) AS sprayed_diff,
-    sum(found) - sum(daily_summary.daily_found) AS found_diff
-  FROM zambia_irs_spray_event AS spray_event
-  INNER JOIN zambia_daily_summary_event AS daily_summary
-    ON daily_summary.location_id = spray_event.location_id
-    AND daily_summary.plan_id = daily_summary.plan_id
-    AND daily_summary.event_date = spray_event.event_date
-  GROUP BY spray_event.plan_id, district_id, spray_event.plan_id, district_name
-)
-  SELECT
-  aggregates.*,
-  to_char(end_time::time -start_time::time ,'HH24:MI') AS field_duration,
-  COALESCE(found / NULLIF(days_worked, 0)::DECIMAL, found) AS avg_found,
-  COALESCE(sprayed / NULLIF(days_worked, 0)::DECIMAL, sprayed) AS avg_sprayed,
-  COALESCE(refused / NULLIF(days_worked, 0)::DECIMAL, refused) AS avg_refused,
-  bottles_empty / daily_sprayed::DECIMAL AS usage_rate,
-  CASE
-    WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
-  END AS data_quality_check
-FROM aggregates;
+SELECT
+  subq.*,
+  avg_time.start_time AS start_time,
+  avg_time.end_time AS end_time,
+  avg_time.field_duration AS field_duration
+FROM
+(
+  WITH aggregates as(
+    SELECT
+      public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(district_id, spray_event.plan_id)
+      ) AS id,
+      spray_event.plan_id,
+      district_id,
+      district_name,
+      sum(found) as found,
+      sum(sprayed) as sprayed,
+      sum(refused) as refused,
+      sum(other_reason) as other_reason,
+      CEIL(DATEDIFF('second', MIN(spray_event.event_date::timestamp), MAX(spray_event.event_date::timestamp)) / 86400) as days_worked,
+      sum(daily_summary.bottles_full) AS bottles_full,
+      sum(daily_summary.bottles_accounted) AS bottles_accounted,
+      sum(daily_summary.bottles_empty) AS bottles_empty,
+      sum(daily_summary.bottles_lostdamaged) AS bottles_lostdamaged,
+      sum(daily_summary.bottles_start) AS bottles_start,
+      sum(daily_summary.daily_found) AS daily_found,
+      sum(daily_summary.daily_sprayed) AS daily_sprayed,
+      sum(sprayed) - sum(daily_summary.daily_sprayed) AS sprayed_diff,
+      sum(found) - sum(daily_summary.daily_found) AS found_diff
+    FROM zambia_irs_spray_event AS spray_event
+    INNER JOIN zambia_daily_summary_event AS daily_summary
+      ON daily_summary.location_id = spray_event.location_id
+      AND daily_summary.plan_id = daily_summary.plan_id
+      AND daily_summary.event_date = spray_event.event_date
+    GROUP BY spray_event.plan_id, district_id, spray_event.plan_id, district_name
+  )
+    SELECT
+    aggregates.*,
+    COALESCE(found / NULLIF(days_worked, 0)::DECIMAL, found) AS avg_found,
+    COALESCE(sprayed / NULLIF(days_worked, 0)::DECIMAL, sprayed) AS avg_sprayed,
+    COALESCE(refused / NULLIF(days_worked, 0)::DECIMAL, refused) AS avg_refused,
+    bottles_empty / daily_sprayed::DECIMAL AS usage_rate,
+    CASE
+      WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
+    END AS data_quality_check
+  FROM aggregates
+) as subq
+INNER JOIN zambia_irs_district_avg_time as avg_time
+  ON avg_time.plan_id = subq.plan_id
+  AND avg_time.district_id = subq.district_id;
 
 CREATE INDEX IF NOT EXISTS zambia_irs_district_performance_plan_id_idx ON zambia_irs_district_performance (plan_id);
 CREATE INDEX IF NOT EXISTS zambia_irs_district_performance_district_id_idx ON zambia_irs_district_performance (district_id);
