@@ -27,7 +27,7 @@ FROM
       sum(sprayed) AS sprayed,
       sum(refused) AS refused,
       sum(other_reason) AS other_reason,
-      CEIL(DATEDIFF('second', MIN(spray_event.event_date::timestamp), MAX(spray_event.event_date::timestamp)) / 86400) as days_worked,
+      CEIL(DATEDIFF('second', MIN(spray_event.event_date::timestamp), MAX(spray_event.event_date::timestamp)) / 86400) as days_worked_estimate,
       sum(daily_summary.bottles_full) AS bottles_full,
       sum(daily_summary.bottles_accounted) AS bottles_accounted,
       sum(daily_summary.bottles_empty) AS bottles_empty,
@@ -48,10 +48,16 @@ FROM
   SELECT
     aggregates.*,
     refused + other_reason as not_sprayed,
-    COALESCE(found / NULLIF(days_worked, 0)::DECIMAL, found) AS avg_found,
-    COALESCE(sprayed / NULLIF(days_worked, 0)::DECIMAL, sprayed) AS avg_sprayed,
-    COALESCE(refused / NULLIF(days_worked, 0)::DECIMAL, refused) AS avg_refused,
-    bottles_empty / daily_sprayed::DECIMAL AS usage_rate,
+    COALESCE(found / NULLIF(days_worked_estimate, 0)::DECIMAL, found) AS avg_found,
+    COALESCE(sprayed / NULLIF(days_worked_estimate, 0)::DECIMAL, sprayed) AS avg_sprayed,
+    COALESCE(refused / NULLIF(days_worked_estimate, 0)::DECIMAL, refused) AS avg_refused,
+    CASE 
+      WHEN (sprayed > 0 AND days_worked_estimate = 0) THEN 1 ELSE days_worked_estimate
+    END AS days_worked,
+    CASE 
+      WHEN daily_sprayed = 0 THEN 0
+      ELSE bottles_empty / daily_sprayed::DECIMAL 
+    END AS usage_rate,
     CASE
       WHEN (found_diff = 0 AND sprayed_diff = 0 ) THEN TRUE ELSE FALSE
     END AS data_quality_check
