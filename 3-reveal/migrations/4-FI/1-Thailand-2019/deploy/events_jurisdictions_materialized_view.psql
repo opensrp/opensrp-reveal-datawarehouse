@@ -19,12 +19,15 @@ SELECT
     events.details->'investigtion_date' AS date_of_diagnosis,
     plans.identifier AS plan_id,
     goals.goal_id,
-    events.location_id AS jurisdiction_id
+    events.location_id AS jurisdiction_id,
+    actions.code AS action_code
 FROM events
 LEFT JOIN plans
     ON plans.fi_opensrpeventid = events.id
 LEFT JOIN goals
     ON goals.plan_id = plans.identifier
+LEFT JOIN actions
+    ON actions.plan_id = plans.identifier
 WHERE events.event_type = 'Case Details'
 ORDER BY events.id;
 
