@@ -61,7 +61,7 @@ LEFT JOIN LATERAL (
     ON locations.id = clients.residence
     WHERE clients.baseEntityId = tasks.task_for
 ) AS structures_query2 ON true
-WHERE tasks.status IN ('Ready', 'Completed')
+WHERE tasks.status NOT IN ('Archived', 'Cancelled')
 ORDER BY tasks.identifier;
 
 CREATE INDEX IF NOT EXISTS task_structures_materialized_view_plan_idx ON task_structures_materialized_view (plan_id);
