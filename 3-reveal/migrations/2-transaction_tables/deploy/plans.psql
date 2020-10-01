@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS plans (
     date DATE NULL,
     effective_period_start DATE NULL,
     effective_period_end DATE NULL,
+    fi_opensrpeventid VARCHAR NULL,
     PRIMARY KEY (identifier),
     CONSTRAINT fk_plans_raw_plans
         FOREIGN KEY (identifier)

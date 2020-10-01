@@ -16,7 +16,8 @@ SELECT
     intervention_type,
     date,
     effective_period_start,
-    effective_period_end
+    effective_period_end,
+    fi_opensrpeventid
 FROM plans
 WHERE FALSE;
 
