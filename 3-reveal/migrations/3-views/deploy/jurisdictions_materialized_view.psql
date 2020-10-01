@@ -23,7 +23,7 @@ WITH RECURSIVE tree AS
     -- setting this to id includes current object
     -- setting to parent_id includes only children
     -- setting to '' gets the whole tree
-    WHERE jurisdictions.parent_id = ''
+    WHERE jurisdictions.parent_id IS NULL OR jurisdictions.parent_id = ''
     UNION ALL
 --recursive part
 SELECT
