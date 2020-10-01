@@ -76,6 +76,7 @@ LEFT JOIN LATERAL (
         AND code = actions.code
         AND group_identifier = plan_jurisdiction.jurisdiction_id
         AND business_status IN ('Complete', 'Sprayed')
+        AND status NOT IN ('Archived', 'Cancelled')
 ) AS subq1 ON true
 LEFT JOIN LATERAL (
     SELECT
