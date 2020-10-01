@@ -54,25 +54,32 @@ CREATE FUNCTION process_structure_geo_hierarchy_structure_queue(num_rows INTEGER
 DECLARE
     structure_row locations%ROWTYPE;
     structure_row_result BOOLEAN;
+    existing_queries INTEGER;
 BEGIN
-
-    FOR structure_row IN
-        -- first get the relevant locations
-        SELECT locations.*
-        FROM structure_geo_hierarchy_structure_queue
-        LEFT JOIN locations
-        ON locations.id = structure_geo_hierarchy_structure_queue.structure_id
-        LIMIT (num_rows)
-    LOOP
-        -- next lets process them
-        SELECT create_structure_geo_hierarchy(structure_row) INTO structure_row_result;
-        IF FOUND AND structure_row_result THEN
-            -- finally delete the locations from the queue
-            DELETE FROM structure_geo_hierarchy_structure_queue
-            WHERE structure_id = structure_row.id;
-        END IF;
-    END LOOP;
-
+    -- check if we are already running this query
+    SELECT COUNT(*) FROM pg_stat_activity
+    INTO existing_queries
+    WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes'
+    AND query ILIKE '%process_structure_geo_hierarchy_structure_queue%';
+    -- only process the queue if not already doing it
+    IF existing_queries < 1 THEN
+        FOR structure_row IN
+            -- first get the relevant locations
+            SELECT locations.*
+            FROM structure_geo_hierarchy_structure_queue
+            LEFT JOIN locations
+            ON locations.id = structure_geo_hierarchy_structure_queue.structure_id
+            LIMIT (num_rows)
+        LOOP
+            -- next lets process them
+            SELECT create_structure_geo_hierarchy(structure_row) INTO structure_row_result;
+            IF FOUND AND structure_row_result THEN
+                -- finally delete the locations from the queue
+                DELETE FROM structure_geo_hierarchy_structure_queue
+                WHERE structure_id = structure_row.id;
+            END IF;
+        END LOOP;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -85,10 +92,20 @@ CREATE FUNCTION process_structure_geo_hierarchy_jurisdiction_queue() RETURNS VOI
 -- WARNING: this is an expensive query!!
 DECLARE
     queue_count INTEGER;
+    existing_queries INTEGER;
 BEGIN
-    SELECT count(id) FROM structure_geo_hierarchy_jurisdiction_queue INTO queue_count;
-    IF queue_count > 0 THEN
-        PERFORM process_structure_geo_hierarchy_full();
+    -- check if we are already running this query
+    SELECT COUNT(*) FROM pg_stat_activity
+    INTO existing_queries
+    WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes'
+    AND query ILIKE '%process_structure_geo_hierarchy_jurisdiction_queue%';
+    -- only process the queue if not already doing it
+    IF existing_queries < 1 THEN
+        -- only process the queue if it is populated
+        SELECT count(id) FROM structure_geo_hierarchy_jurisdiction_queue INTO queue_count;
+        IF queue_count > 0 THEN
+            PERFORM process_structure_geo_hierarchy_full();
+        END IF;
     END IF;
 END;
 $$ LANGUAGE plpgsql;

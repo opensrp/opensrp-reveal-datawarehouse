@@ -1,0 +1,15 @@
+-- Revert reveal_transaction_tables:plan_server_version_drop_location_uuid_constraint from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE plans
+DROP COLUMN server_version;
+
+ALTER TABLE locations
+ADD CONSTRAINT locations_uid_key UNIQUE (uid);
+
+ALTER TABLE events ALTER COLUMN task_id SET NOT NULL;
+
+COMMIT;

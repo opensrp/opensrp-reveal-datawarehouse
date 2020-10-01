@@ -1,0 +1,15 @@
+-- Revert reveal_transaction_tables:more_event_fields from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP INDEX events_structure_id_idx;
+DROP INDEX events_plan_id_idx;
+
+ALTER TABLE events
+DROP COLUMN structure_id,
+DROP COLUMN plan_id,
+DROP COLUMN details;
+
+COMMIT;
