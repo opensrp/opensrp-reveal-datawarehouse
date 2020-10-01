@@ -17,9 +17,9 @@ SELECT
   entity_type,
   task_id,
   team_id,
-  events.server_version,
-  tasks.plan_identifier as plan_id,
-  events.created_at,
+  server_version,
+  plan_id,
+  created_at,
   (form_data->>'bottles_full')::int AS bottles_full,
   (form_data->>'bottles_accounted')::int AS bottles_accounted,
   (form_data->>'bottles_empty')::int AS bottles_empty,
@@ -28,7 +28,6 @@ SELECT
   (form_data->>'found')::int AS daily_found,
   (form_data->>'sprayed')::int AS daily_sprayed
 FROM events
-INNER JOIN tasks ON tasks.identifier = events.task_id
 WHERE event_type = 'daily_summary';
 
 CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_event_date_idx ON zambia_daily_summary_event (event_date);
