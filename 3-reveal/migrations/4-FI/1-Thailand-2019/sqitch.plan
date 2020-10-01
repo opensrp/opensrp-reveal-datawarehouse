@@ -4,3 +4,4 @@
 
 task_structures_materialized_view [reveal_transaction_tables:tasks reveal_transaction_tables:actions reveal_transaction_tables:jurisdictions reveal_transaction_tables:locations reveal_transaction_tables:clients utils:refresh_mat_views] 2020-04-22T08:44:04Z mosh <kjayanoris@ona.io> # Add task_structures_materialized_view.
 targets_materialized_view [reveal_transaction_tables:goal_target reveal_transaction_tables:actions reveal_transaction_tables:plan_jurisdiction reveal_transaction_tables:tasks utils:refresh_mat_views] 2020-04-22T09:00:27Z mosh <kjayanoris@ona.io> # Add targets_materialized_view.
+events_jurisdictions_materialized_view [reveal_transaction_tables:events reveal_transaction_tables:plans reveal_transaction_tables:goals reveal_transaction_tables:actions utils:refresh_mat_views] 2020-10-01T11:51:20Z Lincoln Simba <lincolnsimba@Lincolns-MacBook-Pro.local> # Creates a materialized view.

@@ -1,0 +1,21 @@
+-- Verify reveal_fi_thailand_2019:events_jurisdictions_materialized_view on pg
+
+BEGIN;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'events_jurisdictions_materialized_view';
+
+SELECT
+    events_id,
+    case_classification,
+    case_number,
+    date_of_diagnosis,
+    plan_id,
+    goal_id,
+    jurisdiction_id,
+    action_code
+FROM events_jurisdictions_materialized_view
+WHERE FALSE;
+
+ROLLBACK;

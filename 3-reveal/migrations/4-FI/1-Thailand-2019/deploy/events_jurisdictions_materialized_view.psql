@@ -2,8 +2,7 @@
 -- requires: reveal_transaction_tables:events
 -- requires: reveal_transaction_tables:plans
 -- requires: reveal_transaction_tables:goals
--- requires: reveal_transaction_tables:plan_jurisdiction
--- requires: reveal_transaction_tables:jurisdictions
+-- requires: reveal_transaction_tables:actions
 -- requires: utils:refresh_mat_views
 
 BEGIN;
