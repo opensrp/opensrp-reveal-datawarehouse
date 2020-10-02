@@ -21,4 +21,11 @@ SELECT
 FROM plans
 WHERE FALSE;
 
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plans'
+AND indexname = 'plans_fi_opensrpeventid_idx';
+
 ROLLBACK;

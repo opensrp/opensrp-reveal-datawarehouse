@@ -9,7 +9,7 @@ FROM pg_matviews
 WHERE matviewname = 'events_jurisdictions_materialized_view';
 
 SELECT
-    events_id,
+    event_id,
     case_classification,
     case_number,
     date_of_diagnosis,
