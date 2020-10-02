@@ -1,0 +1,5 @@
+%syntax-version=1.0.0
+%project=setup
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/setup
+
+create_extensions 2020-10-02T09:42:49Z mosh <kjayanoris@ona.io> # Create required extrensions.
