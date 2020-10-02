@@ -22,16 +22,16 @@ SELECT
   subq.start_time AS start_time,
   subq.end_time AS end_time,
   subq.field_duration AS field_duration,
-  daily_summary.bottles_full AS bottles_full,
-  daily_summary.bottles_accounted AS bottles_accounted,
-  daily_summary.bottles_empty AS bottles_empty,
-  daily_summary.bottles_lostdamaged AS bottles_lostdamaged,
-  daily_summary.bottles_start AS bottles_start,
-  daily_summary.daily_found AS daily_found,
-  daily_summary.daily_sprayed AS daily_sprayed,
-  daily_summary.event_date AS daily_event_date,
-  (subq.sprayed - daily_summary.daily_sprayed) AS sprayed_diff,
-  (subq.found - daily_summary.daily_found) AS found_diff,
+  COALESCE(daily_summary.bottles_full, 0) AS bottles_full,
+  COALESCE(daily_summary.bottles_accounted, 0) AS bottles_accounted,
+  COALESCE(daily_summary.bottles_empty, 0) AS bottles_empty,
+  COALESCE(daily_summary.bottles_lostdamaged, 0) AS bottles_lostdamaged,
+  COALESCE(daily_summary.bottles_start, 0) AS bottles_start,
+  COALESCE(daily_summary.daily_found, 0) AS daily_found,
+  COALESCE(daily_summary.daily_sprayed, 0) AS daily_sprayed,
+  COALESCE(daily_summary.event_date, subq.event_date) AS daily_event_date,
+  COALESCE((subq.sprayed - daily_summary.daily_sprayed), subq.sprayed) AS sprayed_diff,
+  COALESCE((subq.found - daily_summary.daily_found), subq.found) AS found_diff,
   CASE
     WHEN ((subq.found - daily_summary.daily_found) = 0 AND (subq.sprayed - daily_summary.daily_sprayed) = 0 )
     THEN TRUE
@@ -60,11 +60,12 @@ FROM (
   FROM zambia_irs_spray_event
   GROUP BY event_date,sop, data_collector, district_id, plan_id, location_id
 ) As subq
-INNER JOIN zambia_daily_summary_event as daily_summary
+LEFT JOIN zambia_daily_summary_event as daily_summary
   ON daily_summary.location_id = subq.location_id
   AND daily_summary.event_date = subq.event_date
   AND daily_summary.plan_id = subq.plan_id
-  AND daily_summary.provider_id = subq.data_collector;
+  AND daily_summary.provider_id = subq.data_collector
+  AND daily_summary.sop = subq.sop;
 
 CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_plan_id_idx ON zambia_irs_sop_date_performance (plan_id);
 CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_district_id_idx ON zambia_irs_sop_date_performance (district_id);

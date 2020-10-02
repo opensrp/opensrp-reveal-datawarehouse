@@ -11,7 +11,8 @@ SELECT
   subq.district_id AS district_id,
   to_char(avg(subq.start_time), 'HH24:MI') AS start_time,
   to_char(avg(subq.end_time), 'HH24:MI') AS end_time,
-  to_char(avg(subq.end_time - subq.start_time), 'HH24:MI') AS field_duration
+  to_char(avg(subq.end_time - subq.start_time), 'HH24:MI') AS field_duration,
+  count(DISTINCT(event_date)) as days_worked
 FROM
 (
   SELECT
