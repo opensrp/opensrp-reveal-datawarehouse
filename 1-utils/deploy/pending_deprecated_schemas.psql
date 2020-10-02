@@ -1,0 +1,9 @@
+-- Deploy utils:pending_deprecated_schemas to pg
+-- requires: appschema
+
+BEGIN;
+
+CREATE SCHEMA IF NOT EXISTS pending;
+CREATE SCHEMA IF NOT EXISTS deprecated;
+
+COMMIT;

@@ -1,0 +1,8 @@
+-- Verify utils:pending_deprecated_schemas on pg
+
+BEGIN;
+
+SELECT pg_catalog.has_schema_privilege('pending', 'usage');
+SELECT pg_catalog.has_schema_privilege('deprecated', 'usage');
+
+ROLLBACK;

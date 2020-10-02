@@ -1,0 +1,8 @@
+-- Revert utils:pending_deprecated_schemas from pg
+
+BEGIN;
+
+DROP SCHEMA IF EXISTS pending CASCADE;
+DROP SCHEMA IF EXISTS deprecated CASCADE;
+
+COMMIT;
