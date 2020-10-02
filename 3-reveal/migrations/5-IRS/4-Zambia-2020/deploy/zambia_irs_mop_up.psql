@@ -47,27 +47,27 @@ SELECT * FROM
         coverage_query.sprayCov AS sprayCov,
         CASE
             WHEN irs_structures.totStruct = 0 THEN 0
-            ELSE CAST(irs_structures.foundStruct AS DECIMAL(7,2))/CAST(irs_structures.totStruct AS DECIMAL(7,2))
+            ELSE CAST(irs_structures.foundStruct AS DECIMAL)/CAST(irs_structures.totStruct AS DECIMAL)
         END AS sprayTarg,
         CASE
             WHEN irs_structures.foundStruct = 0 THEN 0
-            ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))/CAST(irs_structures.foundStruct AS DECIMAL(7,2))
+            ELSE CAST(irs_structures.sprayedStruct AS DECIMAL)/CAST(irs_structures.foundStruct AS DECIMAL)
         END AS spraySuccess,
         CASE
 	        WHEN irs_structures.totStruct = 0 THEN NULL
-	        ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2)) / CAST(irs_structures.totStruct AS DECIMAL(7,2))
+	        ELSE CAST(irs_structures.sprayedStruct AS DECIMAL) / CAST(irs_structures.totStruct AS DECIMAL)
 	    END AS spray_effectiveness,
         GREATEST(
         	0,
-        	CEIL((CAST(irs_structures.totStruct AS DECIMAL(7,2)) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL(7,2)))
+        	CEIL((CAST(irs_structures.totStruct AS DECIMAL) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL))
         ) AS structures_remaining_to_90_se,
         GREATEST(
         	0,
-        	(CAST(irs_structures.totStruct AS DECIMAL(7,2)) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))
+        	(CAST(irs_structures.totStruct AS DECIMAL) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL)
         ) / 15.0 AS tla_days_to_90_se,
         CASE
             WHEN irs_structures.sprayed_rooms_eligible = 0 THEN 0
-            ELSE CAST(irs_structures.sprayed_rooms_sprayed AS DECIMAL(7,2))/CAST(irs_structures.sprayed_rooms_eligible AS DECIMAL(7,2))
+            ELSE CAST(irs_structures.sprayed_rooms_sprayed AS DECIMAL)/CAST(irs_structures.sprayed_rooms_eligible AS DECIMAL)
         END AS roomCov,
         CASE
             WHEN coverage_query.sprayCov = 0 THEN 'n/a'
@@ -109,7 +109,7 @@ SELECT * FROM
         SELECT
             CASE
                 WHEN irs_structures.totStruct = 0 THEN 0
-                ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))/CAST(irs_structures.totStruct AS DECIMAL(7,2))
+                ELSE CAST(irs_structures.sprayedStruct AS DECIMAL)/CAST(irs_structures.totStruct AS DECIMAL)
             END AS sprayCov
     ) AS coverage_query ON true
     LEFT JOIN LATERAL (
@@ -221,23 +221,23 @@ SELECT * FROM
             zambia_focus_area_irs_query.visitedAreas AS visitedAreas,
             CASE
                 WHEN zambia_focus_area_irs_query.sprayCovAboveMin = 0 THEN 0
-                ELSE CAST(zambia_focus_area_irs_query.sprayCovHigh AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.sprayCovAboveMin AS DECIMAL(10,4))
+                ELSE CAST(zambia_focus_area_irs_query.sprayCovHigh AS DECIMAL)/CAST(zambia_focus_area_irs_query.sprayCovAboveMin AS DECIMAL)
             END AS perctVisAreasEffect,
             CASE
                 WHEN zambia_focus_area_irs_query.totStruct = 0 THEN 0
-                ELSE CAST(zambia_focus_area_irs_query.sprayedStruct AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.totStruct AS DECIMAL(10,4))
+                ELSE CAST(zambia_focus_area_irs_query.sprayedStruct AS DECIMAL)/CAST(zambia_focus_area_irs_query.totStruct AS DECIMAL)
             END AS sprayCovTarg,
             CASE
                 WHEN zambia_focus_area_irs_query.totStruct = 0 THEN 0
-                ELSE CAST(zambia_focus_area_irs_query.foundStruct AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.totStruct AS DECIMAL(10,4))
+                ELSE CAST(zambia_focus_area_irs_query.foundStruct AS DECIMAL)/CAST(zambia_focus_area_irs_query.totStruct AS DECIMAL)
             END AS foundCoverage,
             CASE
                 WHEN zambia_focus_area_irs_query.foundStruct = 0 THEN 0
-                ELSE CAST(zambia_focus_area_irs_query.sprayedStruct AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.foundStruct AS DECIMAL(10,4))
+                ELSE CAST(zambia_focus_area_irs_query.sprayedStruct AS DECIMAL)/CAST(zambia_focus_area_irs_query.foundStruct AS DECIMAL)
             END AS spraySuccess,
             CASE
                 WHEN zambia_focus_area_irs_query.sprayed_rooms_eligible = 0 THEN 0
-                ELSE CAST(zambia_focus_area_irs_query.sprayed_rooms_sprayed AS DECIMAL(10,4))/CAST(zambia_focus_area_irs_query.sprayed_rooms_eligible AS DECIMAL(10,4))
+                ELSE CAST(zambia_focus_area_irs_query.sprayed_rooms_sprayed AS DECIMAL)/CAST(zambia_focus_area_irs_query.sprayed_rooms_eligible AS DECIMAL)
             END AS roomCov,
             zambia_focus_area_irs_query.avg_spray_effectiveness AS avg_spray_effectiveness,
             zambia_focus_area_irs_query.structures_remaining_to_90_se AS structures_remaining_to_90_se,
