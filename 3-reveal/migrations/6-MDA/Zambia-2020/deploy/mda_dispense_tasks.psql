@@ -2,7 +2,7 @@
 
 BEGIN;
 
---SET search_path TO :"schema",public;
+SET search_path TO :"schema",public;
 
 -- Compute single-jurisdiction metrics
 CREATE MATERIALIZED VIEW ntd_dispense_task_metrics AS
@@ -121,7 +121,7 @@ WITH metrics AS
     FROM plans
     LEFT JOIN plan_jurisdiction AS plan_jurisdictions
         ON plan_jurisdictions.plan_id = plans.identifier
-    LEFT JOIN structures
+    LEFT JOIN locations AS structures
     	ON structures.jurisdiction_id = plan_jurisdictions.jurisdiction_id
     WHERE
 	    plans.intervention_type = 'Dynamic-MDA'
@@ -156,7 +156,7 @@ CREATE INDEX IF NOT EXISTS ntd_structure_plan_metrics_plan_id_jurisdiction_id_id
 --
 --
 
-ALTER MATERIALIZED VIEW ntd_mda_jurisdictions SET SCHEMA deprecated;
+ALTER MATERIALIZED VIEW ntd_mda_jurisdictions SET SCHEMA deprecated_:schema ;
 
 CREATE MATERIALIZED VIEW ntd_mda_jurisdictions AS
 SELECT
