@@ -1,0 +1,10 @@
+-- Revert reveal_transaction_tables:plan_opensrpeventid_field from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE plans
+DROP COLUMN fi_opensrpeventid;
+
+COMMIT;

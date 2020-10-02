@@ -1,4 +1,4 @@
--- Verify reveal_migrations:plans on pg
+-- Verify reveal_transaction_tables:plan_opensrpeventid_field on pg
 
 BEGIN;
 
@@ -16,16 +16,9 @@ SELECT
     intervention_type,
     date,
     effective_period_start,
-    effective_period_end
+    effective_period_end,
+    fi_opensrpeventid
 FROM plans
 WHERE FALSE;
-
--- check primary key
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
-conname = 'plans_pkey'
-AND contype = 'p'
-AND 1 = ALL(conkey);
 
 ROLLBACK;
