@@ -1,0 +1,10 @@
+-- Revert utils:add_utility_schemas from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP SCHEMA deprecated_:schema CASCADE;
+DROP SCHEMA pending_:schema CASCADE;
+
+COMMIT;
