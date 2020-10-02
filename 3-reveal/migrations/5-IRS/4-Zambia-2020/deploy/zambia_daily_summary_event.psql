@@ -26,7 +26,8 @@ SELECT
   (form_data->>'bottles_lostdamaged')::int AS bottles_lostdamaged,
   (form_data->>'bottles_start')::int AS bottles_start,
   (form_data->>'found')::int AS daily_found,
-  (form_data->>'sprayed')::int AS daily_sprayed
+  (form_data->>'sprayed')::int AS daily_sprayed,
+  (form_data->>'sprayop_code') as sop
 FROM events
 WHERE event_type = 'daily_summary';
 
