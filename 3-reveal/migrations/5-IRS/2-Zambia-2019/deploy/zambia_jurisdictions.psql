@@ -14,7 +14,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_jurisdictions AS
 SELECT *,
     jurisdiction_id AS opensrp_jurisdiction_id,
     CASE
-        WHEN jurisdiction_depth < 4 THEN MD5(CONCAT(jurisdiction_id, '_remainder'))
+        WHEN jurisdiction_depth < 5 THEN MD5(CONCAT(jurisdiction_id, '_remainder'))
         ELSE jurisdiction_id
     END AS zambia_jurisdiction_id,
     FALSE AS is_virtual_jurisdiction
@@ -34,7 +34,7 @@ SELECT
     MD5(CONCAT(jurisdiction_id, '_remainder')) AS zambia_jurisdiction_id,
     TRUE AS is_virtual_jurisdiction
 FROM jurisdictions_materialized_view
-WHERE jurisdiction_depth < 4;
+WHERE jurisdiction_depth < 5;
 
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_jurisdictions_id_idx ON zambia_jurisdictions (jurisdiction_id);
 CREATE INDEX IF NOT EXISTS zambia_jurisdictions_opensrp_jurisdiction_id_idx ON zambia_jurisdictions (opensrp_jurisdiction_id);
