@@ -27,6 +27,7 @@ jobs:
       - run: psql -h localhost -U sqitch -d sqitch_test -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
       - run: psql -h localhost -U sqitch -d sqitch_test -c 'CREATE EXTENSION IF NOT EXISTS pg_stat_statements;'
       # run tests
-      - run: bash -c 'cd 1-utils && pwd && sqitch deploy sqitch_test && sqitch verify sqitch_test'  # run utils first
+      - run: bash -c 'cd 0-setup && pwd && sqitch deploy sqitch_test && sqitch verify sqitch_test'  # run setup first
+      - run: bash -c 'cd 1-utils && pwd && sqitch deploy sqitch_test && sqitch verify sqitch_test'  # run utils next
       - run: find . -iname sqitch.conf -print0 | sort -zn | xargs -I {} -0 bash -c 'cd `dirname {}` && pwd && sqitch deploy sqitch_test && sqitch verify sqitch_test'
       - run: find . -iname sqitch.conf -print0 | sort -znr | xargs -I {} -0 bash -c 'cd `dirname {}` && pwd && sqitch revert -y sqitch_test'
