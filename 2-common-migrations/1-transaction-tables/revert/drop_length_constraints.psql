@@ -1,0 +1,10 @@
+-- Revert opensrp_common_transaction_tables:drop_length_constraints from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE recurring_services ALTER COLUMN id TYPE VARCHAR(36);
+ALTER TABLE vaccinations ALTER COLUMN id TYPE VARCHAR(36);
+
+COMMIT;

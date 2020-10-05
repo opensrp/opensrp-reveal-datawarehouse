@@ -1,0 +1,7 @@
+-- Verify reveal_transaction_tables:drop_length_constraints on pg
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;
