@@ -4,3 +4,4 @@
 
 vaccinations [utils:appschema] 2020-03-26T11:44:31Z mosh <kjayanoris@ona.io> # Add vaccinations table.
 recurring_service [utils:appschema] 2020-03-26T11:45:03Z mosh <kjayanoris@ona.io> # Add recurring_service table.
+drop_length_constraints 2020-10-05T13:11:51Z mosh <kjayanoris@ona.io> # Drop length constraints.

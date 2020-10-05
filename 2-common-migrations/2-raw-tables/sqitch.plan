@@ -3,3 +3,4 @@
 %uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/2-common-migrations/2-raw-tables
 
 raw_events [utils:appschema] 2020-03-27T12:35:39Z mosh <kjayanoris@ona.io> # Add raw_events table.
+drop_length_constraints 2020-10-05T13:12:09Z mosh <kjayanoris@ona.io> # Drop length constraints.

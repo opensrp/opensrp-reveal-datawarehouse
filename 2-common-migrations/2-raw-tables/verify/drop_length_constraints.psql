@@ -1,0 +1,7 @@
+-- Verify opensrp_common_raw_tables:drop_length_constraints on pg
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;

@@ -1,0 +1,15 @@
+-- Revert reveal_raw_tables:drop_length_constraints from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE raw_clients ALTER COLUMN id TYPE VARCHAR(36);
+ALTER TABLE raw_jurisdictions ALTER COLUMN id TYPE VARCHAR(36);
+ALTER TABLE raw_locations ALTER COLUMN id TYPE VARCHAR(36);
+ALTER TABLE raw_plans ALTER COLUMN id TYPE VARCHAR(36);
+ALTER TABLE raw_settings ALTER COLUMN id TYPE VARCHAR(36);
+ALTER TABLE raw_tasks ALTER COLUMN id TYPE VARCHAR(36);
+ALTER TABLE raw_events ALTER COLUMN id TYPE VARCHAR(36);
+
+COMMIT;
