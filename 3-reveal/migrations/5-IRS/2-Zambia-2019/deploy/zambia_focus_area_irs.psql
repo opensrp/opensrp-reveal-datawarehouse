@@ -45,16 +45,16 @@ SELECT * FROM
         coverage_query.sprayCov AS sprayCov,
         CASE
             WHEN irs_structures.totStruct = 0 THEN 0
-            ELSE CAST(irs_structures.foundStruct AS DECIMAL(7,2))/CAST(irs_structures.totStruct AS DECIMAL(7,2))
+            ELSE CAST(irs_structures.foundStruct AS DECIMAL)/CAST(irs_structures.totStruct AS DECIMAL)
         END AS sprayTarg,
         CASE
             WHEN irs_structures.foundStruct = 0 THEN 0
-            ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))/CAST(irs_structures.foundStruct AS DECIMAL(7,2))
+            ELSE CAST(irs_structures.sprayedStruct AS DECIMAL)/CAST(irs_structures.foundStruct AS DECIMAL)
         END AS spraySuccess,
-        (CAST(irs_structures.totStruct AS DECIMAL(7,2)) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL(7,2)) AS structures_remaining_to_90_se,
+        (CAST(irs_structures.totStruct AS DECIMAL) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL) AS structures_remaining_to_90_se,
         CASE
             WHEN irs_structures.sprayed_rooms_eligible = 0 THEN 0
-            ELSE CAST(irs_structures.sprayed_rooms_sprayed AS DECIMAL(7,2))/CAST(irs_structures.sprayed_rooms_eligible AS DECIMAL(7,2))
+            ELSE CAST(irs_structures.sprayed_rooms_sprayed AS DECIMAL)/CAST(irs_structures.sprayed_rooms_eligible AS DECIMAL)
         END AS roomCov,
         CASE
             WHEN coverage_query.sprayCov = 0 THEN 'n/a'
@@ -90,7 +90,7 @@ SELECT * FROM
         SELECT
             CASE
                 WHEN irs_structures.totStruct = 0 THEN 0
-                ELSE CAST(irs_structures.sprayedStruct AS DECIMAL(7,2))/CAST(irs_structures.totStruct AS DECIMAL(7,2))
+                ELSE CAST(irs_structures.sprayedStruct AS DECIMAL)/CAST(irs_structures.totStruct AS DECIMAL)
             END AS sprayCov
     ) AS coverage_query ON true
     LEFT JOIN LATERAL (
