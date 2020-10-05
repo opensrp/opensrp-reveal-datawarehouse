@@ -118,7 +118,7 @@ SELECT * FROM
         ) AS zambia_focus_area_irs_query ON true
         WHERE
         -- dont get any spray areas
-        zambia_jurisdictions.jurisdiction_depth < 4
+        zambia_jurisdictions.jurisdiction_depth < 5
         -- get only jurisdictions with spray areas
         AND zambia_focus_area_irs_query.totAreas > 0
     ) AS jurisdictions_query ON true
