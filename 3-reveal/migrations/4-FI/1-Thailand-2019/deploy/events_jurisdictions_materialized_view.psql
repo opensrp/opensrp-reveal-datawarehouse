@@ -19,12 +19,15 @@ SELECT
     plans.identifier AS plan_id,
     actions.goal_id,
     events.location_id AS jurisdiction_id,
-    actions.code AS action_code
+    actions.code AS action_code,
+    tasks.identifier as task_id
 FROM events
 LEFT JOIN plans
     ON plans.fi_opensrpeventid = events.id
 LEFT JOIN actions
     ON actions.plan_id = plans.identifier AND actions.goal_id = 'Case_Confirmation'
+LEFT JOIN tasks
+    ON tasks.plan_identifier = plans.identifier AND tasks.code = 'Case Confirmation'
 WHERE events.event_type = 'Case Details';
 
 COMMIT;

@@ -16,7 +16,8 @@ SELECT
     plan_id,
     goal_id,
     jurisdiction_id,
-    action_code
+    action_code,
+    task_id
 FROM events_jurisdictions_materialized_view
 WHERE FALSE;
 
