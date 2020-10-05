@@ -1,0 +1,222 @@
+-- Deploy reveal_mda_zambia_2020:mda_dispense_tasks to pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- Compute single-jurisdiction metrics
+CREATE MATERIALIZED VIEW ntd_dispense_task_metrics AS
+WITH metrics AS
+(
+    SELECT
+        tasks.plan_identifier AS plan_id,
+        tasks.group_identifier AS jurisdiction_id,
+        COALESCE(COUNT(latest_events.id) FILTER (WHERE latest_events.form_data->>'nPzqDistribute' IN ('Yes')), 0) AS nPzqDistribute,
+        COALESCE(COUNT(latest_events.id) FILTER (WHERE latest_events.form_data->>'availableForTreatment' IN ('Yes')), 0) AS availableForTreatment,
+        COALESCE(SUM(COALESCE(latest_events.form_data->>'nPzqDistributedQuantity', '0')::DECIMAL), 0) AS nPzqDistributedQuantity
+    FROM tasks
+    LEFT JOIN LATERAL
+    	(
+    		SELECT
+    			events.*
+    		FROM events
+    		WHERE
+    			events.task_id = tasks.identifier
+    			AND events.event_type = 'mda_dispense'
+    		ORDER BY events.server_version DESC
+    		LIMIT 1
+    	) AS latest_events
+    	ON TRUE
+    WHERE
+    	tasks.code = 'MDA_Dispense'
+        AND latest_events.id IS NOT NULL
+    GROUP BY tasks.plan_identifier, tasks.group_identifier
+)
+SELECT
+    metrics.*,
+    jurisdiction_hierarchy.jurisdiction_path || jurisdiction_hierarchy.jurisdiction_id AS full_jurisdiction_path
+FROM metrics
+LEFT JOIN jurisdictions_materialized_view AS jurisdiction_hierarchy
+    ON jurisdiction_hierarchy.jurisdiction_id = metrics.jurisdiction_id;
+
+CREATE INDEX IF NOT EXISTS ntd_dispense_task_metrics_plan_id_jurisdiction_id_idx ON ntd_dispense_task_metrics (plan_id, jurisdiction_id);
+CREATE INDEX IF NOT EXISTS ntd_dispense_task_metrics_plan_id_full_jurisdiction_path_idx ON ntd_dispense_task_metrics USING GIN(full_jurisdiction_path);
+
+-- Compute aggregate jurisdiction metrics
+CREATE MATERIALIZED VIEW ntd_dispense_plan_metrics AS
+SELECT
+    plan_hierarchy.plan_id,
+    plan_hierarchy.jurisdiction_id,
+    BOOL_AND(plan_hierarchy.is_focus_area) AS irs_focus_area,
+    SUM(ntd_dispense_task_metrics.nPzqDistribute) AS nPzqDistribute,
+    SUM(ntd_dispense_task_metrics.availableForTreatment) AS availableForTreatment,
+    SUM(ntd_dispense_task_metrics.nPzqDistributedQuantity) AS nPzqDistributedQuantity
+FROM plan_jurisdictions_materialized_view AS plan_hierarchy
+LEFT JOIN ntd_dispense_task_metrics
+    ON ntd_dispense_task_metrics.plan_id = plan_hierarchy.plan_id
+    AND plan_hierarchy.jurisdiction_id = ANY(ntd_dispense_task_metrics.full_jurisdiction_path)
+GROUP BY plan_hierarchy.plan_id, plan_hierarchy.jurisdiction_id;
+
+CREATE INDEX IF NOT EXISTS ntd_dispense_plan_metrics_plan_id_jurisdiction_id_idx ON ntd_dispense_plan_metrics (plan_id, jurisdiction_id);
+
+--
+--
+--
+
+CREATE MATERIALIZED VIEW ntd_visit_structure_task_metrics AS
+WITH metrics AS
+(
+    SELECT
+        tasks.plan_identifier AS plan_id,
+        tasks.group_identifier AS jurisdiction_id,
+        COUNT(tasks.identifier) AS structures_visited,
+        COALESCE(SUM(COALESCE(clients.attributes->>'nsac', '0')::DECIMAL), 0) AS sacregistered
+    FROM tasks
+    LEFT JOIN events
+        ON tasks.identifier = events.task_id
+        AND events.event_type IN ('Family Registration', 'Family_Registration')
+    LEFT JOIN clients
+        ON events.base_entity_id = clients.baseentityid
+    WHERE
+        tasks.code IN ('Structure_Visited', 'Structure Visited', 'Floating Family Registration')
+        AND tasks.status IN ('Completed')
+    GROUP BY tasks.plan_identifier, tasks.group_identifier
+)
+SELECT
+    metrics.*,
+    jurisdiction_hierarchy.jurisdiction_path || jurisdiction_hierarchy.jurisdiction_id AS full_jurisdiction_path
+FROM metrics
+LEFT JOIN jurisdictions_materialized_view AS jurisdiction_hierarchy
+    ON jurisdiction_hierarchy.jurisdiction_id = metrics.jurisdiction_id;
+
+CREATE INDEX IF NOT EXISTS ntd_visit_structure_task_metrics_plan_id_jurisdiction_id_idx ON ntd_visit_structure_task_metrics (plan_id, jurisdiction_id);
+CREATE INDEX IF NOT EXISTS ntd_visit_structure_task_metrics_plan_id_full_jurisdiction_path_idx ON ntd_visit_structure_task_metrics USING GIN(full_jurisdiction_path);
+
+CREATE MATERIALIZED VIEW ntd_visit_structure_plan_metrics AS
+SELECT
+    plan_hierarchy.plan_id,
+    plan_hierarchy.jurisdiction_id,
+    BOOL_AND(plan_hierarchy.is_focus_area) AS irs_focus_area,
+    SUM(ntd_visit_structure_task_metrics.structures_visited) AS structures_visited,
+    SUM(ntd_visit_structure_task_metrics.sacregistered) AS sacregistered
+FROM plan_jurisdictions_materialized_view AS plan_hierarchy
+LEFT JOIN ntd_visit_structure_task_metrics AS ntd_visit_structure_task_metrics
+    ON ntd_visit_structure_task_metrics.plan_id = plan_hierarchy.plan_id
+    AND plan_hierarchy.jurisdiction_id = ANY(ntd_visit_structure_task_metrics.full_jurisdiction_path)
+GROUP BY plan_hierarchy.plan_id, plan_hierarchy.jurisdiction_id;
+
+CREATE INDEX IF NOT EXISTS ntd_visit_structure_plan_metrics_plan_id_jurisdiction_id_idx ON ntd_visit_structure_plan_metrics (plan_id, jurisdiction_id);
+
+--
+--
+--
+
+CREATE MATERIALIZED VIEW ntd_structure_metrics AS
+WITH metrics AS
+(
+    SELECT
+        plans.identifier AS plan_id,
+        plan_jurisdictions.jurisdiction_id AS jurisdiction_id,
+        COUNT(structures.id) AS structure_count
+    FROM plans
+    LEFT JOIN plan_jurisdiction AS plan_jurisdictions
+        ON plan_jurisdictions.plan_id = plans.identifier
+    LEFT JOIN locations AS structures
+    	ON structures.jurisdiction_id = plan_jurisdictions.jurisdiction_id
+    WHERE
+	    plans.intervention_type = 'Dynamic-MDA'
+	    AND plans.status IN ('active', 'complete')
+    GROUP BY plans.identifier, plan_jurisdictions.jurisdiction_id
+)
+SELECT
+    metrics.*,
+    jurisdiction_hierarchy.jurisdiction_path || jurisdiction_hierarchy.jurisdiction_id AS full_jurisdiction_path
+FROM metrics
+LEFT JOIN jurisdictions_materialized_view AS jurisdiction_hierarchy
+    ON jurisdiction_hierarchy.jurisdiction_id = metrics.jurisdiction_id;
+
+CREATE INDEX IF NOT EXISTS ntd_structure_metrics_plan_id_jurisdiction_id_idx ON ntd_structure_metrics (plan_id, jurisdiction_id);
+CREATE INDEX IF NOT EXISTS ntd_structure_metrics_plan_id_full_jurisdiction_path_idx ON ntd_structure_metrics USING GIN(full_jurisdiction_path);
+
+CREATE MATERIALIZED VIEW ntd_structure_plan_metrics AS
+SELECT
+    plan_hierarchy.plan_id,
+    plan_hierarchy.jurisdiction_id,
+    BOOL_AND(plan_hierarchy.is_focus_area) AS irs_focus_area,
+    SUM(ntd_structure_metrics.structure_count) AS structure_count
+FROM plan_jurisdictions_materialized_view AS plan_hierarchy
+LEFT JOIN ntd_structure_metrics
+    ON ntd_structure_metrics.plan_id = plan_hierarchy.plan_id
+    AND plan_hierarchy.jurisdiction_id = ANY(ntd_structure_metrics.full_jurisdiction_path)
+GROUP BY plan_hierarchy.plan_id, plan_hierarchy.jurisdiction_id;
+
+CREATE INDEX IF NOT EXISTS ntd_structure_plan_metrics_plan_id_jurisdiction_id_idx ON ntd_structure_plan_metrics (plan_id, jurisdiction_id);
+
+--
+--
+--
+
+ALTER MATERIALIZED VIEW ntd_mda_jurisdictions SET SCHEMA deprecated_:schema ;
+
+CREATE MATERIALIZED VIEW ntd_mda_jurisdictions AS
+SELECT
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(plans.identifier, jurisdictions_materialized_view.jurisdiction_id)
+    ) AS id,
+    plans.identifier AS plan_id,
+    jurisdictions_materialized_view.jurisdiction_id AS jurisdiction_id,
+    jurisdictions_materialized_view.jurisdiction_parent_id AS jurisdiction_parent_id,
+    jurisdictions_materialized_view.jurisdiction_name AS jurisdiction_name,
+    jurisdictions_materialized_view.jurisdiction_depth AS jurisdiction_depth,
+    jurisdictions_materialized_view.jurisdiction_path AS jurisdiction_path,
+    jurisdictions_materialized_view.jurisdiction_name_path AS jurisdiction_name_path,
+    COALESCE(jurisdiction_target_query.target, 0) AS jurisdiction_target,
+    ntd_visit_structure_plan_metrics.structures_visited AS structures_visited,
+    COALESCE(ntd_structure_plan_metrics.structure_count, 0) AS structure_count,
+    ntd_visit_structure_plan_metrics.sacregistered AS sacregistered,
+    ntd_dispense_plan_metrics.nPzqDistribute AS n_events_where_pzqdistributed,
+    ntd_dispense_plan_metrics.nPzqDistributedQuantity AS total_pzqdistributed,
+    CASE WHEN COALESCE(ntd_structure_plan_metrics.structure_count, 0) <> 0 THEN ntd_visit_structure_plan_metrics.structures_visited::DECIMAL/ntd_structure_plan_metrics.structure_count::DECIMAL ELSE 0 END AS structures_visited_per,
+    CASE WHEN ntd_visit_structure_plan_metrics.sacregistered <> 0 THEN ntd_dispense_plan_metrics.nPzqDistribute::DECIMAL/ntd_visit_structure_plan_metrics.sacregistered::DECIMAL ELSE 0 END AS registeredchildrentreated_per,
+    CASE WHEN COALESCE(jurisdiction_target_query.target, 0) <> 0 THEN ntd_visit_structure_plan_metrics.sacregistered::DECIMAL/jurisdiction_target_query.target::DECIMAL ELSE 0 END AS expectedchildren_found,
+    CASE WHEN COALESCE(jurisdiction_target_query.target, 0) <> 0 THEN ntd_dispense_plan_metrics.nPzqDistribute::DECIMAL/jurisdiction_target_query.target::DECIMAL ELSE 0 END AS expectedchildren_treated
+FROM plans AS plans
+LEFT JOIN plan_jurisdictions_materialized_view AS plan_hierarchy
+	ON plan_hierarchy.plan_id = plans.identifier
+LEFT JOIN jurisdictions_materialized_view
+	ON jurisdictions_materialized_view.jurisdiction_id = plan_hierarchy.jurisdiction_id
+LEFT JOIN LATERAL
+	(
+	    SELECT
+	        key as jurisdiction_id,
+	        COALESCE(data->>'value', '0')::INTEGER AS target
+	    FROM opensrp_settings
+	    WHERE
+	        identifier = 'jurisdiction_metadata-population'
+	        AND opensrp_settings.key = plan_hierarchy.jurisdiction_id
+	    ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+	    LIMIT 1
+	) AS jurisdiction_target_query
+	ON TRUE
+LEFT JOIN ntd_structure_plan_metrics
+	ON ntd_structure_plan_metrics.plan_id = plans.identifier
+	AND ntd_structure_plan_metrics.jurisdiction_id = plan_hierarchy.jurisdiction_id
+LEFT JOIN ntd_dispense_plan_metrics
+	ON ntd_dispense_plan_metrics.plan_id = plans.identifier
+	AND ntd_dispense_plan_metrics.jurisdiction_id = plan_hierarchy.jurisdiction_id
+LEFT JOIN ntd_visit_structure_plan_metrics AS ntd_visit_structure_plan_metrics
+	ON ntd_visit_structure_plan_metrics.plan_id = plans.identifier
+	AND ntd_visit_structure_plan_metrics.jurisdiction_id = plan_hierarchy.jurisdiction_id
+WHERE
+    plans.intervention_type = 'Dynamic-MDA'
+    AND plans.status IN ('active', 'complete');
+
+CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_path_idx_gin on ntd_mda_jurisdictions  using GIN (jurisdiction_path);
+CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_plan_idx ON ntd_mda_jurisdictions (plan_id);
+CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_jurisdiction_idx ON ntd_mda_jurisdictions (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS ntd_mda_jurisdictions_jurisdiction_parent_idx ON ntd_mda_jurisdictions (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ntd_mda_jurisdictions_idx ON ntd_mda_jurisdictions (id);
+
+COMMIT;
+

@@ -8,4 +8,4 @@ raw_jurisdictions [raw_plans] 2020-03-11T09:54:26Z mosh <kjayanoris@ona.io> # Cr
 raw_locations [raw_jurisdictions] 2020-03-11T09:54:39Z mosh <kjayanoris@ona.io> # Creates table for raw_locations.
 raw_clients [raw_locations] 2020-08-06T14:04:56Z Wambere <wambere@ona.io> # Creates table for raw_clients.
 raw_settings [raw_clients] 2020-08-17T08:31:07Z Wambere <wambere@ona.io> # Creates table for raw_settings.
-sync_column [raw_settings] 2020-09-11T12:30:24Z Wambere <wambere@ona.io> # Add sync column to raw data tables.
+sync_column [opensrp_common_raw_tables:raw_events raw_settings] 2020-09-11T12:30:24Z Wambere <wambere@ona.io> # Add sync column to raw data tables.

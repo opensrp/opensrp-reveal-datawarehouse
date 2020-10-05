@@ -1,0 +1,19 @@
+-- Revert reveal_mda_zambia_2020:mda_dispense_tasks from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW ntd_mda_jurisdictions;
+ALTER MATERIALIZED VIEW deprecated_:schema .ntd_mda_jurisdictions SET SCHEMA :"schema";
+
+DROP MATERIALIZED VIEW ntd_structure_plan_metrics;
+DROP MATERIALIZED VIEW ntd_structure_metrics;
+
+DROP MATERIALIZED VIEW ntd_visit_structure_plan_metrics;
+DROP MATERIALIZED VIEW ntd_visit_structure_task_metrics;
+
+DROP MATERIALIZED VIEW ntd_dispense_plan_metrics;
+DROP MATERIALIZED VIEW ntd_dispense_task_metrics;
+
+COMMIT;

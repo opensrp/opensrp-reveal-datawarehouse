@@ -1,0 +1,7 @@
+-- Verify reveal_mda_zambia_2020:mda_dispense_tasks on pg
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;

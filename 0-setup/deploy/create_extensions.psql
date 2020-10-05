@@ -1,0 +1,11 @@
+-- Deploy setup:create_extensions to pg
+
+BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS "unaccent" WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
+
+COMMIT;

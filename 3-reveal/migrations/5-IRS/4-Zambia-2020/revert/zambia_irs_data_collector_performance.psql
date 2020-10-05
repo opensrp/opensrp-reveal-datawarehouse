@@ -1,0 +1,9 @@
+-- Revert reveal_irs_zambia_2020:zambia_irs_data_collector_performance from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW zambia_irs_data_collector_performance CASCADE;
+
+COMMIT;

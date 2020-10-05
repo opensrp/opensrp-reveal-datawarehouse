@@ -1,0 +1,38 @@
+-- Deploy reveal_irs_zambia_2020:zambia_irs_sop_avg_time to pg
+-- requires: zambia_irs_spray_event
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_sop_avg_time AS
+SELECT
+  subq.plan_id AS plan_id,
+  subq.district_id AS district_id,
+  subq.data_collector AS data_collector,
+  subq.sop AS sop,
+  to_char(avg(subq.start_time), 'HH24:MI') AS start_time,
+  to_char(avg(subq.end_time), 'HH24:MI') AS end_time,
+  to_char(avg(subq.end_time - subq.start_time), 'HH24:MI') AS field_duration,
+  count(DISTINCT(event_date)) as days_worked
+FROM
+(
+  SELECT
+    plan_id,
+    district_id,
+    event_date,
+    data_collector,
+    sop,
+    min(start_time::time)  AS start_time,
+    max(end_time:: time) AS end_time
+  FROM zambia_irs_spray_event
+  GROUP BY event_date, plan_id, district_id, data_collector, sop
+) as subq
+GROUP BY subq.plan_id, subq.district_id, subq.data_collector, subq.sop;
+
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_plan_id_idx ON zambia_irs_sop_avg_time (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_district_id_idx ON zambia_irs_sop_avg_time (district_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_data_collector_idx ON zambia_irs_sop_avg_time (data_collector);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_sop_idx ON zambia_irs_sop_avg_time (sop);
+
+COMMIT;

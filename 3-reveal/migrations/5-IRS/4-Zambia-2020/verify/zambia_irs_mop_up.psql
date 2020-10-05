@@ -1,0 +1,7 @@
+-- Verify reveal_irs_zambia_2020:zambi_irs_mop_up on pg
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;

@@ -1,0 +1,14 @@
+%syntax-version=1.0.0
+%project=reveal_irs_zambia_2020
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/reveal/IRS/4-zambia-2020
+
+zambia_irs_spray_event [reveal_transaction_tables:events reveal_transaction_tables:tasks reveal_database_views:jurisdictions_materialized_view] 2020-09-02T14:20:55Z Ona,,, <ona@ona-ThinkPad-T470> # Creates zambia irs performance report materialized view.
+zambia_daily_summary_event [reveal_transaction_tables:events] 2020-09-23T13:00:50Z Ona,,, <ona@ona-ThinkPad-T470> # zambia irs daily summary events
+zambia_irs_district_avg_time [zambia_irs_spray_event] 2020-09-30T07:36:35Z Ona,,, <ona@ona-ThinkPad-T470> # zambia irs daily district average time
+zambia_irs_collector_avg_time [zambia_irs_spray_event] 2020-09-30T07:39:32Z Ona,,, <ona@ona-ThinkPad-T470> # zambia irs daily data collector average time
+zambia_irs_sop_avg_time [zambia_irs_spray_event] 2020-09-30T07:43:58Z Ona,,, <ona@ona-ThinkPad-T470> # zambia irs daily sop average time
+zambia_irs_district_performance [zambia_irs_spray_event zambia_daily_summary_event zambia_irs_district_avg_time] 2020-09-02T14:44:28Z Ona,,, <ona@ona-ThinkPad-T470> # Creates irs district report materialized view.
+zambia_irs_data_collector_performance [zambia_irs_spray_event zambia_daily_summary_event zambia_irs_collector_avg_time] 2020-09-02T14:48:23Z Ona,,, <ona@ona-ThinkPad-T470> # Creates irs data collectors report materialized view.
+zambia_irs_sop_performance [zambia_irs_spray_event zambia_daily_summary_event zambia_irs_sop_avg_time] 2020-09-02T14:53:31Z Ona,,, <ona@ona-ThinkPad-T470> # Creates irs sop report materialized view.
+zambia_irs_sop_date_performance [zambia_irs_spray_event zambia_daily_summary_event] 2020-09-02T15:03:33Z Ona,,, <ona@ona-ThinkPad-T470> # Creates irs sop by date report materialized view.
+zambia_irs_mop_up 2020-10-02T10:00:50Z gstuder,,, <gstuder@gstuder-ThinkPad-T490> # Changes for Zambia IRS mop-up reports

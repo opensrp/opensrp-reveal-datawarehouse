@@ -1,0 +1,10 @@
+-- Deploy utils:add_utility_schemas to pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE SCHEMA pending_:schema ;
+CREATE SCHEMA deprecated_:schema ;
+
+COMMIT;

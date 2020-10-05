@@ -2,7 +2,7 @@
 %project=utils
 %uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/utils
 
-appschema 2020-03-26T09:59:39Z mosh <kjayanoris@ona.io> # Add schema.
+appschema [setup:create_extensions] 2020-03-26T09:59:39Z mosh <kjayanoris@ona.io> # Add schema.
 slugify 2020-04-04T06:54:51Z mosh <kjayanoris@ona.io> # Add function to slugify strings.
 query_utils 2020-03-12T15:48:05Z mosh <kjayanoris@ona.io> # Add query_utils.
 count_elements 2020-03-12T12:13:48Z mosh <kjayanoris@ona.io> # Add count_elements function.
@@ -10,3 +10,4 @@ DateDiff 2020-03-12T12:14:14Z mosh <kjayanoris@ona.io> # Add DateDiff function.
 array_concat_agg 2020-03-13T16:04:48Z mosh <kjayanoris@ona.io> # Add array_concat_agg.
 materialized_view_tracking 2020-05-13T10:01:07Z mosh <kjayanoris@ona.io> # Add materialized_view_tracking.
 refresh_mat_views [materialized_view_tracking] 2020-05-13T09:53:58Z mosh <kjayanoris@ona.io> # Add mechanism to refresh materialized views.
+add_utility_schemas 2020-10-02T08:29:21Z gstuder,,, <gstuder@gstuder-ThinkPad-T490> # Add utility schemas 'pending' and 'deprecated'

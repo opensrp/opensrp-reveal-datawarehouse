@@ -1,0 +1,41 @@
+-- Deploy reveal_irs_zambia_2020:zambia_daily_summary_event to pg
+-- requires: reveal_transaction_tables:events
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_daily_summary_event AS
+SELECT 
+  id,
+  base_entity_id,
+  location_id,
+  event_type,
+  provider_id,
+  date_created,
+  event_date,
+  entity_type,
+  task_id,
+  team_id,
+  server_version,
+  plan_id,
+  created_at,
+  (form_data->>'bottles_full')::int AS bottles_full,
+  (form_data->>'bottles_accounted')::int AS bottles_accounted,
+  (form_data->>'bottles_empty')::int AS bottles_empty,
+  (form_data->>'bottles_lostdamaged')::int AS bottles_lostdamaged,
+  (form_data->>'bottles_start')::int AS bottles_start,
+  (form_data->>'found')::int AS daily_found,
+  (form_data->>'sprayed')::int AS daily_sprayed,
+  (form_data->>'sprayop_code') as sop
+FROM events
+WHERE event_type = 'daily_summary';
+
+CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_event_date_idx ON zambia_daily_summary_event (event_date);
+CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_location_id_idx ON zambia_daily_summary_event (location_id);
+CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_provider_id_idx ON zambia_daily_summary_event (provider_id);
+CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_plan_id_idx ON zambia_daily_summary_event (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_event_date_location_id_provider_id_plan_id_idx ON zambia_daily_summary_event (event_date, location_id, provider_id, plan_id);
+CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_event_date_location_id_plan_id_idx ON zambia_daily_summary_event (event_date, location_id, plan_id);
+
+COMMIT;

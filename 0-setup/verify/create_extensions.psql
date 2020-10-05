@@ -1,0 +1,11 @@
+-- Verify setup:create_extensions on pg
+
+BEGIN;
+
+SELECT 1/COUNT(*) FROM pg_available_extensions where name = 'unaccent';
+SELECT 1/COUNT(*) FROM pg_available_extensions where name = 'postgis';
+SELECT 1/COUNT(*) FROM pg_available_extensions where name = 'uuid-ossp';
+SELECT 1/COUNT(*) FROM pg_available_extensions where name = 'pg_stat_statements';
+SELECT 1/COUNT(*) FROM pg_available_extensions where name = 'btree_gist';
+
+ROLLBACK;
