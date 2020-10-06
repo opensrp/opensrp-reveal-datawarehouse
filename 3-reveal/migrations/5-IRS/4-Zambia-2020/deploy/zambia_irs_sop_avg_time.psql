@@ -9,7 +9,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_sop_avg_time AS
 SELECT
   public.uuid_generate_v5(
     '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-    concat(subq.district_id, subq.spray_event.plan_id, subq.data_collector, subq.sop)
+    concat(subq.district_id, subq.plan_id, subq.data_collector, subq.sop)
   ) AS id,
   subq.plan_id AS plan_id,
   subq.district_id AS district_id,
