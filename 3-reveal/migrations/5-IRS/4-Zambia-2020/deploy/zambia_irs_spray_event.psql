@@ -65,5 +65,6 @@ CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_plan_id_idx ON zambia_irs_spra
 CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_district_id_idx ON zambia_irs_spray_event (district_id);
 CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_data_collector_idx ON zambia_irs_spray_event (data_collector);
 CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_sop_idx ON zambia_irs_spray_event (sop);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_spray_event_idx ON zambia_irs_spray_event (id);
 
 COMMIT;

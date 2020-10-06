@@ -7,6 +7,10 @@ SET search_path TO :"schema",public;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_sop_avg_time AS
 SELECT
+  public.uuid_generate_v5(
+    '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+    concat(subq.district_id, subq.spray_event.plan_id, subq.data_collector, subq.sop)
+  ) AS id,
   subq.plan_id AS plan_id,
   subq.district_id AS district_id,
   subq.data_collector AS data_collector,
@@ -34,5 +38,6 @@ CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_plan_id_idx ON zambia_irs_sop
 CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_district_id_idx ON zambia_irs_sop_avg_time (district_id);
 CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_data_collector_idx ON zambia_irs_sop_avg_time (data_collector);
 CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_sop_idx ON zambia_irs_sop_avg_time (sop);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_idx ON zambia_irs_sop_avg_time (id);
 
 COMMIT;
