@@ -6,19 +6,19 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_daily_summary_event AS
-SELECT 
+SELECT
   id,
   base_entity_id,
-  location_id,
+  all_events.location_id AS location_id,
   event_type,
-  provider_id,
+  all_events.provider_id AS provider_id,
   date_created,
-  event_date,
+  all_events.event_date AS event_date,
   entity_type,
   task_id,
   team_id,
   server_version,
-  plan_id,
+  all_events.plan_id AS plan_id,
   created_at,
   (form_data->>'bottles_full')::int AS bottles_full,
   (form_data->>'bottles_accounted')::int AS bottles_accounted,
@@ -28,7 +28,25 @@ SELECT
   (form_data->>'found')::int AS daily_found,
   (form_data->>'sprayed')::int AS daily_sprayed,
   (form_data->>'sprayop_code') as sop
-FROM events
+FROM events AS all_events
+INNER JOIN (
+  SELECT
+    MAX(date_created) AS latest_date_created,
+    location_id,
+    plan_id,
+    event_date,
+    form_data->>'sprayop_code' AS sop,
+    provider_id
+  FROM events
+  WHERE event_type = 'daily_summary'
+  GROUP BY location_id, plan_id, event_date, form_data->>'sprayop_code', provider_id
+) AS latest_event
+  ON latest_event.location_id = all_events.location_id
+  AND latest_event.plan_id = all_events.plan_id
+  AND latest_event.event_date = all_events.event_date
+  AND latest_event.sop = all_events.form_data->>'sprayop_code'
+  AND latest_event.provider_id = latest_event.provider_id
+  AND latest_event.latest_date_created = all_events.date_created
 WHERE event_type = 'daily_summary';
 
 CREATE INDEX IF NOT EXISTS zambia_daily_summary_event_event_date_idx ON zambia_daily_summary_event (event_date);

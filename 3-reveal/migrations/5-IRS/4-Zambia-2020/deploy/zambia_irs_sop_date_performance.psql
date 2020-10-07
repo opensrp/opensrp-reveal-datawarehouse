@@ -38,7 +38,7 @@ SELECT
     ELSE FALSE
   END AS data_quality_check
 FROM (
-  SELECT DISTINCT ON (plan_id, district_id, data_collector, sop, location_id)
+  SELECT
     public.uuid_generate_v5(
       '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
       concat(district_id, plan_id, data_collector, sop, location_id, event_date)
