@@ -1,0 +1,22 @@
+-- Deploy reveal_raw_tables:raw_organizations to pg
+-- The following is a create table statements for
+-- raw_organizations in reveal. The purpose of this
+-- table is to hold data from openSRP and make it
+-- available for further processing/analysis
+-- This is currently only required for the
+-- Thailand instance
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS raw_organizations (
+    id VARCHAR(36) UNIQUE NOT NULL,
+    data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    date_created TIMESTAMP,
+    last_updated TIMESTAMP DEFAULT NOW(),
+    warehouse_id SERIAL,
+    PRIMARY KEY (id)
+);
+
+COMMIT;
