@@ -1,0 +1,43 @@
+-- Verify reveal_raw_tables:biophics_columns on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- clients
+SELECT
+    date_created, last_updated, warehouse_id
+FROM raw_clients
+WHERE FALSE;
+
+-- jurisdictions
+SELECT
+    date_created, last_updated, warehouse_id
+FROM raw_jurisdictions
+WHERE FALSE;
+
+-- locations
+SELECT
+    date_created, last_updated, warehouse_id
+FROM raw_locations
+WHERE FALSE;
+
+-- plans
+SELECT
+    date_created, last_updated, warehouse_id
+FROM raw_plans
+WHERE FALSE;
+
+-- tasks
+SELECT
+    date_created, last_updated, warehouse_id
+FROM raw_tasks
+WHERE FALSE;
+
+-- events
+SELECT
+    date_created, last_updated, warehouse_id
+FROM raw_events
+WHERE FALSE;
+
+ROLLBACK;
