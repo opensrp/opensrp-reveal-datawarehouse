@@ -1,5 +1,6 @@
+CREATE OR REPLACE VIEW zambia_irs_structures_geojson AS
 SELECT
-    id,
+    id::VARCHAR,
     structure_id,
     structure_jurisdiction_id as jurisdiction_id,
     task_id,
@@ -7,7 +8,7 @@ SELECT
     jsonb_build_object(
         'type',         'Feature',
         'id',           structure_id,
-        'geometry',     ST_AsGeoJSON(structure_geometry)::jsonb,
+        'geometry',     public.ST_AsGeoJSON(structure_geometry)::jsonb,
         'properties',   to_jsonb(row) - 'structure_id' - 'structure_geometry'
     ) AS geojson
 FROM (

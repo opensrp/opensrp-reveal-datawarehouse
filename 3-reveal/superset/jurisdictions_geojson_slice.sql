@@ -1,9 +1,10 @@
+CREATE OR REPLACE VIEW jurisdictions_geojson_slice AS
 SELECT
     jurisdiction_id,
     jsonb_build_object(
         'type',         'Feature',
         'id',           jurisdiction_id,
-        'geometry',     ST_AsGeoJSON(jurisdiction_geometry)::jsonb,
+        'geometry',     public.ST_AsGeoJSON(jurisdiction_geometry)::jsonb,
         'properties',   to_jsonb(row) - 'jurisdiction_id' - 'jurisdiction_geometry'
     ) AS geojson
 FROM (

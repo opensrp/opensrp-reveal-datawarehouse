@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW task_structures_geojson_slice AS
 SELECT
     task_identifier,
     plan_id,
@@ -6,7 +7,7 @@ SELECT
     jsonb_build_object(
         'type',         'Feature',
         'id',           task_identifier,
-        'geometry',     ST_AsGeoJSON(structure_geometry)::jsonb,
+        'geometry',     public.ST_AsGeoJSON(structure_geometry)::jsonb,
         'properties',   to_jsonb(row) - 'task_identifier' - 'structure_geometry'
     ) AS geojson
 FROM (

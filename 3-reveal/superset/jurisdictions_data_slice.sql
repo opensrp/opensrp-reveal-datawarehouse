@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW jurisdictions_data_slice AS
 SELECT
     id as id,
     geographic_level as geographic_level,
