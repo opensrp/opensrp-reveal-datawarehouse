@@ -1,4 +1,11 @@
 -- Deploy reveal_raw_tables:thai_only to pg
+-- requires: raw_clients
+-- requires: raw_jurisdictions
+-- requires: raw_plans
+-- requires: raw_tasks
+-- requires: raw_events
+-- requires: raw_providers
+-- requires: raw_organizations
 -- These changes are only for the Thailand
 -- setup to maintain the current connection
 -- to the Biophics system
