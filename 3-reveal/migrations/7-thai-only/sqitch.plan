@@ -1,0 +1,5 @@
+%syntax-version=1.0.0
+%project=thailand_only
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/thailand_only
+
+raw_tables_modifications [reveal_raw_tables:raw_providers opensrp_common_raw_tables:raw_events] 2020-10-10T07:45:25Z mosh <kjayanoris@ona.io> # Add modifications to raw tables for Thailand.
