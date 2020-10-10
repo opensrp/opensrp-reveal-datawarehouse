@@ -1,0 +1,25 @@
+-- Deploy reveal_raw_tables:thai_only to pg
+-- These changes are only for the Thailand
+-- setup to maintain the current connection
+-- to the Biophics system
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS raw_structures (
+    id VARCHAR(36) UNIQUE NOT NULL,
+    server_version BIGINT NOT NULL DEFAULT 0,
+    full_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    PRIMARY KEY (id)
+);
+
+ALTER TABLE raw_tasks RENAME COLUMN data TO full_json;
+ALTER TABLE raw_plans RENAME COLUMN data TO full_json;
+ALTER TABLE raw_events RENAME COLUMN data TO full_json;
+ALTER TABLE raw_clients RENAME COLUMN data TO full_json;
+ALTER TABLE raw_providers RENAME COLUMN data TO full_json;
+ALTER TABLE raw_organizations RENAME COLUMN data TO full_json;
+ALTER TABLE raw_jurisdictions RENAME COLUMN data TO full_json;
+
+COMMIT;

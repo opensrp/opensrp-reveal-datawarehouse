@@ -13,3 +13,4 @@ drop_length_constraints 2020-10-05T13:12:23Z mosh <kjayanoris@ona.io> # Drop len
 raw_organizations [raw_settings] 2020-10-09T06:47:12Z Wambere <jwambere@ona.io> # Create table for raw_organizations.
 raw_providers [raw_organizations] 2020-10-09T06:47:29Z Wambere <jwambere@ona.io> # Create table for raw_providers.
 biophics_columns [opensrp_common_raw_tables:raw_events raw_settings] 2020-10-09T07:12:14Z Wambere <jwambere@ona.io> # Add extra Biophics columns.
+thai_only [opensrp_common_raw_tables:raw_events raw_organizations] 2020-10-10T06:41:47Z Wambere <jwambere@ona.io> # Thai only changes.
