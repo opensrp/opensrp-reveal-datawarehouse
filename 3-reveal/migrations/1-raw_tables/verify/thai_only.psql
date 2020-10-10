@@ -4,7 +4,7 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-SELECT id, server_version, full_json
+SELECT id, server_version, data
 FROM raw_structures
 WHERE FALSE;
 
