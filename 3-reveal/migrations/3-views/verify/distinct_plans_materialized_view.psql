@@ -1,0 +1,7 @@
+-- Verify reveal_database_views:distinct_plans_materialized_view on pg
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;

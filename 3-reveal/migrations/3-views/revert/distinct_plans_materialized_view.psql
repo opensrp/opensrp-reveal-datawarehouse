@@ -1,0 +1,13 @@
+-- Revert reveal_database_views:distinct_plans_materialized_view from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER MATERIALIZED VIEW plans_materialzied_view SET SCHEMA pending_:schema ;
+
+ALTER MATERIALIZED VIEW deprecated_:schema .plans_materialzied_view SET SCHEMA :"schema";
+
+DROP MATERIALIZED VIEW pending_:schema .plans_materialzied_view;
+
+COMMIT;
