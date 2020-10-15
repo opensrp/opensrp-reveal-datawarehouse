@@ -1,0 +1,72 @@
+-- Deploy reveal_irs_zambia_2020:zambia_irs_structures_geojson to pg
+-- requires: reveal_irs_zambia_2019:zambia_irs_structures
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- We are creating a materialized view that exposes data from zambia_irs_structures
+-- as a materialized view withput the geometry column.  This is being done because
+-- in production zambia_irs_structures is not being refreshed concurrently and so we
+-- needs its data available for reporting even during its refreshing.
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_structures_data
+AS
+SELECT
+    id,
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    task_id,
+    plan_id,
+    event_date,
+    business_status,
+    rooms_eligible,
+    rooms_sprayed,
+    eligibility,
+    structure_sprayed
+FROM zambia_irs_structures;
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_data_idx ON zambia_irs_structures_data(id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_data_jurisdiction_idx ON zambia_irs_structures_data(structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_data_plan_idx ON zambia_irs_structures_data(plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_data_jurisdiction_plan_idx ON zambia_irs_structures_data(structure_jurisdiction_id, plan_id);
+
+-- This view takes zambia_irs_structures_data and adds structure geometry
+-- This view is the one that is actually exposed directly to reporting applications
+CREATE OR REPLACE VIEW zambia_irs_structures_geojson AS
+SELECT
+    id::VARCHAR,
+    structure_id,
+    structure_jurisdiction_id as jurisdiction_id,
+    task_id,
+    plan_id,
+    jsonb_build_object(
+        'type',         'Feature',
+        'id',           structure_id,
+        'geometry',     public.ST_AsGeoJSON(structure_geometry)::jsonb,
+        'properties',   to_jsonb(row) - 'structure_id' - 'structure_geometry'
+    ) AS geojson
+FROM (
+    SELECT
+        zambia_irs_structures_data.id AS id,
+        zambia_irs_structures_data.structure_id AS structure_id,
+        zambia_irs_structures_data.structure_jurisdiction_id AS structure_jurisdiction_id,
+        zambia_irs_structures_data.structure_code AS structure_code,
+        zambia_irs_structures_data.structure_name AS structure_name,
+        zambia_irs_structures_data.structure_type AS structure_type,
+        locations.geometry AS structure_geometry,
+        zambia_irs_structures_data.task_id AS task_id,
+        zambia_irs_structures_data.plan_id AS plan_id,
+        zambia_irs_structures_data.event_date AS event_date,
+        zambia_irs_structures_data.business_status AS business_status,
+        zambia_irs_structures_data.rooms_eligible AS rooms_eligible,
+        zambia_irs_structures_data.rooms_sprayed AS rooms_sprayed,
+        zambia_irs_structures_data.eligibility AS eligibility,
+        zambia_irs_structures_data.structure_sprayed AS structure_sprayed,
+        zambia_irs_structures_data.business_status AS business_status
+    FROM zambia_irs_structures_data
+    LEFT JOIN locations ON zambia_irs_structures_data.structure_id = locations.id
+) row;
+
+COMMIT;

@@ -1,0 +1,70 @@
+-- Verify reveal_irs_zambia_2020:zambia_irs_structures_geojson on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_structures_data';
+
+SELECT
+    id,
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    task_id,
+    plan_id,
+    event_date,
+    business_status,
+    rooms_eligible,
+    rooms_sprayed,
+    eligibility,
+    structure_sprayed
+FROM zambia_irs_structures_data
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures_data'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_structures_data_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures_data'
+AND indexname = 'zambia_irs_structures_data_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures_data'
+AND indexname = 'zambia_irs_structures_data_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures_data'
+AND indexname = 'zambia_irs_structures_data_jurisdiction_plan_idx';
+
+SELECT 1/COUNT(*) FROM pg_views WHERE schemaname = :'schema' AND viewname = 'zambia_irs_structures_geojson';
+
+SELECT
+    id,
+    structure_id,
+    jurisdiction_id,
+    task_id,
+    plan_id,
+    geojson
+FROM zambia_irs_structures_geojson
+WHERE FALSE;
+
+ROLLBACK;
