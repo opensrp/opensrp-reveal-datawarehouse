@@ -1,0 +1,31 @@
+-- Verify reveal_transaction_tables:plan_opensrpeventid_field on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    identifier,
+    created_at,
+    version,
+    name,
+    title,
+    status,
+    fi_status,
+    fi_reason,
+    intervention_type,
+    date,
+    effective_period_start,
+    effective_period_end,
+    fi_opensrpeventid
+FROM plans
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plans'
+AND indexname = 'plans_fi_opensrpeventid_idx';
+
+ROLLBACK;

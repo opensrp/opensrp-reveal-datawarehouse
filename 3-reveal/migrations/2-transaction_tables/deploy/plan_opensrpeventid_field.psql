@@ -1,0 +1,15 @@
+-- Deploy reveal_transaction_tables:plan_opensrpeventid_field to pg
+-- requires: plans
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- adds fi_opensrpeventid field
+ALTER TABLE plans
+ADD COLUMN fi_opensrpeventid VARCHAR NULL;
+
+--add indices for fi_opensrpeventid
+CREATE INDEX IF NOT EXISTS plans_fi_opensrpeventid_idx ON plans (fi_opensrpeventid);
+
+COMMIT;
