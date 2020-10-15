@@ -20,9 +20,9 @@ SELECT
             plans.identifier)
     ) AS id,
     events.id AS event_id,
-    events.details->'case_classification' AS case_classification,
-    events.details->'case_number' AS case_number,
-    events.details->'investigtion_date' AS date_of_diagnosis,
+    events.details->>'case_classification' AS case_classification,
+    events.details->>'case_number' AS case_number,
+    events.details->>'investigtion_date' AS date_of_diagnosis,
     plans.identifier AS plan_id,
     actions.goal_id,
     events.location_id AS jurisdiction_id,
