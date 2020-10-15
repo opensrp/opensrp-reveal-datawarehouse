@@ -1,0 +1,121 @@
+-- Deploy reveal_irs_lite_zambia_2020:zambia_irs_lite_structures to pg
+-- requires: reveal_transaction_tables:structures
+-- requires: reveal_transaction_tables:events
+-- requires: reveal_transaction_tables:tasks
+-- requires: zambia_lite_structure_jurisdictions
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- Despite this being a very expensive query, it is implemented as a materialized view
+-- because it relies on very high-traffic tables (events and tasks) and implementing it
+-- in any other way may have unknown performance implications.
+-- TODO: revisit if performance of the materialized view is a huge problem
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_lite_structures
+AS
+SELECT DISTINCT ON (locations.id, events_query.task_id)
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(locations.id, events_query.task_id)) AS id,
+    locations.id AS structure_id,
+    locations.jurisdiction_id AS old_jurisdiction_id,
+    zambia_lite_structure_jurisdictions.jurisdiction_depth AS old_jurisdiction_depth,
+    zambia_lite_structure_jurisdictions.geo_jurisdiction_id AS geo_jurisdiction_id,
+    zambia_lite_structure_jurisdictions.geo_jurisdiction_depth AS geo_jurisdiction_depth,
+    zambia_lite_structure_jurisdictions.zambia_jurisdiction_id AS zambia_jurisdiction_id,
+    zambia_lite_structure_jurisdictions.zambia_jurisdiction_depth AS zambia_jurisdiction_depth,
+    COALESCE(zambia_lite_structure_jurisdictions.zambia_jurisdiction_id, locations.jurisdiction_id) AS structure_jurisdiction_id,
+    locations.code AS structure_code,
+    locations.name AS structure_name,
+    locations.type AS structure_type,
+    locations.geometry AS structure_geometry,
+    locations.status AS structure_status,
+    COALESCE(events_query.task_id, tasks_query.identifier) AS task_id,
+    COALESCE(events_query.task_status, tasks_query.status) AS task_status,
+    events_query.event_id AS event_id,
+    COALESCE(events_query.plan_id, tasks_query.plan_identifier) AS plan_id,
+    events_query.event_date AS event_date,
+    COALESCE(events_query.sprayed, 0) AS sprayed,
+    COALESCE(events_query.found, 0) AS found,
+    COALESCE(events_query.eligibility, 'Eligible') AS eligibility,
+    COALESCE(events_query.business_status, tasks_query.business_status, 'No Tasks') AS business_status
+FROM locations
+INNER JOIN zambia_lite_structure_jurisdictions ON zambia_lite_structure_jurisdictions.id = locations.id
+LEFT JOIN LATERAL (
+    SELECT
+        subq.task_id AS task_id,
+        subq.task_status AS task_status,
+        subq.event_id AS event_id,
+        subq.event_date AS event_date,
+        subq.plan_id AS plan_id,
+        subq.sprayed AS sprayed,
+        subq.found AS found,
+        subq.eligibility AS eligibility,
+        subq.business_status AS business_status
+    FROM
+    (
+        SELECT
+            DISTINCT ON (events.task_id)
+            events.id AS event_id,
+            events.task_id AS task_id,
+            events.event_date AS event_date,
+            tasks.plan_identifier AS plan_id,
+            tasks.status AS task_status,
+            -- get fields from JSON --
+            COALESCE (events.form_data->'sprayed'->>0, '0')::int AS sprayed,
+            COALESCE (events.form_data->'found'->>0, '0')::int AS found,
+            COALESCE (events.form_data->'eligibility'->>0, 'Eligible')::text AS eligibility,
+            events.form_data->'business_status'->>0 AS business_status
+            -- end get fields from JSON --
+        FROM events
+        LEFT JOIN tasks
+            ON tasks.identifier = events.task_id
+        WHERE locations.id = events.base_entity_id
+        AND events.entity_type = 'Structure'
+        AND events.event_type = 'IRS Visitation'
+    ) AS subq
+    ORDER BY
+        subq.event_date DESC,
+        subq.sprayed DESC
+    LIMIT 1
+) AS events_query ON true
+LEFT JOIN LATERAL (
+    SELECT
+        tasks.identifier,
+        tasks.server_version,
+        tasks.plan_identifier,
+        tasks.status,
+        tasks.business_status
+    FROM tasks
+    WHERE tasks.task_for = locations.id
+    AND tasks.status != 'Cancelled'
+    ORDER BY tasks.server_version DESC
+    LIMIT 1
+) AS tasks_query ON true
+WHERE locations.status != 'Inactive';
+
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_business_status_idx ON zambia_irs_lite_structures (business_status);
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_event_date_idx ON zambia_irs_lite_structures (event_date);
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_task_id_idx ON zambia_irs_lite_structures (task_id);
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_plan_id_idx ON zambia_irs_lite_structures (plan_id);
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_plan_jurisdiction_id_idx ON zambia_irs_lite_structures (plan_id, structure_jurisdiction_id);
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_structure_jurisdiction_idx ON zambia_irs_lite_structures (structure_jurisdiction_id);
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_old_jurisdiction_idx ON zambia_irs_lite_structures (old_jurisdiction_id);
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_geom_gix ON zambia_irs_lite_structures USING GIST (structure_geometry);
+
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_structures_structure_task_idx ON zambia_irs_lite_structures (structure_id, task_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_structures_idx ON zambia_irs_lite_structures (id);
+
+COMMIT;
+

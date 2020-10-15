@@ -1,0 +1,113 @@
+-- Deploy reveal_irs_lite_zambia_2020:zambia_focus_area_irs_lite to pg
+-- requires: reveal_transaction_tables:plans
+-- requires: reveal_transaction_tables:opensrp_settings
+-- requires: zambia_lite_plan_jurisdictions
+-- requires: zambia_lite_jurisdictions
+-- requires: zambia_irs_lite_structures
+-- requires: utils:count_elements
+-- requires: utils:array_concat_agg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_focus_area_irs_lite
+AS
+SELECT * FROM
+(
+    SELECT
+        uuid_generate_v5(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+            concat(plans.identifier, zambia_lite_jurisdictions.jurisdiction_id)) AS id,
+        plans.identifier AS plan_id,
+        zambia_lite_jurisdictions.jurisdiction_id AS jurisdiction_id,
+        zambia_lite_jurisdictions.jurisdiction_parent_id AS jurisdiction_parent_id,
+        zambia_lite_jurisdictions.jurisdiction_name AS jurisdiction_name,
+        zambia_lite_jurisdictions.jurisdiction_geometry AS jurisdiction_geometry,
+        zambia_lite_jurisdictions.jurisdiction_depth AS jurisdiction_depth,
+        zambia_lite_jurisdictions.jurisdiction_path AS jurisdiction_path,
+        zambia_lite_jurisdictions.jurisdiction_name_path AS jurisdiction_name_path,
+        zambia_lite_jurisdictions.is_virtual_jurisdiction AS is_virtual_jurisdiction,
+        COALESCE(jurisdiction_structure_query.structure, 0) AS totStruct,
+        COALESCE(jurisdiction_target_query.target, 0) AS targStruct,        
+        irs_structures.sprayed AS sprayed,
+        irs_structures.found AS found,
+        inactive_irs_structures.notEligible AS notEligible,
+        inactive_irs_structures.noTasks AS noTasks,        
+        CASE
+          WHEN COALESCE(jurisdiction_structure_query.structure, 0) = 0 THEN 0
+          ELSE CAST(irs_structures.sprayed AS DECIMAL)/CAST(COALESCE(jurisdiction_structure_query.structure, 0) AS DECIMAL)
+        END AS sprayCov,
+        CASE
+          WHEN COALESCE(jurisdiction_target_query.target, 0) = 0 THEN 0
+          ELSE CAST(irs_structures.sprayed AS DECIMAL)/CAST(COALESCE(jurisdiction_target_query.target, 0) AS DECIMAL)
+        END AS targCov,
+        CASE
+          WHEN COALESCE(jurisdiction_target_query.target, 0) = 0 THEN 0
+          ELSE CAST(irs_structures.found AS DECIMAL)/CAST(COALESCE(jurisdiction_target_query.target, 0) AS DECIMAL)
+        END AS foundCov,       
+        CASE
+          WHEN irs_structures.found = 0 THEN 0
+          ELSE CAST(irs_structures.sprayed AS DECIMAL)/CAST(irs_structures.found AS DECIMAL)
+        END AS spraySuccess                
+    FROM plans
+    LEFT JOIN zambia_lite_plan_jurisdictions
+        ON plans.identifier = zambia_lite_plan_jurisdictions.plan_id
+    LEFT JOIN zambia_lite_jurisdictions
+        ON zambia_lite_plan_jurisdictions.zambia_jurisdiction_id = zambia_lite_jurisdictions.jurisdiction_id
+    LEFT JOIN LATERAL (
+        SELECT
+            COALESCE(SUM(sprayed), 0) AS sprayed,
+            COALESCE(SUM(found), 0) AS found
+        FROM zambia_irs_lite_structures
+        WHERE
+            zambia_irs_lite_structures.structure_jurisdiction_id = zambia_lite_jurisdictions.jurisdiction_id AND
+            business_status NOT IN ('Not Eligible', 'No Tasks') AND
+            (plans.identifier = zambia_irs_lite_structures.plan_id OR zambia_irs_lite_structures.plan_id IS NULL)
+    ) AS irs_structures ON true
+    LEFT JOIN LATERAL (
+        SELECT
+            COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('Not Eligible')), 0) AS notEligible,
+            COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('No Tasks')), 0) AS noTasks
+        FROM zambia_irs_lite_structures
+        WHERE
+            zambia_irs_lite_structures.structure_jurisdiction_id = zambia_lite_jurisdictions.jurisdiction_id AND
+            business_status IN ('Not Eligible', 'No Tasks') AND
+            (plans.identifier = zambia_irs_lite_structures.plan_id OR zambia_irs_lite_structures.plan_id IS NULL)
+    ) AS inactive_irs_structures ON true
+    LEFT JOIN LATERAL (
+        SELECT
+            key as jurisdiction_id,
+            COALESCE(data->>'value', '0')::INTEGER as target
+        FROM opensrp_settings
+        WHERE identifier = 'jurisdiction_metadata-target'
+        AND zambia_lite_plan_jurisdictions.jurisdiction_id = opensrp_settings.key
+        ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+        LIMIT 1
+    ) AS jurisdiction_target_query ON true
+    LEFT JOIN LATERAL (
+        SELECT
+            key as jurisdiction_id,
+            COALESCE(data->>'value', '0')::INTEGER as structure
+        FROM opensrp_settings
+        WHERE identifier = 'jurisdiction_metadata-structure'
+        AND zambia_lite_plan_jurisdictions.jurisdiction_id = opensrp_settings.key
+        ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+        LIMIT 1
+    ) AS jurisdiction_structure_query ON true    
+    WHERE plans.intervention_type IN ('IRS-Lite') AND plans.status NOT IN ('draft', 'retired')
+) AS main_query
+ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
+
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_lite_path_idx_gin on zambia_focus_area_irs_lite using GIN(jurisdiction_path);
+
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_lite_plan_idx ON zambia_focus_area_irs_lite (plan_id);
+
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_lite_jurisdiction_idx ON zambia_focus_area_irs_lite (jurisdiction_id);
+
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_lite_jurisdiction_parent_idx ON zambia_focus_area_irs_lite (jurisdiction_parent_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_lite_idx ON zambia_focus_area_irs_lite (id);
+
+COMMIT;
+

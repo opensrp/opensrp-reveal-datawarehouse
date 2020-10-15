@@ -1,0 +1,47 @@
+-- Deploy reveal_irs_lite_zambia_2020:zambia_lite_jurisdictions to pg
+-- requires: reveal_database_views:jurisdictions_materialized_view
+
+BEGIN;
+
+--
+-- ADD VIRTUAL "REMAINDER" CATCHMENTS FOR ALL STRUCTURES NOT IN A LEAF JURISDICTION
+-- TODO: Make the remainder catchments a pure leaf-node test
+--
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_lite_jurisdictions AS
+SELECT *,
+    jurisdiction_id AS opensrp_jurisdiction_id,
+    CASE
+        WHEN jurisdiction_depth < 4 THEN MD5(CONCAT(jurisdiction_id, '_remainder'))
+        ELSE jurisdiction_id
+    END AS zambia_jurisdiction_id,
+    FALSE AS is_virtual_jurisdiction
+FROM jurisdictions_materialized_view
+UNION ALL
+SELECT
+    MD5(CONCAT(jurisdiction_id, '_remainder')) AS jurisdiction_id,
+    jurisdiction_id AS jurisdiction_parent_id,
+    jurisdiction_name || ' (other)' AS jurisdiction_name,
+    jurisdiction_geometry AS jurisdiction_geometry,
+    jurisdiction_depth + 1 AS jurisdiction_depth,
+    ARRAY_APPEND(jurisdiction_path, jurisdiction_id) AS jurisdiction_path,
+    ARRAY_APPEND(jurisdiction_name_path, jurisdiction_name) AS jurisdiction_name_path,
+    jurisdiction_root_parent_id,
+    jurisdiction_root_parent_name,
+    jurisdiction_id AS opensrp_jurisdiction_id,
+    MD5(CONCAT(jurisdiction_id, '_remainder')) AS zambia_jurisdiction_id,
+    TRUE AS is_virtual_jurisdiction
+FROM jurisdictions_materialized_view
+WHERE jurisdiction_depth < 4;
+
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_lite_jurisdictions_id_idx ON zambia_lite_jurisdictions (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_lite_jurisdictions_opensrp_jurisdiction_id_idx ON zambia_lite_jurisdictions (opensrp_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_lite_jurisdictions_parent_id_idx ON zambia_lite_jurisdictions (jurisdiction_parent_id);
+CREATE INDEX IF NOT EXISTS zambia_lite_jurisdictions_jurisdiction_depth_idx ON zambia_lite_jurisdictions (jurisdiction_depth);
+CREATE INDEX IF NOT EXISTS zambia_lite_jurisdictions_jurisdiction_root_parent_id_idx ON zambia_lite_jurisdictions (jurisdiction_root_parent_id);
+CREATE INDEX IF NOT EXISTS zambia_lite_jurisdictions_jurisdiction_geometry_gix ON zambia_lite_jurisdictions USING GIST (jurisdiction_geometry);
+
+COMMIT;
+

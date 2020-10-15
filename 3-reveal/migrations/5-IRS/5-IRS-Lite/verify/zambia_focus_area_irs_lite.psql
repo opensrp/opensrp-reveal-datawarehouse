@@ -1,0 +1,72 @@
+-- Verify reveal_irs_lite_zambia_2020:zambia_focus_area_irs_lite on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_focus_area_irs_lite';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_geometry,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    is_virtual_jurisdiction,
+    totStruct,
+    targStruct,        
+    sprayed,
+    found,
+    notEligible,
+    noTasks,        
+    sprayCov,
+    targCov,
+    foundCov,       
+    spraySuccess                
+FROM zambia_focus_area_irs_lite
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs_lite'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'zambia_focus_area_irs_lite_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs_lite'
+AND indexname = 'zambia_focus_area_irs_lite_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs_lite'
+AND indexname = 'zambia_focus_area_irs_lite_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs_lite'
+AND indexname = 'zambia_focus_area_irs_lite_jurisdiction_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs_lite'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_focus_area_irs_lite_idx';
+
+ROLLBACK;

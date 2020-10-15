@@ -1,0 +1,48 @@
+-- Verify reveal_irs_lite_zambia_2020:zambia_lite_plan_jurisdictions on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_lite_plan_jurisdictions';
+
+SELECT
+    plan_id,
+    jurisdiction_id,
+    zambia_jurisdiction_id,
+    zambia_jurisdiction_depth
+FROM zambia_lite_plan_jurisdictions
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_lite_plan_jurisdictions'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_lite_plan_jurisdictions_plan_id_jurisdiction_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_lite_plan_jurisdictions'
+AND indexname = 'zambia_lite_plan_jurisdictions_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_lite_plan_jurisdictions'
+AND indexname = 'zambia_lite_plan_jurisdictions_jurisdiction_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_lite_plan_jurisdictions'
+AND indexname = 'zambia_lite_plan_jurisdictions_zambia_jurisdiction_id_idx';
+
+ROLLBACK;
