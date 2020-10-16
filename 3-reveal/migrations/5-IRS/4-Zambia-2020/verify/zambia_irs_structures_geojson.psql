@@ -1,4 +1,4 @@
--- Verify reveal_irs_zambia_2020:zambia_irs_structures_geojson on pg
+-- Verify reveal_irs_zambia_2020:zambia_irs_structures_report on pg
 
 BEGIN;
 
@@ -6,7 +6,7 @@ SET search_path TO :"schema",public;
 
 SELECT 1/count(*)
 FROM pg_matviews
-WHERE matviewname = 'zambia_irs_structures_data';
+WHERE matviewname = 'zambia_irs_structures_report_no_geojson';
 
 SELECT
     id,
@@ -23,39 +23,39 @@ SELECT
     rooms_sprayed,
     eligibility,
     structure_sprayed
-FROM zambia_irs_structures_data
+FROM zambia_irs_structures_report_no_geojson
 WHERE FALSE;
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'zambia_irs_structures_data'
+AND tablename = 'zambia_irs_structures_report_no_geojson'
 AND indexdef LIKE '%CREATE UNIQUE INDEX%'
-AND indexname = 'zambia_irs_structures_data_idx';
+AND indexname = 'zambia_irs_structures_report_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'zambia_irs_structures_data'
-AND indexname = 'zambia_irs_structures_data_jurisdiction_idx';
+AND tablename = 'zambia_irs_structures_report_no_geojson'
+AND indexname = 'zambia_irs_structures_report_jurisdiction_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'zambia_irs_structures_data'
-AND indexname = 'zambia_irs_structures_data_plan_idx';
+AND tablename = 'zambia_irs_structures_report_no_geojson'
+AND indexname = 'zambia_irs_structures_report_plan_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
 WHERE
 schemaname = :'schema'
-AND tablename = 'zambia_irs_structures_data'
-AND indexname = 'zambia_irs_structures_data_jurisdiction_plan_idx';
+AND tablename = 'zambia_irs_structures_report_no_geojson'
+AND indexname = 'zambia_irs_structures_report_jurisdiction_plan_idx';
 
-SELECT 1/COUNT(*) FROM pg_views WHERE schemaname = :'schema' AND viewname = 'zambia_irs_structures_geojson';
+SELECT 1/COUNT(*) FROM pg_views WHERE schemaname = :'schema' AND viewname = 'zambia_irs_structures_report';
 
 SELECT
     id,
@@ -64,7 +64,7 @@ SELECT
     task_id,
     plan_id,
     geojson
-FROM zambia_irs_structures_geojson
+FROM zambia_irs_structures_report
 WHERE FALSE;
 
 ROLLBACK;

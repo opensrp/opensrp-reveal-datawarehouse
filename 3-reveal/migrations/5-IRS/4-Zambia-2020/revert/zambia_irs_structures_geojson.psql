@@ -4,6 +4,6 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-DROP MATERIALIZED VIEW zambia_irs_structures_data CASCADE;
+DROP MATERIALIZED VIEW zambia_irs_structures_report_no_geojson CASCADE;
 
 COMMIT;
