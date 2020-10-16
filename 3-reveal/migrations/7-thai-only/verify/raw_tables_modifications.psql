@@ -28,12 +28,4 @@ SELECT id, server_version, full_json
 FROM raw_jurisdictions
 WHERE FALSE;
 
--- check primary key
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_constraint
-WHERE
-conname = 'raw_structures_pkey'
-AND contype = 'p'
-AND 1 = ALL(conkey);
-
 ROLLBACK;

@@ -1,10 +1,10 @@
--- Verify reveal_raw_tables:raw_providers on pg
+-- Verify thailand_only:raw_providers on pg
 
 BEGIN;
 
 SET search_path TO :"schema",public;
 
-SELECT id, data, date_created, last_updated, warehouse_id
+SELECT id, full_json, date_created, last_updated, warehouse_id
 FROM raw_providers
 WHERE FALSE;
 
