@@ -4,6 +4,6 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-DROP MATERIALIZED VIEW events_jurisdictions_materialized_view CASCADE;
+DROP MATERIALIZED VIEW events_jurisdictions_report CASCADE;
 
 COMMIT;

@@ -9,7 +9,7 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS events_jurisdictions_materialized_view
+CREATE MATERIALIZED VIEW IF NOT EXISTS events_jurisdictions_report
 AS
 SELECT
     uuid_generate_v5(
@@ -36,5 +36,11 @@ LEFT JOIN actions
 LEFT JOIN tasks
     ON tasks.plan_identifier = plans.identifier AND tasks.code = 'Case Confirmation'
 WHERE events.event_type = 'Case Details';
+
+CREATE INDEX IF NOT EXISTS events_jurisdictions_report_plan_idx ON events_jurisdictions_report (plan_id);
+CREATE INDEX IF NOT EXISTS events_jurisdictions_report_jurisdiction_idx ON events_jurisdictions_report (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS events_jurisdictions_report_goal_idx ON events_jurisdictions_report (goal_id);
+CREATE INDEX IF NOT EXISTS events_jurisdictions_report_action_idx ON events_jurisdictions_report (action_code);
+CREATE UNIQUE INDEX IF NOT EXISTS events_jurisdictions_report_idx ON events_jurisdictions_report (id);
 
 COMMIT;
