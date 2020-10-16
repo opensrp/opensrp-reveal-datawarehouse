@@ -9,7 +9,7 @@ SET search_path TO :"schema",public;
 -- as a materialized view withput the geometry column.  This is being done because
 -- in production zambia_irs_structures is not being refreshed concurrently and so we
 -- needs its data available for reporting even during its refreshing.
-CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_structures_data
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_structures_report_no_geojson
 AS
 SELECT
     id,
@@ -27,14 +27,14 @@ SELECT
     eligibility,
     structure_sprayed
 FROM zambia_irs_structures;
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_data_idx ON zambia_irs_structures_data(id);
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_data_jurisdiction_idx ON zambia_irs_structures_data(structure_jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_data_plan_idx ON zambia_irs_structures_data(plan_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_data_jurisdiction_plan_idx ON zambia_irs_structures_data(structure_jurisdiction_id, plan_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_report_idx ON zambia_irs_structures_report_no_geojson(id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_jurisdiction_idx ON zambia_irs_structures_report_no_geojson(structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_plan_idx ON zambia_irs_structures_report_no_geojson(plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_jurisdiction_plan_idx ON zambia_irs_structures_report_no_geojson(structure_jurisdiction_id, plan_id);
 
--- This view takes zambia_irs_structures_data and adds structure geometry
+-- This view takes zambia_irs_structures_report and adds structure geometry
 -- This view is the one that is actually exposed directly to reporting applications
-CREATE OR REPLACE VIEW zambia_irs_structures_geojson AS
+CREATE OR REPLACE VIEW zambia_irs_structures_report AS
 SELECT
     id::VARCHAR,
     structure_id,
@@ -49,24 +49,24 @@ SELECT
     ) AS geojson
 FROM (
     SELECT
-        zambia_irs_structures_data.id AS id,
-        zambia_irs_structures_data.structure_id AS structure_id,
-        zambia_irs_structures_data.structure_jurisdiction_id AS structure_jurisdiction_id,
-        zambia_irs_structures_data.structure_code AS structure_code,
-        zambia_irs_structures_data.structure_name AS structure_name,
-        zambia_irs_structures_data.structure_type AS structure_type,
+        irs_structures_report.id AS id,
+        irs_structures_report.structure_id AS structure_id,
+        irs_structures_report.structure_jurisdiction_id AS structure_jurisdiction_id,
+        irs_structures_report.structure_code AS structure_code,
+        irs_structures_report.structure_name AS structure_name,
+        irs_structures_report.structure_type AS structure_type,
         locations.geometry AS structure_geometry,
-        zambia_irs_structures_data.task_id AS task_id,
-        zambia_irs_structures_data.plan_id AS plan_id,
-        zambia_irs_structures_data.event_date AS event_date,
-        zambia_irs_structures_data.business_status AS business_status,
-        zambia_irs_structures_data.rooms_eligible AS rooms_eligible,
-        zambia_irs_structures_data.rooms_sprayed AS rooms_sprayed,
-        zambia_irs_structures_data.eligibility AS eligibility,
-        zambia_irs_structures_data.structure_sprayed AS structure_sprayed,
-        zambia_irs_structures_data.business_status AS business_status
-    FROM zambia_irs_structures_data
-    LEFT JOIN locations ON zambia_irs_structures_data.structure_id = locations.id
+        irs_structures_report.task_id AS task_id,
+        irs_structures_report.plan_id AS plan_id,
+        irs_structures_report.event_date AS event_date,
+        irs_structures_report.business_status AS business_status,
+        irs_structures_report.rooms_eligible AS rooms_eligible,
+        irs_structures_report.rooms_sprayed AS rooms_sprayed,
+        irs_structures_report.eligibility AS eligibility,
+        irs_structures_report.structure_sprayed AS structure_sprayed,
+        irs_structures_report.business_status AS business_status
+    FROM zambia_irs_structures_report_no_geojson AS irs_structures_report
+    LEFT JOIN locations ON irs_structures_report.structure_id = locations.id
 ) row;
 
 COMMIT;
