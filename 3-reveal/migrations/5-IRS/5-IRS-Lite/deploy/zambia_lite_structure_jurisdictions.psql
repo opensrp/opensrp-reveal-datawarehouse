@@ -19,8 +19,8 @@ LEFT JOIN
     (SELECT *
      FROM zambia_lite_jurisdictions
      WHERE is_virtual_jurisdiction = TRUE) AS zambia_virtual_jurisdictions
-     ON zambia_virtual_jurisdictions.opensrp_jurisdiction_id = structure_geo_hierarchy.geo_jurisdiction_id;
-
+     ON zambia_virtual_jurisdictions.opensrp_jurisdiction_id = structure_geo_hierarchy.geo_jurisdiction_id
+WHERE structure_geo_hierarchy.geo_jurisdiction_depth < 5;
 
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_lite_structure_jurisdictions_id_idx ON zambia_lite_structure_jurisdictions (id);
 CREATE INDEX IF NOT EXISTS zambia_lite_structure_jurisdictions_jurisdiction_id_idx ON zambia_lite_structure_jurisdictions (jurisdiction_id);

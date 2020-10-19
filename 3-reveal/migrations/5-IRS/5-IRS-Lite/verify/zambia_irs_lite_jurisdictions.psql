@@ -18,7 +18,6 @@ SELECT
     jurisdiction_depth,
     jurisdiction_path,
     jurisdiction_name_path,
-    is_virtual_jurisdiction,
     totStruct,
     targStruct,
     sprayed,

@@ -11,12 +11,6 @@ WHERE matviewname = 'zambia_irs_lite_structures';
 SELECT
     id,
     structure_id,
-    old_jurisdiction_id,
-    old_jurisdiction_depth,
-    geo_jurisdiction_id,
-    geo_jurisdiction_depth,
-    zambia_jurisdiction_id,
-    zambia_jurisdiction_depth,
     structure_jurisdiction_id,
     structure_code,
     structure_name,
@@ -28,9 +22,6 @@ SELECT
     event_id,
     plan_id,
     event_date,
-    sprayed,
-    found,
-    eligibility,
     business_status
 FROM zambia_irs_lite_structures
 WHERE FALSE;
@@ -92,13 +83,6 @@ WHERE
 schemaname = :'schema'
 AND tablename = 'zambia_irs_lite_structures'
 AND indexname = 'zambia_irs_lite_structures_structure_jurisdiction_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'zambia_irs_lite_structures'
-AND indexname = 'zambia_irs_lite_structures_old_jurisdiction_idx';
 
 SELECT 1/COUNT(*)
 FROM pg_catalog.pg_indexes
