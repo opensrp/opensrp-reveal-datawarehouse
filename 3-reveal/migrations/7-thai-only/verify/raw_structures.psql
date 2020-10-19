@@ -1,0 +1,19 @@
+-- Verify thailand_only:raw_structures on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT id, full_json, date_created, last_updated, warehouse_id
+FROM raw_structures
+WHERE FALSE;
+
+-- check primary key
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_constraint
+WHERE
+conname = 'raw_structures_pkey'
+AND contype = 'p'
+AND 5 = ALL(conkey);
+
+ROLLBACK;

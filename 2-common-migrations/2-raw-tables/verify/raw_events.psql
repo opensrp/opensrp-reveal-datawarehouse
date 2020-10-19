@@ -5,9 +5,7 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 SELECT
-    id,
-    server_version,
-    data
+    id, server_version
 FROM raw_events
 WHERE FALSE;
 

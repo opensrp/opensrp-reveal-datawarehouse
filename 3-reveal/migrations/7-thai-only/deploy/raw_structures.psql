@@ -1,0 +1,20 @@
+-- Deploy thailand_only:raw_structures to pg
+-- The following is a create table statements for
+-- raw_structures in reveal. The purpose of this
+-- table is to hold data from openSRP and make it
+-- available for further processing/analysis
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE TABLE IF NOT EXISTS raw_structures (
+    id VARCHAR UNIQUE NOT NULL,
+    full_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    date_created TIMESTAMP,
+    last_updated TIMESTAMP DEFAULT NOW(),
+    warehouse_id SERIAL,
+    PRIMARY KEY (warehouse_id)
+);
+
+COMMIT;

@@ -1,0 +1,32 @@
+-- Revert thailand_only:biophics_columns from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE raw_clients
+    DROP COLUMN date_created,
+    DROP COLUMN last_updated,
+    DROP COLUMN warehouse_id;
+
+ALTER TABLE raw_jurisdictions
+    DROP COLUMN date_created,
+    DROP COLUMN last_updated,
+    DROP COLUMN warehouse_id;
+
+ALTER TABLE raw_plans
+    DROP COLUMN date_created,
+    DROP COLUMN last_updated,
+    DROP COLUMN warehouse_id;
+
+ALTER TABLE raw_tasks
+    DROP COLUMN date_created,
+    DROP COLUMN last_updated,
+    DROP COLUMN warehouse_id;
+
+ALTER TABLE raw_events
+    DROP COLUMN date_created,
+    DROP COLUMN last_updated,
+    DROP COLUMN warehouse_id;
+
+COMMIT;
