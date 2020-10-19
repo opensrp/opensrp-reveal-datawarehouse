@@ -32,7 +32,7 @@ ALTER TABLE raw_clients
 
 ALTER TABLE raw_jurisdictions
     DROP CONSTRAINT raw_jurisdictions_pkey,
-    ADD PRIMARY KEY (warehouse_id);
+    ADD PRIMARY KEY (warehouse_id),
     ADD CONSTRAINT raw_jurisdictions_unique_id UNIQUE (id);
 
 COMMIT;
