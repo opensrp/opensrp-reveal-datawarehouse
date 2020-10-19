@@ -6,4 +6,4 @@ raw_structures 2020-10-15T16:51:45Z Wambere <jwambere@ona.io> # Rename raw_locat
 raw_organizations 2020-10-09T06:47:12Z Wambere <jwambere@ona.io> # Create table for raw_organizations.
 raw_providers 2020-10-09T06:47:29Z Wambere <jwambere@ona.io> # Create table for raw_providers.
 biophics_columns [opensrp_common_raw_tables:raw_events reveal_raw_tables:raw_clients] 2020-10-09T07:12:14Z Wambere <jwambere@ona.io> # Add extra Biophics columns.
-raw_tables_modifications [reveal_raw_tables:raw_providers opensrp_common_raw_tables:raw_events] 2020-10-10T07:45:25Z mosh <kjayanoris@ona.io> # Add modifications to raw tables for Thailand.
+raw_tables_modifications [reveal_raw_tables:raw_clients opensrp_common_raw_tables:raw_events] 2020-10-10T07:45:25Z mosh <kjayanoris@ona.io> # Add modifications to raw tables for Thailand.
