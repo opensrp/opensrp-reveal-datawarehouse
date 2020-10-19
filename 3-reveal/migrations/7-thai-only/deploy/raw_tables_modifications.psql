@@ -8,7 +8,6 @@ ALTER TABLE raw_tasks RENAME COLUMN data TO full_json;
 ALTER TABLE raw_plans RENAME COLUMN data TO full_json;
 ALTER TABLE raw_events RENAME COLUMN data TO full_json;
 ALTER TABLE raw_clients RENAME COLUMN data TO full_json;
-ALTER TABLE raw_structures RENAME COLUMN data TO full_json;
 ALTER TABLE raw_jurisdictions RENAME COLUMN data TO full_json;
 
 ALTER TABLE raw_tasks
