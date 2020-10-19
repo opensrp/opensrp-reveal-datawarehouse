@@ -1,0 +1,9 @@
+-- Revert reveal_fi_thailand_2019:events_jurisdictions_materialized_view from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW events_jurisdictions_report CASCADE;
+
+COMMIT;

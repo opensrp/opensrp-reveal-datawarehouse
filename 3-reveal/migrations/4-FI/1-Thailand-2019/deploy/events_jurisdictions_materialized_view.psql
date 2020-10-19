@@ -1,0 +1,47 @@
+-- Deploy reveal_fi_thailand_2019:events_jurisdictions_materialized_view to pg
+-- requires: reveal_transaction_tables:events
+-- requires: reveal_transaction_tables:plans
+-- requires: reveal_transaction_tables:goals
+-- requires: reveal_transaction_tables:actions
+-- requires: utils:refresh_mat_views
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS events_jurisdictions_report
+AS
+SELECT
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(
+            events.id,
+            events.location_id,
+            plans.identifier)
+    ) AS id,
+    events.id AS event_id,
+    events.details->>'case_classification' AS case_classification,
+    events.details->>'case_number' AS case_number,
+    events.details->>'investigtion_date' AS date_of_diagnosis,
+    plans.identifier AS plan_id,
+    actions.goal_id,
+    events.location_id AS jurisdiction_id,
+    actions.code AS action_code,
+    tasks.identifier as task_id
+FROM events
+LEFT JOIN plans
+    ON plans.fi_opensrpeventid = events.id
+LEFT JOIN actions
+    ON actions.plan_id = plans.identifier AND actions.goal_id = 'Case_Confirmation'
+LEFT JOIN tasks
+    ON tasks.plan_identifier = plans.identifier AND tasks.code IN ('Case Confirmation', 'Case_Confirmation')
+WHERE events.event_type IN ('Case Details', 'Case_Details')
+AND tasks.status = 'Completed';
+
+CREATE INDEX IF NOT EXISTS events_jurisdictions_report_plan_idx ON events_jurisdictions_report (plan_id);
+CREATE INDEX IF NOT EXISTS events_jurisdictions_report_jurisdiction_idx ON events_jurisdictions_report (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS events_jurisdictions_report_goal_idx ON events_jurisdictions_report (goal_id);
+CREATE INDEX IF NOT EXISTS events_jurisdictions_report_action_idx ON events_jurisdictions_report (action_code);
+CREATE UNIQUE INDEX IF NOT EXISTS events_jurisdictions_report_idx ON events_jurisdictions_report (id);
+
+COMMIT;

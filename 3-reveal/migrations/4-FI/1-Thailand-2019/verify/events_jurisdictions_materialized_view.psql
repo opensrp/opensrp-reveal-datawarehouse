@@ -1,0 +1,61 @@
+-- Verify reveal_fi_thailand_2019:events_jurisdictions_materialized_view on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'events_jurisdictions_report';
+
+SELECT
+    id,
+    event_id,
+    case_classification,
+    case_number,
+    date_of_diagnosis,
+    plan_id,
+    goal_id,
+    jurisdiction_id,
+    action_code,
+    task_id
+FROM events_jurisdictions_report
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events_jurisdictions_report'
+AND indexname = 'events_jurisdictions_report_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events_jurisdictions_report'
+AND indexname = 'events_jurisdictions_report_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events_jurisdictions_report'
+AND indexname = 'events_jurisdictions_report_goal_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events_jurisdictions_report'
+AND indexname = 'events_jurisdictions_report_action_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'events_jurisdictions_report'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'events_jurisdictions_report_idx';
+
+ROLLBACK;

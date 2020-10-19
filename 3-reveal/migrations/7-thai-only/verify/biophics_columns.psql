@@ -1,4 +1,4 @@
--- Verify reveal_raw_tables:biophics_columns on pg
+-- Verify thailand_only:biophics_columns on pg
 
 BEGIN;
 
@@ -14,12 +14,6 @@ WHERE FALSE;
 SELECT
     date_created, last_updated, warehouse_id
 FROM raw_jurisdictions
-WHERE FALSE;
-
--- locations
-SELECT
-    date_created, last_updated, warehouse_id
-FROM raw_locations
 WHERE FALSE;
 
 -- plans
