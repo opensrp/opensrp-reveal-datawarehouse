@@ -31,11 +31,6 @@ ALTER TABLE raw_clients
     ADD PRIMARY KEY (warehouse_id),
     ADD CONSTRAINT raw_clients_unique_id UNIQUE (id);
 
-ALTER TABLE raw_structures
-    DROP CONSTRAINT raw_structures_pkey,
-    ADD PRIMARY KEY (warehouse_id),
-    ADD CONSTRAINT raw_structures_unique_id UNIQUE (id);
-
 ALTER TABLE raw_jurisdictions
     DROP CONSTRAINT raw_jurisdictions_pkey,
     ADD PRIMARY KEY (warehouse_id);

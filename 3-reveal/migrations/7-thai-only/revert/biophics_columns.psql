@@ -14,11 +14,6 @@ ALTER TABLE raw_jurisdictions
     DROP COLUMN last_updated,
     DROP COLUMN warehouse_id;
 
-ALTER TABLE raw_structures
-    DROP COLUMN date_created,
-    DROP COLUMN last_updated,
-    DROP COLUMN warehouse_id;
-
 ALTER TABLE raw_plans
     DROP COLUMN date_created,
     DROP COLUMN last_updated,

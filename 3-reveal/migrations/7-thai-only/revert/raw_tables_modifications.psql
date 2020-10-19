@@ -10,7 +10,6 @@ ALTER TABLE raw_tasks RENAME COLUMN full_json TO data;
 ALTER TABLE raw_plans RENAME COLUMN full_json TO data;
 ALTER TABLE raw_events RENAME COLUMN full_json TO data;
 ALTER TABLE raw_clients RENAME COLUMN full_json TO data;
-ALTER TABLE raw_structures RENAME COLUMN full_json TO data;
 ALTER TABLE raw_jurisdictions RENAME COLUMN full_json TO data;
 
 COMMIT;

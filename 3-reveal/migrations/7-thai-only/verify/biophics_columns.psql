@@ -16,12 +16,6 @@ SELECT
 FROM raw_jurisdictions
 WHERE FALSE;
 
--- structures
-SELECT
-    date_created, last_updated, warehouse_id
-FROM raw_structures
-WHERE FALSE;
-
 -- plans
 SELECT
     date_created, last_updated, warehouse_id
