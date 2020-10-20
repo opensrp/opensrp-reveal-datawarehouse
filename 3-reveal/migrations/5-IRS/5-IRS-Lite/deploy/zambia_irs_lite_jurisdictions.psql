@@ -51,7 +51,7 @@ FROM
                 COALESCE(jurisdiction_target_query.target, zambia_focus_area_irs_query.targStruct, 0) AS targStruct,            
                 zambia_focus_area_irs_query.sprayed AS sprayed,
                 zambia_focus_area_irs_query.found AS found,
-                zambia_focus_area_irs_query.totAreas AS totAreas,
+                COALESCE(totAreas_query.totAreas, 0) AS totAreas,
                 zambia_focus_area_irs_query.targAreas AS targAreas,
                 zambia_focus_area_irs_query.visitedAreas AS visitedAreas,
                 CASE
@@ -73,7 +73,6 @@ FROM
             FROM jurisdictions_materialized_view AS zambia_lite_jurisdictions
             LEFT JOIN LATERAL (
                 SELECT
-                    COALESCE(SUM(totAreas), 0) AS totAreas,
                     COALESCE(SUM(targAreas), 0) AS targAreas,
                     COALESCE(SUM(visitedAreas), 0) AS visitedAreas,
                     COALESCE(SUM(totStruct), 0) AS totStruct,
@@ -84,6 +83,15 @@ FROM
                 WHERE zirloa.plan_id = plans.identifier
                 AND zirloa.jurisdiction_path @> ARRAY[zambia_lite_jurisdictions.jurisdiction_id]
             ) AS zambia_focus_area_irs_query ON true
+            LEFT JOIN LATERAL (
+                SELECT
+                    COALESCE(COUNT(locations.id) , 0) AS totAreas
+                FROM locations
+                LEFT JOIN jurisdictions_materialized_view
+                    ON jurisdictions_materialized_view.jurisdiction_id = locations.jurisdiction_id
+                WHERE jurisdictions_materialized_view.jurisdiction_path  @> ARRAY[zambia_lite_jurisdictions.jurisdiction_id]
+                AND locations.geographic_level = 4
+            ) AS totAreas_query ON true
             LEFT JOIN LATERAL (
                 SELECT
                     key as jurisdiction_id,
@@ -105,7 +113,7 @@ FROM
                 LIMIT 1
             ) AS jurisdiction_structure_query ON true    
             WHERE zambia_lite_jurisdictions.jurisdiction_depth < 4
-            AND zambia_focus_area_irs_query.targAreas > 5
+            AND zambia_focus_area_irs_query.targAreas > 0
         ) AS jurisdictions_query ON true
         WHERE plans.intervention_type IN ('IRS-Lite') AND plans.status NOT IN ('draft', 'retired')
     )

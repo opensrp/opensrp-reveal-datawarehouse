@@ -43,8 +43,9 @@ FROM (
         operational_area_query.sprayed,
         COALESCE(jurisdiction_structure_query.structure, 0) AS totStruct,
         COALESCE(jurisdiction_target_query.target, 0) AS targStruct,          
-        COALESCE(totAreas_query.totAreas, 0) AS totAreas          
-    FROM (
+        COALESCE(totAreas_query.totAreas, 0) AS totAreas       
+    FROM reveal_stage.plans
+    LEFT JOIN (
         SELECT
             jurisdictions.plan_id,
             jurisdictions.structure_jurisdiction_id,
@@ -72,13 +73,14 @@ FROM (
                     SUM(COALESCE (events.form_data->'found'->>0, '0')::int) AS daily_found
                 FROM events
                 WHERE jurisdictions.structure_jurisdiction_id  = events.location_id
+                AND events.plan_id = jurisdictions.plan_id                
                 AND events.entity_type = 'Structure'
                 AND events.event_type = 'daily_summary'
-                GROUP BY jurisdictions.structure_jurisdiction_id
+                GROUP BY jurisdictions.plan_id, jurisdictions.structure_jurisdiction_id
             ) AS subq
         ) AS daily_summary ON true
         GROUP BY jurisdictions.plan_id, jurisdictions.structure_jurisdiction_id
-    ) AS operational_area_query
+    ) AS operational_area_query ON operational_area_query.plan_id = plans.identifier
     LEFT JOIN pending.jurisdictions_materialized_view AS zambia_lite_jurisdictions
         ON operational_area_query.structure_jurisdiction_id = zambia_lite_jurisdictions.jurisdiction_id
     LEFT JOIN LATERAL (
@@ -108,10 +110,13 @@ FROM (
         ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
         LIMIT 1
     ) AS jurisdiction_structure_query ON true    
+    WHERE plans.intervention_type IN ('IRS-Lite', 'Dynamic-IRS-Lite') AND plans.status NOT IN ('draft', 'retired')    
 ) AS main_query;
        
-CREATE INDEX IF NOT EXISTS zambia_irs_district_performance_plan_id_idx ON zambia_irs_district_performance (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_district_performance_district_id_idx ON zambia_irs_district_performance (district_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_district_performance_idx ON zambia_irs_district_performance (id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_path_idx_gin ON pending.zambia_irs_lite_operational_areas using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_plan_idx ON pending.zambia_irs_lite_operational_areas (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_jurisdiction_idx ON pending.zambia_irs_lite_operational_areas (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_jurisdiction_parent_idx ON pending.zambia_irs_lite_operational_areas (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_idx ON pending.zambia_irs_lite_operational_areas (id);
 
 COMMIT;

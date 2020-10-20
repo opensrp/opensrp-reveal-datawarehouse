@@ -42,7 +42,7 @@ FROM
                 COALESCE(jurisdiction_target_query.target, zambia_focus_area_irs_query.targStruct, 0) AS targStruct,            
                 zambia_focus_area_irs_query.sprayed AS sprayed,
                 zambia_focus_area_irs_query.found AS found,
-                zambia_focus_area_irs_query.totAreas AS totAreas,
+                COALESCE(totAreas_query.totAreas, 0) AS totAreas,
                 zambia_focus_area_irs_query.targAreas AS targAreas,
                 zambia_focus_area_irs_query.visitedAreas AS visitedAreas,
                 CASE
@@ -64,17 +64,25 @@ FROM
             FROM pending.jurisdictions_materialized_view AS zambia_lite_jurisdictions
             LEFT JOIN LATERAL (
                 SELECT
-                    COALESCE(SUM(totAreas), 0) AS totAreas,
                     COALESCE(SUM(targAreas), 0) AS targAreas,
                     COALESCE(SUM(visitedAreas), 0) AS visitedAreas,
                     COALESCE(SUM(totStruct), 0) AS totStruct,
                     COALESCE(SUM(targStruct), 0) AS targStruct,
                     COALESCE(SUM(sprayed), 0) AS sprayed,
                     COALESCE(SUM(found), 0) AS found
-                FROM pending.zambia_irs_lite_operational_area AS zirloa
+                FROM pending.zambia_irs_lite_operational_areas AS zirloa
                 WHERE zirloa.plan_id = plans.identifier
                 AND zirloa.jurisdiction_path @> ARRAY[zambia_lite_jurisdictions.jurisdiction_id]
             ) AS zambia_focus_area_irs_query ON true
+            LEFT JOIN LATERAL (
+                SELECT
+                    COALESCE(COUNT(locations.id) , 0) AS totAreas
+                FROM reveal_stage.locations
+                LEFT JOIN pending.jurisdictions_materialized_view
+                    ON jurisdictions_materialized_view.jurisdiction_id = locations.jurisdiction_id
+                WHERE jurisdictions_materialized_view.jurisdiction_path  @> ARRAY[zambia_lite_jurisdictions.jurisdiction_id]
+                AND locations.geographic_level = 4
+            ) AS totAreas_query ON true
             LEFT JOIN LATERAL (
                 SELECT
                     key as jurisdiction_id,
@@ -96,9 +104,9 @@ FROM
                 LIMIT 1
             ) AS jurisdiction_structure_query ON true    
             WHERE zambia_lite_jurisdictions.jurisdiction_depth < 4
-            AND zambia_focus_area_irs_query.targAreas > 5
+            AND zambia_focus_area_irs_query.targAreas > 0
         ) AS jurisdictions_query ON true
-        WHERE plans.intervention_type IN ('IRS-Lite') AND plans.status NOT IN ('draft', 'retired')
+        WHERE plans.intervention_type IN ('IRS-Lite', 'Dynamic-IRS-Lite') AND plans.status NOT IN ('draft', 'retired')
     )
     UNION (
         SELECT 
@@ -121,8 +129,17 @@ FROM
             sprayCovTarg,
             foundCoverage,
             spraySuccess
-        FROM pending.zambia_irs_lite_operational_area
+        FROM pending.zambia_irs_lite_operational_areas
     )
 )
 AS main_query
 ORDER BY main_query.jurisdiction_name;
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_path_idx_gin on pending.zambia_irs_lite_jurisdictions using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_plan_idx ON pending.zambia_irs_lite_jurisdictions (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_jurisdiction_idx ON pending.zambia_irs_lite_jurisdictions (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_jurisdiction_parent_idx ON pending.zambia_irs_lite_jurisdictions (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_idx ON pending.zambia_irs_lite_jurisdictions (id);
+
+COMMIT;
+
