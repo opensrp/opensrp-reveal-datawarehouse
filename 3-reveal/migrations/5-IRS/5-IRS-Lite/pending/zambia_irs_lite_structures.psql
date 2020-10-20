@@ -13,7 +13,7 @@ SET search_path TO :"schema",public;
 -- in any other way may have unknown performance implications.
 -- TODO: revisit if performance of the materialized view is a huge problem
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_lite_structures
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending.zambia_irs_lite_structures
 AS
 SELECT DISTINCT ON (locations.id, events_query.task_id)
     public.uuid_generate_v5(
@@ -32,7 +32,7 @@ SELECT DISTINCT ON (locations.id, events_query.task_id)
     events_query.plan_id AS plan_id,
     events_query.event_date AS event_date,
     COALESCE(events_query.business_status, 'Not Visited') AS business_status
-FROM locations 
+FROM reveal_stage.locations 
 LEFT JOIN LATERAL (
     SELECT
         subq.event_id AS event_id,
@@ -50,7 +50,7 @@ LEFT JOIN LATERAL (
             events.event_date AS event_date,
             tasks.plan_identifier AS plan_id,
             COALESCE (events.form_data->'business_status'->>0, 'Not Visited')::text AS business_status
-        FROM tasks
+        FROM reveal_stage.tasks
         LEFT JOIN events
             ON tasks.identifier = events.task_id
         AND events.entity_type = 'Structure'

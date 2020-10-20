@@ -1,0 +1,114 @@
+-- Deploy irs_lite_zambia_2020:zambia_irs_lite_operational_areas to pg
+-- requires: irs_lite_zambia_2020:zambia_irs_lite_structures
+-- requires: jurisdictions_materialized_view
+-- requires: opensrp_settings
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_lite_operational_areas AS
+SELECT
+    main_query.*,
+    100 AS totAreas,
+    CASE
+        WHEN main_query.totStruct = 0 THEN 0
+        ELSE CAST(main_query.sprayed AS DECIMAL)/CAST(main_query.totStruct AS DECIMAL)
+    END AS sprayCov,
+    CASE
+        WHEN main_query.targStruct = 0 THEN 0
+        ELSE CAST(main_query.sprayed AS DECIMAL)/CAST(main_query.targStruct AS DECIMAL)
+    END AS sprayCovTarg,
+    CASE
+        WHEN main_query.targStruct = 0 THEN 0
+        ELSE CAST(main_query.found AS DECIMAL)/CAST(main_query.targStruct AS DECIMAL)
+    END AS foundCoverage,
+    CASE
+        WHEN main_query.found = 0 THEN 0
+        ELSE CAST(main_query.sprayed AS DECIMAL)/CAST(main_query.found AS DECIMAL)
+    END AS spraySuccess
+FROM (
+    SELECT
+        public.uuid_generate_v5(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+            concat(operational_area_query.structure_jurisdiction_id, operational_area_query.plan_id)
+        ) AS id,
+        operational_area_query.plan_id as plan_id,
+        zambia_lite_jurisdictions.jurisdiction_id AS jurisdiction_id,
+        zambia_lite_jurisdictions.jurisdiction_parent_id AS jurisdiction_parent_id,
+        zambia_lite_jurisdictions.jurisdiction_name AS jurisdiction_name,
+        zambia_lite_jurisdictions.jurisdiction_depth AS jurisdiction_depth,
+        zambia_lite_jurisdictions.jurisdiction_path AS jurisdiction_path,
+        zambia_lite_jurisdictions.jurisdiction_name_path AS jurisdiction_name_path,
+        operational_area_query.targAreas,
+        operational_area_query.visitedAreas,
+        operational_area_query.found,
+        operational_area_query.sprayed,
+        COALESCE(jurisdiction_structure_query.structure, 0) AS totStruct,
+        COALESCE(jurisdiction_target_query.target, 0) AS targStruct          
+    FROM (
+        SELECT
+            jurisdictions.plan_id,
+            jurisdictions.structure_jurisdiction_id,
+            sum(jurisdictions.targAreas) AS targAreas,
+            sum(jurisdictions.visitedAreas) AS visitedAreas,
+            COALESCE(sum(daily_summary.daily_found), 0) AS found,
+            COALESCE(sum(daily_summary.daily_sprayed), 0) AS sprayed
+        FROM (
+            SELECT
+                structures.plan_id,
+                structures.structure_jurisdiction_id,
+                COALESCE(COUNT(structures.structure_id) , 0) AS targAreas,
+                COALESCE(COUNT(structures.structure_id) FILTER (WHERE structures.task_status = 'Completed') , 0) AS visitedAreas
+            FROM zambia_irs_lite_structures AS structures
+            WHERE structures.plan_id IS NOT NULL
+            GROUP BY structures.plan_id, structures.structure_jurisdiction_id
+        ) AS jurisdictions
+        LEFT JOIN LATERAL (
+            SELECT
+            subq.daily_sprayed AS daily_sprayed,
+            subq.daily_found AS daily_found        
+            FROM (
+                SELECT
+                    SUM(COALESCE (events.form_data->'sprayed'->>0, '0')::int) AS daily_sprayed,
+                    SUM(COALESCE (events.form_data->'found'->>0, '0')::int) AS daily_found
+                FROM events
+                WHERE jurisdictions.structure_jurisdiction_id  = events.location_id
+                AND events.entity_type = 'Structure'
+                AND events.event_type = 'daily_summary'
+                GROUP BY jurisdictions.structure_jurisdiction_id
+            ) AS subq
+        ) AS daily_summary ON true
+        GROUP BY jurisdictions.plan_id, jurisdictions.structure_jurisdiction_id
+    ) AS operational_area_query
+    LEFT JOIN jurisdictions_materialized_view AS zambia_lite_jurisdictions
+        ON operational_area_query.structure_jurisdiction_id = zambia_lite_jurisdictions.jurisdiction_id
+    LEFT JOIN LATERAL (
+        SELECT
+            key as jurisdiction_id,
+            COALESCE(data->>'value', '0')::INTEGER as target
+        FROM opensrp_settings
+        WHERE identifier = 'jurisdiction_metadata-target'
+        AND operational_area_query.structure_jurisdiction_id = opensrp_settings.key
+        ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+        LIMIT 1
+    ) AS jurisdiction_target_query ON true
+    LEFT JOIN LATERAL (
+        SELECT
+            key as jurisdiction_id,
+            COALESCE(data->>'value', '0')::INTEGER as structure
+        FROM opensrp_settings
+        WHERE identifier = 'jurisdiction_metadata-structures'
+        AND operational_area_query.structure_jurisdiction_id = opensrp_settings.key
+        ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+        LIMIT 1
+    ) AS jurisdiction_structure_query ON true    
+) AS main_query;
+       
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_path_idx_gin on zambia_irs_lite_operational_areas using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_plan_idx ON zambia_irs_lite_operational_areas (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_jurisdiction_idx ON zambia_irs_lite_operational_areas (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_jurisdiction_parent_idx ON zambia_irs_lite_operational_areas (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_idx ON zambia_irs_lite_operational_areas (id);
+
+COMMIT;

@@ -3,9 +3,6 @@
 %uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/3-reveal/migrations/5-IRS/5-IRS-Lite
 
 irs_lite_plans [reveal_transaction_tables:plans reveal_transaction_tables:plan_jurisdiction reveal_database_views:jurisdictions_materialized_view] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add irs_lite_plans.
-zambia_lite_jurisdictions [reveal_database_views:jurisdictions_materialized_view] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_lite_jurisdictions.
-zambia_lite_structure_jurisdictions [zambia_lite_jurisdictions] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_lite_structure_jurisdictions.
-zambia_lite_plan_jurisdictions [zambia_lite_jurisdictions reveal_database_views:jurisdictions_materialized_view reveal_transaction_tables:plan_jurisdiction] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_lite_plan_jurisdictions.
-zambia_irs_lite_structures [reveal_transaction_tables:locations zambia_lite_structure_jurisdictions reveal_transaction_tables:events reveal_transaction_tables:tasks] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_structures.
-zambia_focus_area_irs_lite [reveal_transaction_tables:plans zambia_lite_plan_jurisdictions zambia_lite_jurisdictions zambia_irs_lite_structures utils:count_elements utils:array_concat_agg] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_focus_area_irs_lite.
-zambia_irs_lite_jurisdictions [reveal_transaction_tables:plans zambia_lite_jurisdictions zambia_focus_area_irs_lite] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_jurisdictions.
+zambia_irs_lite_structures [reveal_transaction_tables:locations reveal_transaction_tables:events reveal_transaction_tables:tasks] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_structures.
+zambia_irs_lite_operational_areas [reveal_transaction_tables:plans zambia_irs_lite_structures utils:count_elements utils:array_concat_agg] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_operational_areas.
+zambia_irs_lite_jurisdictions [reveal_transaction_tables:plans zambia_irs_lite_operational_areas] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_jurisdictions.

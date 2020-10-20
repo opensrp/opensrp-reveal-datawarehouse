@@ -1,9 +1,0 @@
--- Revert reveal_irs_lite_zambia_2020:zambia_lite_jurisdictions from pg
-
-BEGIN;
-
-SET search_path TO :"schema",public;
-
-DROP MATERIALIZED VIEW zambia_lite_jurisdictions CASCADE;
-
-COMMIT;

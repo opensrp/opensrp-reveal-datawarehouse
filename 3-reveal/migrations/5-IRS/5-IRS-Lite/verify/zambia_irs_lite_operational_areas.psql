@@ -1,0 +1,71 @@
+-- Verify reveal_irs_lite_zambia_2020:zambia_irs_lite_operational_areas on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_lite_operational_areas';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    totStruct,
+    targStruct,
+    sprayed,
+    found,
+    totAreas,
+    targAreas,
+    visitedAreas,
+    sprayCov,       
+    sprayCovTarg,
+    foundCoverage,
+    spraySuccess
+FROM zambia_irs_lite_operational_areas
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'zambia_irs_lite_operational_areas_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexname = 'zambia_irs_lite_operational_areas_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexname = 'zambia_irs_lite_operational_areas_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexname = 'zambia_irs_lite_operational_areas_jurisdiction_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_lite_operational_areas_idx';
+
+ROLLBACK;
