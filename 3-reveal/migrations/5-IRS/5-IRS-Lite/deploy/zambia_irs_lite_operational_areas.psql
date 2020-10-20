@@ -10,7 +10,6 @@ SET search_path TO :"schema",public;
 CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_lite_operational_areas AS
 SELECT
     main_query.*,
-    100 AS totAreas,
     CASE
         WHEN main_query.totStruct = 0 THEN 0
         ELSE CAST(main_query.sprayed AS DECIMAL)/CAST(main_query.totStruct AS DECIMAL)
@@ -45,7 +44,8 @@ FROM (
         operational_area_query.found,
         operational_area_query.sprayed,
         COALESCE(jurisdiction_structure_query.structure, 0) AS totStruct,
-        COALESCE(jurisdiction_target_query.target, 0) AS targStruct          
+        COALESCE(jurisdiction_target_query.target, 0) AS targStruct,          
+        COALESCE(totAreas_query.totAreas, 0) AS totAreas          
     FROM (
         SELECT
             jurisdictions.plan_id,
@@ -83,6 +83,13 @@ FROM (
     ) AS operational_area_query
     LEFT JOIN jurisdictions_materialized_view AS zambia_lite_jurisdictions
         ON operational_area_query.structure_jurisdiction_id = zambia_lite_jurisdictions.jurisdiction_id
+    LEFT JOIN LATERAL (
+        SELECT
+            COALESCE(COUNT(locations.id) , 0) AS totAreas
+        FROM locations 
+        WHERE operational_area_query.structure_jurisdiction_id = locations.jurisdiction_id
+        AND locations.geographic_level = 4
+    ) AS totAreas_query ON true
     LEFT JOIN LATERAL (
         SELECT
             key as jurisdiction_id,
