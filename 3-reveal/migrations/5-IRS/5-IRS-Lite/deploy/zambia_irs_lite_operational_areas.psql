@@ -66,6 +66,8 @@ FROM (
             GROUP BY structures.plan_id, structures.structure_jurisdiction_id
         ) AS jurisdictions
         LEFT JOIN LATERAL (
+            -- This could data potentially be found from the Zambia-2020/zambia_daily_summary_event materialized view.
+            -- However, that view does not exist on staging so we are going to get the data directly from the events
             SELECT
             subq.daily_sprayed AS daily_sprayed,
             subq.daily_found AS daily_found        
@@ -92,6 +94,8 @@ FROM (
         WHERE operational_area_query.structure_jurisdiction_id = locations.jurisdiction_id
         AND locations.geographic_level = 4
     ) AS totAreas_query ON true
+    -- The assumption is that the jurisdiction_metadata-target and jurisdiction_metadata-structures are uploaded
+    -- against the operational area and not the "structures" inside of an operational area
     LEFT JOIN LATERAL (
         SELECT
             key as jurisdiction_id,

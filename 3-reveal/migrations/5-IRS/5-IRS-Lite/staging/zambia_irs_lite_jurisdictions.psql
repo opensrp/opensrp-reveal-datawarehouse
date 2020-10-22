@@ -1,3 +1,8 @@
+-- Deploy reveal_irs_zambia_2019:zambia_irs_lite_jurisdictions to pg
+-- requires: reveal_transaction_tables:plans
+-- requires: jurisdictions_materialized_view
+-- requires: opensrp_settings
+-- requires: irs_lite_zambia_2020:zambia_irs_lite_operational_areas
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS pending.zambia_irs_lite_jurisdictions
 AS
