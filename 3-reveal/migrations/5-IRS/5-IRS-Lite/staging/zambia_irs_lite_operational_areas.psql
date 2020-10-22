@@ -110,7 +110,7 @@ FROM (
         ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
         LIMIT 1
     ) AS jurisdiction_structure_query ON true    
-    WHERE plans.intervention_type IN ('IRS-Lite', 'Dynamic-IRS-Lite') AND plans.status NOT IN ('draft', 'retired')    
+    WHERE plans.intervention_type IN ('IRS-Lite') AND plans.status NOT IN ('draft', 'retired')    
 ) AS main_query;
        
 CREATE INDEX IF NOT EXISTS zambia_irs_lite_operational_areas_path_idx_gin ON pending.zambia_irs_lite_operational_areas using GIN(jurisdiction_path);

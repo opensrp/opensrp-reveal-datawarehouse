@@ -35,7 +35,7 @@ SELECT
             ) AS subq
     ) AS jurisdiction_root_parent_ids
 FROM reveal_stage.plans
-WHERE plans.intervention_type IN ('IRS-Lite', 'Dynamic-IRS-Lite') AND plans.status NOT IN ('draft', 'retired')
+WHERE plans.intervention_type IN ('IRS-Lite') AND plans.status NOT IN ('draft', 'retired')
 ORDER BY plans.date DESC;
 
 CREATE UNIQUE INDEX IF NOT EXISTS irs_lite_plans_idx ON pending.irs_lite_plans (plan_id);

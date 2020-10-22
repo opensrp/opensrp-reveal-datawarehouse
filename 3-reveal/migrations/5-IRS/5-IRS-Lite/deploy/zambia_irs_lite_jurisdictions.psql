@@ -41,7 +41,7 @@ FROM
         LEFT JOIN LATERAL (
             SELECT
                 zambia_lite_jurisdictions.jurisdiction_id AS jurisdiction_id,
-                zambia_lite_jurisdictions.jurisdiction_parent_id AS jurisdiction_parent_id,
+                COALESCE(zambia_lite_jurisdictions.jurisdiction_parent_id, '') AS jurisdiction_parent_id,
                 zambia_lite_jurisdictions.jurisdiction_name AS jurisdiction_name,
                 zambia_lite_jurisdictions.jurisdiction_geometry AS jurisdiction_geometry,
                 zambia_lite_jurisdictions.jurisdiction_depth AS jurisdiction_depth,
