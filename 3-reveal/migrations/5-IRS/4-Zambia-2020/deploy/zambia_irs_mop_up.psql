@@ -8,7 +8,7 @@ SET search_path TO :"schema",public;
 -- Modify views
 --
 
-CREATE MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs
+CREATE MATERIALIZED VIEW pending_:schema .all_zambia_focus_irs_areas
 AS
 SELECT * FROM
 (
@@ -138,6 +138,23 @@ SELECT * FROM
     WHERE plans.intervention_type IN ('IRS', 'Dynamic-IRS') AND plans.status NOT IN ('draft', 'retired')
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
+
+CREATE INDEX IF NOT EXISTS all_zambia_focus_irs_areas_path_idx_gin on pending_:schema .all_zambia_focus_irs_areas using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS all_zambia_focus_irs_areas_plan_idx ON pending_:schema .all_zambia_focus_irs_areas (plan_id);
+CREATE INDEX IF NOT EXISTS all_zambia_focus_irs_areas_jurisdiction_idx ON pending_:schema .all_zambia_focus_irs_areas (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS all_zambia_focus_irs_areas_jurisdiction_parent_idx ON pending_:schema .all_zambia_focus_irs_areas (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS all_zambia_focus_irs_areas_idx ON pending_:schema .all_zambia_focus_irs_areas (id);
+
+--
+--
+--
+
+CREATE MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs
+AS
+SELECT * FROM pending_:schema .all_zambia_focus_irs_areas
+-- get spray areas only
+WHERE jurisdiction_depth > 4
+ORDER BY CASE WHEN is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, jurisdiction_name;
 
 CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
 CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx ON pending_:schema .zambia_focus_area_irs (plan_id);
@@ -286,14 +303,14 @@ SELECT * FROM
 			    MAX(latest_spray_event_date) AS latest_spray_event_date,
 				(MAX(ARRAY[TO_JSON(latest_sa_event_date)#>>'{}', latest_sa_event_id]) FILTER (WHERE latest_sa_event_id is not null))[2] AS latest_sa_event_id,
 			    MAX(latest_sa_event_date) AS latest_sa_event_date
-            FROM pending_:schema .zambia_focus_area_irs AS zambia_focus_area_irs
-            WHERE zambia_focus_area_irs.plan_id = plans.identifier
+            FROM pending_:schema .all_zambia_focus_irs_areas AS all_zambia_focus_irs_areas
+            WHERE all_zambia_focus_irs_areas.plan_id = plans.identifier
                 AND ( (zambia_jurisdictions.is_virtual_jurisdiction
-                       AND zambia_focus_area_irs.is_virtual_jurisdiction
-                       AND zambia_focus_area_irs.jurisdiction_path @> ARRAY[zambia_jurisdictions.jurisdiction_parent_id])
+                       AND all_zambia_focus_irs_areas.is_virtual_jurisdiction
+                       AND all_zambia_focus_irs_areas.jurisdiction_path @> ARRAY[zambia_jurisdictions.jurisdiction_parent_id])
                      OR ((NOT zambia_jurisdictions.is_virtual_jurisdiction)
-                         AND (NOT zambia_focus_area_irs.is_virtual_jurisdiction)
-                         AND zambia_focus_area_irs.jurisdiction_path @> ARRAY[zambia_jurisdictions.jurisdiction_id]) )
+                         AND (NOT all_zambia_focus_irs_areas.is_virtual_jurisdiction)
+                         AND all_zambia_focus_irs_areas.jurisdiction_path @> ARRAY[zambia_jurisdictions.jurisdiction_id]) )
         ) AS zambia_focus_area_irs_query ON true
         WHERE
         -- dont get any spray areas
@@ -311,9 +328,11 @@ CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx ON pending_
 CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx ON pending_:schema .zambia_irs_jurisdictions (id);
 
+ALTER MATERIALIZED VIEW all_zambia_focus_irs_areas SET SCHEMA deprecated_:schema ;
 ALTER MATERIALIZED VIEW zambia_focus_area_irs SET SCHEMA deprecated_:schema ;
 ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA deprecated_:schema ;
 
+ALTER MATERIALIZED VIEW pending_:schema .all_zambia_focus_irs_areas SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
 
