@@ -57,7 +57,7 @@ LEFT JOIN LATERAL (
         AND events.event_type = 'irs_lite_verification'
         WHERE locations.id = tasks.task_for
         AND tasks.status != 'Cancelled'
-        ORDER BY events.task_id, events.event_date DESC
+        ORDER BY events.task_id, events.form_data->'end' DESC
     ) AS subq
 ) AS events_query ON true
 WHERE locations.status != 'Inactive'
