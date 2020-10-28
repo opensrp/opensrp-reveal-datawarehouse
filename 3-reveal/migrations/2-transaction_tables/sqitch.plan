@@ -24,3 +24,4 @@ more_task_plan_settings_indices [tasks opensrp_settings plans] 2020-09-10T16:43:
 plan_server_version_drop_location_uuid_constraint [locations plans] 2020-09-15T08:26:38Z mosh <kjayanoris@ona.io> # Add plan server version and drop location uuid unique.
 drop_length_constraints 2020-10-05T13:12:29Z mosh <kjayanoris@ona.io> # Drop length constraints.
 plan_opensrpeventid_field [plans] 2020-10-02T12:07:59Z Lincoln Simba <lincolnsimba@Lincolns-MacBook-Pro.local> # Add fi_opensrpeventid field to plans
+index_event_form_times [events] 2020-10-28T10:09:39Z mosh <kjayanoris@ona.io> # Add index to event form times.
