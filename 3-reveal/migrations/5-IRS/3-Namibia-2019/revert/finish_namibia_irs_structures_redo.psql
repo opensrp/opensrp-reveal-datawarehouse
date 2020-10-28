@@ -1,0 +1,19 @@
+-- Revert reveal_irs_namibia_2019:finish_namibia_irs_structures_redo from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- Move current views to pending schema
+ALTER MATERIALIZED VIEW namibia_irs_structures SET SCHEMA pending_:schema;
+ALTER MATERIALIZED VIEW namibia_focus_area_irs SET SCHEMA pending_:schema;
+ALTER MATERIALIZED VIEW namibia_irs_jurisdictions SET SCHEMA pending_:schema;
+ALTER MATERIALIZED VIEW namibia_irs_export SET SCHEMA pending_:schema;
+
+-- Move deprecated views to current schema
+ALTER MATERIALIZED VIEW deprecated_:schema .namibia_irs_structures SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW deprecated_:schema .namibia_focus_area_irs SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW deprecated_:schema .namibia_irs_jurisdictions SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW deprecated_:schema .namibia_irs_export SET SCHEMA :"schema";
+
+COMMIT;
