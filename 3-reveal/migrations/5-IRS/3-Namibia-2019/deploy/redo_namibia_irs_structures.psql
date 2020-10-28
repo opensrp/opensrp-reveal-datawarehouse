@@ -7,6 +7,8 @@ SET search_path TO :"schema",public;
 -- the change from the old view is that when getting events we want to
 -- sort them by events.form_data->'end' DESC so that we can get the very latest
 -- event in case there are duplicates on the same day
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .namibia_irs_structures CASCADE;
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .namibia_irs_structures
 AS
 SELECT DISTINCT ON (locations.id, events_query.task_id)
