@@ -106,7 +106,7 @@ LEFT JOIN LATERAL (
             AND events.event_type = 'Spray'
         WHERE locations.id = tasks.task_for
         AND tasks.status != 'Cancelled'
-        ORDER BY task_id, events.form_data->'end' DESC
+        ORDER BY task_id, events.form_data->>'end' DESC
     ) AS subq
 ) AS events_query ON true
 WHERE locations.status != 'Inactive';
