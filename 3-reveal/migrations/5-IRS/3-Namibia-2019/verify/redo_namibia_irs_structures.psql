@@ -1,0 +1,95 @@
+-- Verify reveal_irs_namibia_2019:redo_namibia_irs_structures on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT
+    id,
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    structure_geometry,
+    structure_status,
+    event_id,
+    task_id,
+    plan_id,
+    event_date,
+    nSprayableTotal,
+    nSprayableZinc,
+    nSprayableTrad,
+    nSprayableMod,
+    nSprayableCanopy,
+    nUnsprayable,
+    nSprayedTotalFirst,
+    nSprayedTotalMop,
+    nUnsprayedTotalFirst,
+    nUnsprayedTotalMop,
+    householdAccessible,
+    unsprayedReasonFirst,
+    unsprayedReasonMop,
+    refusalReasonFirst,
+    refusalReasonMop,
+    business_status,
+    unsprayedReasonFirst_values,
+    refusalReasonFirst_values,
+    unsprayedReasonMop_values,
+    refusalReasonMop_values
+FROM pending_:schema .namibia_irs_structures
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = 'pending_' ||  :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_irs_structures_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = 'pending_' ||  :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_irs_structures_structure_task_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = 'pending_' ||  :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexname = 'namibia_irs_structures_structure_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = 'pending_' ||  :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexname = 'namibia_irs_structures_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = 'pending_' ||  :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexname = 'namibia_irs_structures_event_date_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = 'pending_' ||  :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexname = 'namibia_irs_structures_task_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = 'pending_' ||  :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexdef LIKE '%gist (structure_geometry)%'
+AND indexname = 'namibia_irs_structures_geom_gix';
+
+ROLLBACK;
