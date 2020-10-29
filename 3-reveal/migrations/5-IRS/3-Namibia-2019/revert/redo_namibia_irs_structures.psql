@@ -1,0 +1,9 @@
+-- Revert reveal_irs_namibia_2019:redo_namibia_irs_structures from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW pending_:schema .namibia_irs_structures CASCADE;
+
+COMMIT;

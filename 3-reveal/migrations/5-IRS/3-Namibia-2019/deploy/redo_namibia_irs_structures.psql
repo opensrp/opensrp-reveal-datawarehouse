@@ -1,0 +1,122 @@
+-- Deploy reveal_irs_namibia_2019:redo_namibia_irs_structures to pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- the change from the old view is that when getting events we want to
+-- sort them by events.form_data->'end' DESC so that we can get the very latest
+-- event in case there are duplicates on the same day
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .namibia_irs_structures CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .namibia_irs_structures
+AS
+SELECT DISTINCT ON (locations.id, events_query.task_id)
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(locations.id, events_query.task_id)) AS id,
+    locations.id AS structure_id,
+    locations.jurisdiction_id AS structure_jurisdiction_id,
+    locations.code AS structure_code,
+    locations.name AS structure_name,
+    locations.type AS structure_type,
+    locations.geometry AS structure_geometry,
+    locations.status AS structure_status,
+    events_query.event_id AS event_id,
+    events_query.task_id AS task_id,
+    events_query.plan_id AS plan_id,
+    events_query.event_date AS event_date,
+    COALESCE(events_query.nSprayableTotal, 0) AS nSprayableTotal,
+    COALESCE(events_query.nSprayableZinc, 0) AS nSprayableZinc,
+    COALESCE(events_query.nSprayableTrad, 0) AS nSprayableTrad,
+    COALESCE(events_query.nSprayableMod, 0) AS nSprayableMod,
+    COALESCE(events_query.nSprayableCanopy, 0) AS nSprayableCanopy,
+    COALESCE(events_query.nUnsprayable, 0) AS nUnsprayable,
+    COALESCE(events_query.nSprayedTotalFirst, 0) AS nSprayedTotalFirst,
+    COALESCE(events_query.nSprayedTotalMop, 0) AS nSprayedTotalMop,
+    COALESCE(events_query.nUnsprayedTotalFirst, 0) AS nUnsprayedTotalFirst,
+    COALESCE(events_query.nUnsprayedTotalMop, 0) AS nUnsprayedTotalMop,
+    COALESCE(events_query.householdAccessible, '') AS householdAccessible,
+    COALESCE(events_query.unsprayedReasonFirst, '') AS unsprayedReasonFirst,
+    COALESCE(events_query.unsprayedReasonMop, '') AS unsprayedReasonMop,
+    COALESCE(events_query.refusalReasonFirst, '') AS refusalReasonFirst,
+    COALESCE(events_query.refusalReasonMop, '') AS refusalReasonMop,
+    COALESCE(events_query.business_status, 'Not Visited') AS business_status,
+    COALESCE(events_query.unsprayedReasonFirst_values, ARRAY[]::varchar[]) AS unsprayedReasonFirst_values,
+    COALESCE(events_query.refusalReasonFirst_values, ARRAY[]::varchar[]) AS refusalReasonFirst_values,
+    COALESCE(events_query.unsprayedReasonMop_values, ARRAY[]::varchar[]) AS unsprayedReasonMop_values,
+    COALESCE(events_query.refusalReasonMop_values, ARRAY[]::varchar[]) AS refusalReasonMop_values
+FROM locations
+LEFT JOIN LATERAL (
+    SELECT
+        subq.event_id AS event_id,
+        subq.task_id AS task_id,
+        subq.event_date AS event_date,
+        subq.plan_id AS plan_id,
+        subq.nSprayableTotal AS nSprayableTotal,
+        subq.nSprayableZinc AS nSprayableZinc,
+        subq.nSprayableTrad AS nSprayableTrad,
+        subq.nSprayableMod AS nSprayableMod,
+        subq.nSprayableCanopy AS nSprayableCanopy,
+        subq.nUnsprayable AS nUnsprayable,
+        subq.nUnsprayedTotalFirst AS nUnsprayedTotalFirst,
+        subq.nUnsprayedTotalMop AS nUnsprayedTotalMop,
+        subq.nSprayedTotalFirst AS nSprayedTotalFirst,
+        subq.nSprayedTotalMop AS nSprayedTotalMop,
+        subq.householdAccessible AS householdAccessible,
+        subq.unsprayedReasonFirst AS unsprayedReasonFirst,
+        subq.refusalReasonFirst AS refusalReasonFirst,
+        subq.unsprayedReasonMop AS unsprayedReasonMop,
+        subq.refusalReasonMop AS refusalReasonMop,
+        subq.business_status AS business_status,
+        array_agg(subq.unsprayedReasonFirst) FILTER (WHERE subq.unsprayedReasonFirst != '') OVER (PARTITION BY unsprayedReasonFirst) AS unsprayedReasonFirst_values,
+        array_agg(subq.refusalReasonFirst) FILTER (WHERE subq.refusalReasonFirst != '') OVER (PARTITION BY refusalReasonFirst) AS refusalReasonFirst_values,
+        array_agg(subq.unsprayedReasonMop) FILTER (WHERE subq.unsprayedReasonMop != '') OVER (PARTITION BY unsprayedReasonMop) AS unsprayedReasonMop_values,
+        array_agg(subq.refusalReasonMop) FILTER (WHERE subq.refusalReasonMop != '') OVER (PARTITION BY refusalReasonMop) AS refusalReasonMop_values
+    FROM
+    (
+        SELECT
+            DISTINCT ON (tasks.identifier)
+            events.id AS event_id,
+            tasks.identifier AS task_id,
+            events.event_date AS event_date,
+            tasks.plan_identifier AS plan_id,
+            -- get fields from JSON --
+            COALESCE (events.form_data->'nSprayableTotal'->>0, '0')::int AS nSprayableTotal,
+            COALESCE (events.form_data->'nSprayableZinc'->>0, '0')::int AS nSprayableZinc,
+            COALESCE (events.form_data->'nSprayableTrad'->>0, '0')::int AS nSprayableTrad,
+            COALESCE (events.form_data->'nSprayableMod'->>0, '0')::int AS nSprayableMod,
+            COALESCE (events.form_data->'nSprayableCanopy'->>0, '0')::int AS nSprayableCanopy,
+            COALESCE (events.form_data->'nUnsprayable'->>0, '0')::int AS nUnsprayable,
+            COALESCE (events.form_data->'nUnsprayedTotalFirst'->>0, '0')::DECIMAL AS nUnsprayedTotalFirst,
+            COALESCE (events.form_data->'nUnsprayedTotalMop'->>0, '0')::DECIMAL AS nUnsprayedTotalMop,
+            COALESCE (events.form_data->'nSprayedTotalFirst'->>0, '0')::int AS nSprayedTotalFirst,
+            COALESCE (events.form_data->'nSprayedTotalMop'->>0, '0')::int AS nSprayedTotalMop,
+            COALESCE (events.form_data->'householdAccessible'->>0, '')::text AS householdAccessible,
+            COALESCE (events.form_data->'unsprayedReasonFirst'->>0, '')::text AS unsprayedReasonFirst,
+            COALESCE (events.form_data->'refusalReasonFirst'->>0, '')::text AS refusalReasonFirst,
+            COALESCE (events.form_data->'unsprayedReasonMop'->>0, '')::text AS unsprayedReasonMop,
+            COALESCE (events.form_data->'refusalReasonMop'->>0, '')::text AS refusalReasonMop,
+            COALESCE (events.form_data->'business_status'->>0, 'Not Visited')::text AS business_status
+            -- end get fields from JSON --
+        FROM tasks
+        LEFT JOIN events
+            ON tasks.identifier = events.task_id
+            AND events.entity_type = 'Structure'
+            AND events.event_type = 'Spray'
+        WHERE locations.id = tasks.task_for
+        AND tasks.status != 'Cancelled'
+        ORDER BY task_id, events.form_data->>'end' DESC
+    ) AS subq
+) AS events_query ON true
+WHERE locations.status != 'Inactive';
+
+CREATE INDEX IF NOT EXISTS namibia_irs_structures_structure_jurisdiction_idx ON pending_:schema .namibia_irs_structures (structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS namibia_irs_structures_plan_id_idx ON pending_:schema .namibia_irs_structures (plan_id);
+CREATE INDEX IF NOT EXISTS namibia_irs_structures_event_date_idx ON pending_:schema .namibia_irs_structures (event_date);
+CREATE INDEX IF NOT EXISTS namibia_irs_structures_task_id_idx ON pending_:schema .namibia_irs_structures (task_id);
+CREATE INDEX IF NOT EXISTS namibia_irs_structures_geom_gix ON pending_:schema .namibia_irs_structures USING GIST (structure_geometry);
+CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_structures_structure_task_idx ON pending_:schema .namibia_irs_structures (structure_id, task_id);
+CREATE UNIQUE INDEX IF NOT EXISTS namibia_irs_structures_idx ON pending_:schema .namibia_irs_structures (id);
+
+COMMIT;

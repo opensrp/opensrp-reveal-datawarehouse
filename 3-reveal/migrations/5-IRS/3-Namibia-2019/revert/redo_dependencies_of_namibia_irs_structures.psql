@@ -1,0 +1,11 @@
+-- Revert reveal_irs_namibia_2019:redo_dependencies_of_namibia_irs_structures from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW pending_:schema .namibia_irs_jurisdictions;
+DROP MATERIALIZED VIEW pending_:schema .namibia_focus_area_irs;
+DROP MATERIALIZED VIEW pending_:schema .namibia_irs_export;
+
+COMMIT;

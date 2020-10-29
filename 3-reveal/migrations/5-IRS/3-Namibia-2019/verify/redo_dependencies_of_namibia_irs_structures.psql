@@ -1,0 +1,7 @@
+-- Verify reveal_irs_namibia_2019:redo_dependencies_of_namibia_irs_structures on pg
+
+BEGIN;
+
+-- Left blank intentionally. will verify in the next migration
+
+ROLLBACK;
