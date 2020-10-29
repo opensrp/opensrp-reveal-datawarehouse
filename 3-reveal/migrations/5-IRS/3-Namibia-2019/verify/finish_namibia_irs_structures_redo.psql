@@ -1,0 +1,370 @@
+-- Verify reveal_irs_namibia_2019:finish_namibia_irs_structures_redo on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- namibia_irs_structures
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'namibia_irs_structures';
+
+SELECT
+    id,
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    structure_geometry,
+    structure_status,
+    event_id,
+    task_id,
+    plan_id,
+    event_date,
+    nSprayableTotal,
+    nSprayableZinc,
+    nSprayableTrad,
+    nSprayableMod,
+    nSprayableCanopy,
+    nUnsprayable,
+    nSprayedTotalFirst,
+    nSprayedTotalMop,
+    nUnsprayedTotalFirst,
+    nUnsprayedTotalMop,
+    householdAccessible,
+    unsprayedReasonFirst,
+    unsprayedReasonMop,
+    refusalReasonFirst,
+    refusalReasonMop,
+    business_status,
+    unsprayedReasonFirst_values,
+    refusalReasonFirst_values,
+    unsprayedReasonMop_values,
+    refusalReasonMop_values
+FROM namibia_irs_structures
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_irs_structures_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_irs_structures_structure_task_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexname = 'namibia_irs_structures_structure_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexname = 'namibia_irs_structures_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexname = 'namibia_irs_structures_event_date_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexname = 'namibia_irs_structures_task_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_structures'
+AND indexdef LIKE '%gist (structure_geometry)%'
+AND indexname = 'namibia_irs_structures_geom_gix';
+
+-- namibia_irs_export
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'namibia_irs_export';
+
+SELECT
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    structure_geometry,
+    structure_status,
+    task_id,
+    event_id,
+    plan_id,
+    event_date,
+    nSprayableTotal,
+    nSprayableZinc,
+    nSprayableTrad,
+    nSprayableMod,
+    nSprayableCanopy,
+    nUnsprayable,
+    nSprayedTotalFirst,
+    nSprayedTotalMop,
+    nUnsprayedTotalFirst,
+    nUnsprayedTotalMop,
+    householdAccessible,
+    unsprayedReasonFirst,
+    unsprayedReasonMop,
+    refusalReasonFirst,
+    refusalReasonMop,
+    business_status,
+    ableToSprayFirst,
+    nSprayedDDTFirst,
+    nSprayedDeltaFirst,
+    nSprayedActellicFirst,
+    nUnsprayedZincFirst,
+    nUnsprayedTradFirst,
+    nUnsprayedModFirst,
+    nUnsprayedCanopyFirst,
+    refusalReasonOtherFirst,
+    mopUpVisit,
+    mopupStructuresToBeSprayed,
+    mopupStructuresToBeSprayedLabel,
+    nSprayedDDTMop,
+    nSprayedDeltaMop,
+    nSprayedActellicMop,
+    nUnsprayedTotalMopLabel,
+    refusalReasonOtherMop,
+    unsprayedReasonHH,
+    refusalReasonHH,
+    refusalReasonOtherHH,
+    popTotal,
+    nPeopleProtected,
+    nameHoH,
+    structureType,
+    unsprayedReasonFirst_values,
+    refusalReasonFirst_values,
+    unsprayedReasonMop_values,
+    refusalReasonMop_values,
+    structure_geometry_type,
+    structure_geometry_centroid,
+    structure_geometry_centroid_coordinates,
+    jurisdiction_parent1,
+    jurisdiction_parent2,
+    jurisdiction_parent3,
+    jurisdiction_name
+FROM namibia_irs_export
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_event_date_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_task_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_event_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexname = 'namibia_irs_export_structure_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_export'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_irs_export_idx';
+
+-- namibia_focus_area_irs
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'namibia_focus_area_irs';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    jurisdiction_target,
+    structuresFound,
+    nUnsprayable,
+    nUnsprayedTotalFirst,
+    nUnsprayedTotalMop,
+    structuresSprayed,
+    targetCoverage,
+    sprayEffectiveness,
+    foundCoverage,
+    householdsNotAccessible,
+    refusalsFirst_count,
+    refusalsFirst,
+    refusalsMopup_count,
+    refusalsMopup,
+    lockedFirst_count,
+    lockedFirst,
+    lockedMopup_count,
+    lockedMopup,
+    unsprayedReasonFirst_values,
+    refusalReasonFirst_values,
+    unsprayedReasonMop_values,
+    refusalReasonMop_values,
+    unsprayedReasonFirst_counts,
+    refusalReasonFirst_counts,
+    unsprayedReasonMop_counts,
+    refusalReasonMop_counts
+FROM namibia_focus_area_irs
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_focus_area_irs'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'namibia_focus_area_irs_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_focus_area_irs'
+AND indexname = 'namibia_focus_area_irs_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_focus_area_irs'
+AND indexname = 'namibia_focus_area_irs_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_focus_area_irs'
+AND indexname = 'namibia_focus_area_irs_jurisdiction_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_focus_area_irs'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_focus_area_irs_idx';
+
+-- namibia_irs_jurisdictions
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'namibia_irs_jurisdictions';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    jurisdiction_target,
+    structuresFound,
+    nUnsprayable,
+    nUnsprayedTotalFirst,
+    nUnsprayedTotalMop,
+    structuresSprayed,
+    targetCoverage,
+    sprayEffectiveness,
+    foundCoverage,
+    householdsNotAccessible,
+    refusalsFirst_count,
+    refusalsFirst,
+    refusalsMopup_count,
+    refusalsMopup,
+    lockedFirst_count,
+    lockedFirst,
+    lockedMopup_count,
+    lockedMopup,
+    unsprayedReasonFirst_counts,
+    refusalReasonFirst_counts,
+    unsprayedReasonMop_counts,
+    refusalReasonMop_counts
+FROM namibia_irs_jurisdictions
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_jurisdictions'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'namibia_irs_jurisdictions_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_jurisdictions'
+AND indexname = 'namibia_irs_jurisdictions_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_jurisdictions'
+AND indexname = 'namibia_irs_jurisdictions_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_jurisdictions'
+AND indexname = 'namibia_irs_jurisdictions_jurisdiction_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'namibia_irs_jurisdictions'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'namibia_irs_jurisdictions_irs_idx';
+
+ROLLBACK;

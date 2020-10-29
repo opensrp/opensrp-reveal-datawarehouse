@@ -8,3 +8,6 @@ namibia_irs_export [reveal_transaction_tables:events reveal_database_views:juris
 namibia_focus_area_irs [utils:array_concat_agg utils:count_elements reveal_transaction_tables:plans reveal_transaction_tables:plan_jurisdiction reveal_database_views:jurisdictions_materialized_view namibia_irs_structures namibia_village_attributes] 2020-04-22T11:01:55Z mosh <kjayanoris@ona.io> # Add namibia_focus_area_irs.
 namibia_irs_jurisdictions [utils:count_elements utils:array_concat_agg reveal_database_views:jurisdictions_materialized_view namibia_focus_area_irs namibia_village_attributes] 2020-04-22T11:18:00Z mosh <kjayanoris@ona.io> # Add namibia_irs_jurisdictions.
 drop_village_attributes [namibia_irs_jurisdictions] 2020-08-18T09:27:02Z mosh <kjayanoris@ona.io> # Drop village attributes.
+redo_namibia_irs_structures 2020-10-28T08:54:01Z mosh <kjayanoris@ona.io> # Redo namibia_irs_structures.
+redo_dependencies_of_namibia_irs_structures [redo_namibia_irs_structures namibia_irs_export namibia_focus_area_irs namibia_irs_jurisdictions] 2020-10-28T09:14:15Z mosh <kjayanoris@ona.io> # Redo namibia_irs_structures dependencies.
+finish_namibia_irs_structures_redo [redo_namibia_irs_structures redo_dependencies_of_namibia_irs_structures] 2020-10-28T09:44:22Z mosh <kjayanoris@ona.io> # Finish namibia_irs_structures redo by moving to main schema.

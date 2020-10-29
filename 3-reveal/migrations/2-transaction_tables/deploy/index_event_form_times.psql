@@ -1,0 +1,11 @@
+-- Deploy reveal_transaction_tables:index_event_form_times to pg
+-- requires: events
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE INDEX IF NOT EXISTS events_form_start_desc_idx ON events ((form_data->>'start') DESC);
+CREATE INDEX IF NOT EXISTS events_form_end_desc_idx ON events ((form_data->>'end') DESC);
+
+COMMIT;
