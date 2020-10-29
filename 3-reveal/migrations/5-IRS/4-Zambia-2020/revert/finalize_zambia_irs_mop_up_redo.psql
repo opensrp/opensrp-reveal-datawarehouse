@@ -1,0 +1,15 @@
+-- Revert reveal_irs_zambia_2020:finalize_zambia_irs_mop_up_redo from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- Move current views to pending schema
+ALTER MATERIALIZED VIEW zambia_focus_area_irs SET SCHEMA pending_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA pending_:schema;
+
+-- Move deprecated views to current schema
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_focus_area_irs SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
+
+COMMIT;

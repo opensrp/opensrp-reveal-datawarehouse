@@ -1,0 +1,19 @@
+-- Deploy reveal_irs_zambia_2020:finalize_zambia_irs_mop_up_redo to pg
+-- requires: redo_zambia_irs_mop_up
+-- requires: redo_dependencies_of_zambia_irs_mop_up
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_focus_area_irs CASCADE;
+
+-- Move current views to deprecated_
+ALTER MATERIALIZED VIEW zambia_focus_area_irs SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA deprecated_:schema;
+
+-- Move pending views to current schema
+ALTER MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
+
+COMMIT;
