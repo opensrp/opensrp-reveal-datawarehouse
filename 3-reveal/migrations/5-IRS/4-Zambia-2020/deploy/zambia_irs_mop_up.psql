@@ -137,6 +137,8 @@ SELECT * FROM
     ) AS irs_sa_events ON true
     WHERE plans.intervention_type IN ('IRS', 'Dynamic-IRS') AND plans.status NOT IN ('draft', 'retired')
 ) AS main_query
+WHERE ((main_query.is_virtual_jurisdiction AND main_query.jurisdiction_depth > 4)
+    OR (NOT main_query.is_virtual_jurisdiction))
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
 CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
@@ -144,23 +146,6 @@ CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx ON pending_:schema .za
 CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_id);
 CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_parent_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_parent_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_idx ON pending_:schema .zambia_focus_area_irs (id);
-
---
---
---
-
-CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_spray_areas_irs
-AS
-SELECT * FROM pending_:schema .zambia_focus_area_irs
--- get spray areas only
-WHERE jurisdiction_depth > 4
-ORDER BY CASE WHEN is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, jurisdiction_name;
-
-CREATE INDEX IF NOT EXISTS zambia_spray_areas_irs_path_idx_gin on zambia_spray_areas_irs using GIN(jurisdiction_path);
-CREATE INDEX IF NOT EXISTS zambia_spray_areas_irs_plan_idx ON zambia_spray_areas_irs (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_spray_areas_irs_jurisdiction_idx ON zambia_spray_areas_irs (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_spray_areas_irs_jurisdiction_parent_idx ON zambia_spray_areas_irs (jurisdiction_parent_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_spray_areas_irs_idx ON zambia_spray_areas_irs (id);
 
 --
 --
