@@ -33,7 +33,7 @@ FROM
             jurisdictions_query.totAreas AS totAreas,
             jurisdictions_query.targAreas AS targAreas,
             jurisdictions_query.visitedAreas AS visitedAreas,
-            jurisdictions_query.sprayCovTarg AS sprayCov,       
+            jurisdictions_query.sprayCovTarg AS sprayCov,
             jurisdictions_query.sprayCovTarg AS sprayCovTarg,
             jurisdictions_query.foundCoverage AS foundCoverage,
             jurisdictions_query.spraySuccess AS spraySuccess
@@ -111,14 +111,14 @@ FROM
                 AND zambia_lite_jurisdictions.jurisdiction_id = opensrp_settings.key
                 ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
                 LIMIT 1
-            ) AS jurisdiction_structure_query ON true    
+            ) AS jurisdiction_structure_query ON true
             WHERE zambia_lite_jurisdictions.jurisdiction_depth < 4
             AND zambia_focus_area_irs_query.targAreas > 0
         ) AS jurisdictions_query ON true
         WHERE plans.intervention_type IN ('IRS-Lite') AND plans.status NOT IN ('draft', 'retired')
     )
     UNION (
-        SELECT 
+        SELECT
             id,
             plan_id,
             jurisdiction_id,
@@ -134,7 +134,7 @@ FROM
             totAreas,
             targAreas,
             visitedAreas,
-            sprayCov,       
+            sprayCov,
             sprayCovTarg,
             foundCoverage,
             spraySuccess
