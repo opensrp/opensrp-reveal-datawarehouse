@@ -25,7 +25,7 @@ SELECT DISTINCT ON (locations.id, events_query.task_id)
     locations.name AS structure_name,
     locations.type AS structure_type,
     locations.status AS structure_status,
-    locations.geometry AS structure_geometry,        
+    locations.geometry AS structure_geometry,
     events_query.event_id AS event_id,
     events_query.task_id AS task_id,
     events_query.task_status AS task_status,
@@ -46,7 +46,7 @@ LEFT JOIN LATERAL (
             DISTINCT ON (events.task_id)
             events.id AS event_id,
             tasks.identifier AS task_id,
-            tasks.status AS task_status,                                
+            tasks.status AS task_status,
             events.event_date AS event_date,
             tasks.plan_identifier AS plan_id,
             COALESCE (events.form_data->'business_status'->>0, 'Not Visited')::text AS business_status
