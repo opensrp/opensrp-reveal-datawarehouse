@@ -1,0 +1,11 @@
+-- Deploy thailand_only:drop_task_constraint to pg
+-- requires: events
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER TABLE events
+DROP CONSTRAINT IF EXISTS fk_events_task;
+
+COMMIT;
