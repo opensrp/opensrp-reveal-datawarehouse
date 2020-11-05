@@ -443,4 +443,104 @@ CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx ON pending_
 CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx ON pending_:schema .zambia_irs_jurisdictions (id);
 
+-- Add zambia_irs_jurisdictions in pending.
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_export CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_export
+AS
+SELECT
+    DISTINCT(zambia_irs_structures.structure_id) AS structure_id,
+    zambia_irs_structures.structure_jurisdiction_id AS structure_jurisdiction_id,
+    zambia_irs_structures.structure_code AS structure_code,
+    zambia_irs_structures.structure_name AS structure_name,
+    zambia_irs_structures.structure_type AS structure_type,
+    ST_AsGeoJSON(zambia_irs_structures.structure_geometry) AS structure_geometry,
+    zambia_irs_structures.structure_status AS structure_status,
+    zambia_irs_structures.task_id AS task_id,
+    zambia_irs_structures.event_id AS event_id,
+    zambia_irs_structures.plan_id AS plan_id,
+    zambia_irs_structures.event_date AS event_date,
+    zambia_irs_structures.rooms_eligible AS rooms_eligible,
+    zambia_irs_structures.rooms_sprayed AS rooms_sprayed,
+    zambia_irs_structures.eligibility AS eligibility,
+    zambia_irs_structures.structure_sprayed AS structure_sprayed,
+    zambia_irs_structures.business_status AS business_status,
+    COALESCE (events.form_data->'nonresidential_type'->>0, '')::text AS nonresidential_type,
+    COALESCE (events.form_data->'residential_noteligible'->>0, '')::text AS residential_noteligible,
+    COALESCE (events.form_data->'residential_noteligible_reason'->>0, '')::text AS residential_noteligible_reason,
+    COALESCE (events.form_data->'notreseidential_eligible'->>0, '')::text AS notreseidential_eligible,
+    COALESCE (events.form_data->'location'->>0, '')::text AS location,
+    COALESCE (events.form_data->'datacollector'->>0, '')::text AS datacollector,
+    COALESCE (events.form_data->'sprayop_code'->>0, '')::text AS sprayop_code,
+    COALESCE (events.form_data->'nameHoH'->>0, '')::text AS nameHoH,
+    COALESCE (events.form_data->'genderHoH'->>0, '')::text AS genderHoH,
+    COALESCE (events.form_data->'structure_num'->>0, '')::text AS structure_num,
+    COALESCE (events.form_data->'partiallysprayed_reason'->>0, '')::text AS partiallysprayed_reason,
+    COALESCE (events.form_data->'sprayed_males'->>0, '')::text AS sprayed_males,
+    COALESCE (events.form_data->'sprayed_females'->>0, '')::text AS sprayed_females,
+    COALESCE (events.form_data->'sprayed_totalpop'->>0, '')::text AS sprayed_totalpop,
+    COALESCE (events.form_data->'sprayed_pregwomen'->>0, '')::text AS sprayed_pregwomen,
+    COALESCE (events.form_data->'sprayed_childrenU5'->>0, '')::text AS sprayed_childrenU5,
+    COALESCE (events.form_data->'sprayed_nets_available'->>0, '')::text AS sprayed_nets_available,
+    COALESCE (events.form_data->'sprayed_nets_use'->>0, '')::text AS sprayed_nets_use,
+    COALESCE (events.form_data->'sprayed_total_uNet'->>0, '')::text AS sprayed_total_uNet,
+    COALESCE (events.form_data->'sprayed_pregwomen_uNet'->>0, '')::text AS sprayed_pregwomen_uNet,
+    COALESCE (events.form_data->'sprayed_u5_uNet'->>0, '')::text AS sprayed_u5_uNet,
+    COALESCE (events.form_data->'new_sachet'->>0, '')::text AS new_sachet,
+    COALESCE (events.form_data->'serial_number'->>0, '')::text AS serial_number,
+    COALESCE (events.form_data->'notsprayed_reason'->>0, '')::text AS notsprayed_reason,
+    COALESCE (events.form_data->'notsprayedrooms_eligible'->>0, '')::text AS notsprayedrooms_eligible,
+    COALESCE (events.form_data->'notsprayed_males'->>0, '')::text AS notsprayed_males,
+    COALESCE (events.form_data->'notsprayed_females'->>0, '')::text AS notsprayed_females,
+    COALESCE (events.form_data->'notsprayed_totalpop'->>0, '')::text AS notsprayed_totalpop,
+    COALESCE (events.form_data->'notsprayed_pregwomen'->>0, '')::text AS notsprayed_pregwomen,
+    COALESCE (events.form_data->'notsprayed_childrenU5'->>0, '')::text AS notsprayed_childrenU5,
+    COALESCE (events.form_data->'notsprayed_nets_available'->>0, '')::text AS notsprayed_nets_available,
+    COALESCE (events.form_data->'notsprayed_nets_use'->>0, '')::text AS notsprayed_nets_use,
+    COALESCE (events.form_data->'notsprayed_total_uNet'->>0, '')::text AS notsprayed_total_uNet,
+    COALESCE (events.form_data->'notsprayed_pregwomen_uNet'->>0, '')::text AS notsprayed_pregwomen_uNet,
+    COALESCE (events.form_data->'notsprayed_u5_uNet'->>0, '')::text AS notsprayed_u5_uNet,
+    COALESCE (events.form_data->'mopup'->>0, '')::text AS mopup,
+    zambia_irs_structures.sprayed_values AS sprayed_values,
+    zambia_irs_structures.notsprayed_reasons AS notsprayed_reasons,
+    zambia_irs_structures.duplicate AS duplicate,
+    zambia_irs_structures.sprayed_duplicate AS sprayed_duplicate,
+    ST_GeometryType(zambia_irs_structures.structure_geometry) AS structure_geometry_type,
+    ST_AsGeoJSON(ST_Centroid(zambia_irs_structures.structure_geometry)) AS structure_geometry_centroid,
+    ST_AsText(ST_Centroid(zambia_irs_structures.structure_geometry)) AS structure_geometry_centroid_coordinates,
+    zambia_jurisdictions.jurisdiction_name_path[1] AS jurisdiction_parent1,
+    zambia_jurisdictions.jurisdiction_name_path[2] AS jurisdiction_parent2,
+    zambia_jurisdictions.jurisdiction_name_path[3] AS jurisdiction_parent3,
+    zambia_jurisdictions.jurisdiction_name AS jurisdiction_name,
+    zambia_jurisdictions.is_virtual_jurisdiction AS is_virtual_jurisdiction,
+    zambia_irs_structures.old_jurisdiction_id AS assigned_jurisdiction_id,
+    zambia_irs_structures.old_jurisdiction_depth AS assigned_jurisdiction_depth,
+    assigned_jurisdictions.name AS assigned_jurisdiction_name,
+    zambia_irs_structures.geo_jurisdiction_id AS geo_jurisdiction_id,
+    zambia_irs_structures.geo_jurisdiction_depth AS geo_jurisdiction_depth,
+    geo_jurisdictions.name AS geo_jurisdiction_name,
+    CASE
+        WHEN zambia_plan_jurisdictions.plan_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+    END AS in_plan_jurisdiction
+FROM pending_:schema .zambia_irs_structures AS zambia_irs_structures
+LEFT JOIN events
+    ON zambia_irs_structures.event_id = events.id
+LEFT JOIN pending_:schema .zambia_jurisdictions AS zambia_jurisdictions
+    ON zambia_jurisdictions.jurisdiction_id = zambia_irs_structures.structure_jurisdiction_id
+LEFT JOIN jurisdictions AS assigned_jurisdictions
+    ON assigned_jurisdictions.id = zambia_irs_structures.old_jurisdiction_id
+LEFT JOIN jurisdictions AS geo_jurisdictions
+    ON geo_jurisdictions.id = zambia_irs_structures.geo_jurisdiction_id
+LEFT JOIN pending_:schema .zambia_plan_jurisdictions AS zambia_plan_jurisdictions
+    ON zambia_plan_jurisdictions.plan_id = zambia_irs_structures.plan_id
+      AND zambia_plan_jurisdictions.zambia_jurisdiction_id = zambia_irs_structures.structure_jurisdiction_id;
+
+CREATE INDEX IF NOT EXISTS zambia_irs_export_event_date_idx ON pending_:schema .zambia_irs_export (event_date);
+CREATE INDEX IF NOT EXISTS zambia_irs_export_task_id_idx ON pending_:schema .zambia_irs_export (task_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_export_plan_id_idx ON pending_:schema .zambia_irs_export (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_export_event_id_idx ON pending_:schema .zambia_irs_export (event_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_export_structure_jurisdiction_idx ON zambia_irs_export (structure_jurisdiction_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_export_idx ON pending_:schema .zambia_irs_export (structure_id, task_id);
+
 COMMIT;

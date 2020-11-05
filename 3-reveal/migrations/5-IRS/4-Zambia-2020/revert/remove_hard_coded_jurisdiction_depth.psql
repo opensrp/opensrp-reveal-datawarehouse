@@ -4,6 +4,7 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
+DROP MATERIALIZED VIEW pending_:schema .zambia_irs_export CASCADE;
 DROP MATERIALIZED VIEW pending_:schema .zambia_irs_jurisdictions CASCADE;
 DROP MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs CASCADE;
 DROP MATERIALIZED VIEW pending_:schema .zambia_irs_structures CASCADE;
