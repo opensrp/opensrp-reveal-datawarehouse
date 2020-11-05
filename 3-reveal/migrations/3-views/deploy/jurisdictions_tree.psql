@@ -36,6 +36,12 @@ WITH RECURSIVE tree AS
     FROM jurisdictions, tree
         LEFT JOIN jurisdictions AS jurisdictions_parent ON tree.jurisdiction_id = jurisdictions_parent.id
     WHERE tree.jurisdiction_id = jurisdictions.parent_id
+),
+parents AS (
+    SELECT
+        DISTINCT jurisdictions.parent_id AS jurisdiction_id
+    FROM jurisdictions
+    WHERE jurisdictions.parent_id IS NOT NULL AND jurisdictions.parent_id != ''
 )
 SELECT
     tree.jurisdiction_id AS jurisdiction_id,
@@ -45,6 +51,11 @@ SELECT
     tree.jurisdiction_depth AS jurisdiction_depth,
     tree.jurisdiction_path AS jurisdiction_path,
     tree.jurisdiction_names AS jurisdiction_name_path,
+    CASE
+        WHEN tree.jurisdiction_id IN (SELECT jurisdiction_id FROM parents)
+        THEN FALSE
+        ELSE TRUE
+    END AS is_leaf_node,
     CASE
         WHEN array_length(tree.jurisdiction_path, 1) IS NULL
         THEN tree.jurisdiction_id
@@ -61,6 +72,7 @@ CREATE INDEX IF NOT EXISTS jurisdictions_tree_parent_idx ON jurisdictions_tree (
 CREATE INDEX IF NOT EXISTS jurisdictions_tree_depth_idx ON jurisdictions_tree (jurisdiction_depth);
 CREATE INDEX IF NOT EXISTS jurisdictions_tree_root_parent_id_idx ON jurisdictions_tree (jurisdiction_root_parent_id);
 CREATE INDEX IF NOT EXISTS jurisdictions_tree_geom_gix ON jurisdictions_tree USING GIST (jurisdiction_geometry);
+CREATE INDEX IF NOT EXISTS jurisdictions_is_leaf_node_idx ON jurisdictions_tree (is_leaf_node);
 CREATE UNIQUE INDEX IF NOT EXISTS jurisdictions_tree_idx ON jurisdictions_tree (jurisdiction_id);
 
 COMMIT;
