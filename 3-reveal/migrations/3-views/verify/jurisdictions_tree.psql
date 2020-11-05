@@ -1,0 +1,7 @@
+-- Verify reveal_database_views:jurisdictions_tree on pg
+
+BEGIN;
+
+-- XXX Add verifications here.
+
+ROLLBACK;

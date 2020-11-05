@@ -1,0 +1,7 @@
+-- Revert reveal_database_views:jurisdictions_tree from pg
+
+BEGIN;
+
+-- XXX Add DDLs here.
+
+COMMIT;
