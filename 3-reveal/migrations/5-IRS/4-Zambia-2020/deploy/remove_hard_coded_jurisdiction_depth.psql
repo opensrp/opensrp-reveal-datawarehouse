@@ -226,6 +226,7 @@ SELECT * FROM
         zambia_jurisdictions.jurisdiction_path AS jurisdiction_path,
         zambia_jurisdictions.jurisdiction_name_path AS jurisdiction_name_path,
         zambia_jurisdictions.is_virtual_jurisdiction AS is_virtual_jurisdiction,
+        zambia_jurisdictions.is_leaf_node AS is_leaf_node,
         irs_structures.totStruct AS totStruct,
         irs_structures.targStruct AS targStruct,
         irs_structures.rooms_eligible AS rooms_eligible,
