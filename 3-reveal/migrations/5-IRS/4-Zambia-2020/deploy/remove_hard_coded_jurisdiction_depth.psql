@@ -3,8 +3,10 @@
 
 BEGIN;
 
--- Add zambia_jurisdictions in pending.
 SET search_path TO :"schema",public;
+
+-- Add zambia_jurisdictions in pending.
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_jurisdictions CASCADE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_jurisdictions AS
 SELECT *,
@@ -39,6 +41,26 @@ CREATE INDEX IF NOT EXISTS zambia_jurisdictions_parent_id_idx ON pending_:schema
 CREATE INDEX IF NOT EXISTS zambia_jurisdictions_jurisdiction_depth_idx ON pending_:schema .zambia_jurisdictions (jurisdiction_depth);
 CREATE INDEX IF NOT EXISTS zambia_jurisdictions_jurisdiction_root_parent_id_idx ON pending_:schema .zambia_jurisdictions (jurisdiction_root_parent_id);
 CREATE INDEX IF NOT EXISTS zambia_jurisdictions_jurisdiction_geometry_gix ON pending_:schema .zambia_jurisdictions USING GIST (jurisdiction_geometry);
+
+-- Add zambia_structure_jurisdictions in pending.
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_structure_jurisdictions CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_structure_jurisdictions AS
+SELECT structure_geo_hierarchy.*,
+       COALESCE(zambia_virtual_jurisdictions.jurisdiction_id, structure_geo_hierarchy.geo_jurisdiction_id, structure_geo_hierarchy.jurisdiction_id) AS zambia_jurisdiction_id,
+       COALESCE(zambia_virtual_jurisdictions.jurisdiction_depth, structure_geo_hierarchy.geo_jurisdiction_depth, structure_geo_hierarchy.jurisdiction_depth) AS zambia_jurisdiction_depth
+FROM structure_geo_hierarchy
+LEFT JOIN
+    (SELECT *
+     FROM pending_:schema .zambia_jurisdictions AS zambia_jurisdictions
+     WHERE is_virtual_jurisdiction = TRUE) AS zambia_virtual_jurisdictions
+     ON zambia_virtual_jurisdictions.opensrp_jurisdiction_id = structure_geo_hierarchy.geo_jurisdiction_id;
+
+
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_structure_jurisdictions_id_idx ON pending_:schema .zambia_structure_jurisdictions (id);
+CREATE INDEX IF NOT EXISTS zambia_structure_jurisdictions_jurisdiction_id_idx ON pending_:schema .zambia_structure_jurisdictions (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_structure_jurisdictions_geo_jurisdiction_id_idx ON pending_:schema .zambia_structure_jurisdictions (geo_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_structure_jurisdictions_zambia_jurisdiction_id_idx ON pending_:schema .zambia_structure_jurisdictions (zambia_jurisdiction_id);
 
 
 COMMIT;
