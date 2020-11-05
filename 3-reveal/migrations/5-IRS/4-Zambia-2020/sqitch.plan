@@ -13,3 +13,4 @@ zambia_irs_sop_performance [zambia_irs_spray_event zambia_daily_summary_event za
 zambia_irs_sop_date_performance [zambia_irs_spray_event zambia_daily_summary_event] 2020-09-02T15:03:33Z Ona,,, <ona@ona-ThinkPad-T470> # Creates irs sop by date report materialized view.
 zambia_irs_mop_up 2020-10-02T10:00:50Z gstuder,,, <gstuder@gstuder-ThinkPad-T490> # Changes for Zambia IRS mop-up reports
 zambia_irs_structures_geojson [reveal_irs_zambia_2019:zambia_irs_structures] 2020-10-15T16:08:43Z mosh <kjayanoris@ona.io> # Add zambia_irs_structures_geojson.
+remove_hard_coded_jurisdiction_depth [reveal_database_views:jurisdictions_tree] 2020-11-05T15:22:32Z mosh <kjayanoris@ona.io> # Remove hard-coded jurisdiction depth.
