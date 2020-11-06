@@ -37,12 +37,10 @@ ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_structures SET SCHEMA :"s
 ALTER MATERIALIZED VIEW deprecated_:schema .zambia_plan_jurisdictions SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW deprecated_:schema .zambia_structure_jurisdictions SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW deprecated_:schema .zambia_jurisdictions SET SCHEMA :"schema";
-ALTER MATERIALIZED VIEW zambia_focus_area_irs_remove_hard_coded_depth
-  RENAME TO zambia_focus_area_irs,
-  SET SCHEMA :"schema";
-ALTER MATERIALIZED VIEW zambia_irs_jurisdictions_remove_hard_coded_depth
-  RENAME TO zambia_irs_jurisdictions,
-  SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_focus_area_irs_remove_hard_coded_depth SET SCHEMA SCHEMA :"schema";
+ALTER MATERIALIZED VIEW zambia_focus_area_irs_remove_hard_coded_depth RENAME TO zambia_focus_area_irs;
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions_remove_hard_coded_depth SET SCHEMA SCHEMA :"schema";
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions_remove_hard_coded_depth RENAME TO zambia_irs_jurisdictions;
 
 DROP VIEW IF EXISTS pending_:schema .zambia_irs_structures_report CASCADE;
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_structures_report_no_geojson CASCADE;

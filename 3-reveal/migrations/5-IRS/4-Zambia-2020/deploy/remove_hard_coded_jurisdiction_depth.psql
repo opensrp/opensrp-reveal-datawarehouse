@@ -1174,12 +1174,10 @@ ALTER MATERIALIZED VIEW zambia_irs_structures SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_plan_jurisdictions SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_structure_jurisdictions SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_jurisdictions SET SCHEMA deprecated_:schema;
-ALTER MATERIALIZED VIEW zambia_focus_area_irs
-  RENAME TO zambia_focus_area_irs_remove_hard_coded_depth,
-  SET SCHEMA deprecated_:schema;
-ALTER MATERIALIZED VIEW zambia_irs_jurisdictions
-  RENAME TO zambia_irs_jurisdictions_remove_hard_coded_depth,
-  SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_focus_area_irs RENAME TO zambia_focus_area_irs_remove_hard_coded_depth;
+ALTER MATERIALIZED VIEW zambia_focus_area_irs_remove_hard_coded_depth SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions RENAME TO zambia_irs_jurisdictions_remove_hard_coded_depth;
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions_remove_hard_coded_depth SET SCHEMA deprecated_:schema;
 
 -- Move pending views to current schema
 ALTER VIEW pending_:schema .zambia_irs_structures_report SET SCHEMA :"schema";
