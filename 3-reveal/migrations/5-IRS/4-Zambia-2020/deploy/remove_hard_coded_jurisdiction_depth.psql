@@ -37,7 +37,7 @@ SELECT
     MD5(CONCAT(jurisdiction_id, '_remainder')) AS zambia_jurisdiction_id,
     TRUE AS is_virtual_jurisdiction
 FROM jurisdictions_tree
-WHERE is_leaf_node != TRUE;
+WHERE is_leaf_node = FALSE;
 
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_jurisdictions_id_idx ON pending_:schema .zambia_jurisdictions (jurisdiction_id);
 CREATE INDEX IF NOT EXISTS zambia_jurisdictions_opensrp_jurisdiction_id_idx ON pending_:schema .zambia_jurisdictions (opensrp_jurisdiction_id);
