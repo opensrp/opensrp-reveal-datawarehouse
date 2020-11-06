@@ -923,5 +923,77 @@ CREATE INDEX IF NOT EXISTS zambia_irs_sop_performance_data_collector_idx ON pend
 CREATE INDEX IF NOT EXISTS zambia_irs_sop_performance_sop_idx ON pending_:schema .zambia_irs_sop_performance (sop);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_sop_performance_idx ON pending_:schema .zambia_irs_sop_performance (id);
 
+-- Add zambia_irs_sop_date_performance in pending.
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_sop_date_performance CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_sop_date_performance AS
+SELECT
+  subq.id AS id,
+  subq.plan_id AS plan_id,
+  subq.district_id AS district_id,
+  subq.data_collector AS data_collector,
+  subq.location_id As location_id,
+  subq.sop AS sop,
+  subq.event_date AS event_date,
+  subq.found AS found,
+  subq.sprayed AS sprayed,
+  subq.refused AS refused,
+  subq.other_reason AS other_reason,
+  subq.not_sprayed AS not_sprayed,
+  subq.start_time AS start_time,
+  subq.end_time AS end_time,
+  subq.field_duration AS field_duration,
+  COALESCE(daily_summary.bottles_full, 0) AS bottles_full,
+  COALESCE(daily_summary.bottles_accounted, 0) AS bottles_accounted,
+  COALESCE(daily_summary.bottles_empty, 0) AS bottles_empty,
+  COALESCE(daily_summary.bottles_lostdamaged, 0) AS bottles_lostdamaged,
+  COALESCE(daily_summary.bottles_start, 0) AS bottles_start,
+  COALESCE(daily_summary.daily_found, 0) AS daily_found,
+  COALESCE(daily_summary.daily_sprayed, 0) AS daily_sprayed,
+  COALESCE(daily_summary.event_date, subq.event_date) AS daily_event_date,
+  COALESCE((subq.sprayed - daily_summary.daily_sprayed), subq.sprayed) AS sprayed_diff,
+  COALESCE((subq.found - daily_summary.daily_found), subq.found) AS found_diff,
+  CASE
+    WHEN ((subq.found - daily_summary.daily_found) = 0 AND (subq.sprayed - daily_summary.daily_sprayed) = 0 )
+    THEN TRUE
+    ELSE FALSE
+  END AS data_quality_check
+FROM (
+  SELECT
+    public.uuid_generate_v5(
+      '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      concat(district_id, plan_id, data_collector, sop, location_id, event_date)
+    ) AS id,
+    plan_id,
+    district_id,
+    data_collector,
+    location_id,
+    sop,
+    event_date as event_date,
+    sum(found) as found,
+    sum(sprayed) as sprayed,
+    sum(refused) as refused,
+    sum(other_reason) as other_reason,
+    (sum(refused) + sum(other_reason)) as not_sprayed,
+    to_char(MIN(start_time::timestamp), 'HH24:MI') AS start_time,
+    to_char(MAX(end_time::timestamp), 'HH24:MI') AS end_time,
+    to_char(MAX(end_time::timestamp) - MIN(start_time::timestamp), 'HH24:MI') AS field_duration
+  FROM pending_:schema .zambia_irs_spray_event
+  GROUP BY event_date,sop, data_collector, district_id, plan_id, location_id
+) As subq
+LEFT JOIN zambia_daily_summary_event as daily_summary
+  ON daily_summary.location_id = subq.location_id
+  AND daily_summary.event_date = subq.event_date
+  AND daily_summary.plan_id = subq.plan_id
+  AND daily_summary.provider_id = subq.data_collector
+  AND daily_summary.sop = subq.sop;
+
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_plan_id_idx ON pending_:schema .zambia_irs_sop_date_performance (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_district_id_idx ON pending_:schema .zambia_irs_sop_date_performance (district_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_data_collector_idx ON pending_:schema .zambia_irs_sop_date_performance (data_collector);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_sop_idx ON pending_:schema .zambia_irs_sop_date_performance (sop);
+CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_event_date_idx ON pending_:schema .zambia_irs_sop_date_performance (event_date);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_idx ON pending_:schema .zambia_irs_sop_date_performance (id);
+
 
 COMMIT;
