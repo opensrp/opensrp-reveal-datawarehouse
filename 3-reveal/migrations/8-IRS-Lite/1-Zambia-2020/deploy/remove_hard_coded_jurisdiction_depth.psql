@@ -271,7 +271,7 @@ FROM
                 ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
                 LIMIT 1
             ) AS jurisdiction_structure_query ON true
-            WHERE zambia_lite_jurisdictions.jurisdiction_depth < 4
+            WHERE zambia_lite_jurisdictions.is_leaf_node = FALSE
             AND zambia_focus_area_irs_query.targAreas > 0
         ) AS jurisdictions_query ON true
         WHERE plans.intervention_type IN ('IRS-Lite') AND plans.status NOT IN ('draft', 'retired')
