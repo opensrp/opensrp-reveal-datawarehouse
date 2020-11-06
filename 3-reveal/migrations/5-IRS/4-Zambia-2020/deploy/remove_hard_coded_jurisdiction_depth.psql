@@ -445,7 +445,7 @@ CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx ON pending_
 CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx ON pending_:schema .zambia_irs_jurisdictions (id);
 
--- Add zambia_irs_jurisdictions in pending.
+-- Add zambia_irs_export in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_export CASCADE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_export
@@ -640,7 +640,7 @@ CREATE INDEX IF NOT EXISTS zambia_irs_district_avg_time_plan_id_idx ON pending_:
 CREATE INDEX IF NOT EXISTS zambia_irs_district_avg_time_district_id_idx ON pending_:schema .zambia_irs_district_avg_time (district_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_district_avg_time_idx ON pending_:schema .zambia_irs_district_avg_time (id);
 
--- Add zambia_irs_district_avg_time in pending.
+-- Add zambia_irs_collector_avg_time in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_collector_avg_time CASCADE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_collector_avg_time AS
@@ -675,7 +675,7 @@ CREATE INDEX IF NOT EXISTS zambia_irs_collector_avg_time_district_id_idx ON pend
 CREATE INDEX IF NOT EXISTS zambia_irs_collector_avg_time_data_collector_idx ON pending_:schema .zambia_irs_collector_avg_time (data_collector);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_collector_avg_time_idx ON pending_:schema .zambia_irs_collector_avg_time (id);
 
--- Add zambia_irs_district_avg_time in pending.
+-- Add zambia_irs_sop_avg_time in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_sop_avg_time CASCADE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_sop_avg_time AS
@@ -713,7 +713,7 @@ CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_data_collector_idx ON pending
 CREATE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_sop_idx ON pending_:schema .zambia_irs_sop_avg_time (sop);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_sop_avg_time_idx ON pending_:schema .zambia_irs_sop_avg_time (id);
 
--- Add zambia_irs_district_avg_time in pending.
+-- Add zambia_irs_district_performance in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_district_performance CASCADE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_district_performance AS
