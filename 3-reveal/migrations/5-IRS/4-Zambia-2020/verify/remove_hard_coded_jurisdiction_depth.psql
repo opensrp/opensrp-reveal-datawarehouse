@@ -2,6 +2,368 @@
 
 BEGIN;
 
--- XXX Add verifications here.
+SET search_path TO :"schema",public;
+
+-- zambia_irs_structures
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_structures';
+
+SELECT
+    id,
+    structure_id,
+    old_jurisdiction_id,
+    old_jurisdiction_depth,
+    geo_jurisdiction_id,
+    geo_jurisdiction_depth,
+    zambia_jurisdiction_id,
+    zambia_jurisdiction_depth,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    structure_geometry,
+    structure_status,
+    task_id,
+    task_status,
+    event_id,
+    plan_id,
+    event_date,
+    rooms_eligible,
+    rooms_sprayed,
+    eligibility,
+    structure_sprayed,
+    business_status,
+    sprayed_values,
+    notsprayed_reasons,
+    duplicate,
+    sprayed_duplicate
+FROM zambia_irs_structures
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_structures_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_structures_structure_task_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_structure_sprayed_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_business_status_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_sprayed_duplicate_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_duplicate_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_notsprayed_reasons_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_event_date_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_task_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_plan_jurisdiction_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_structure_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexname = 'zambia_irs_structures_old_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures'
+AND indexdef LIKE '%gist (structure_geometry)%'
+AND indexname = 'zambia_irs_structures_geom_gix';
+
+-- zambia_focus_area_irs
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_focus_area_irs';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    is_virtual_jurisdiction,
+    is_leaf_node,
+    health_center_jurisdiction_id,
+    health_center_jurisdiction_name,
+    totStruct,
+    targStruct,
+    rooms_eligible,
+    rooms_sprayed,
+    sprayed_rooms_eligible,
+    sprayed_rooms_sprayed,
+    foundStruct,
+    notSprayed,
+    notEligible,
+    noTasks,
+    sprayedStruct,
+    duplicates,
+    sprayed_duplicates,
+    notsprayed_reasons,
+    notsprayed_reasons_counts,
+    sprayCov,
+    sprayTarg,
+    spraySuccess,
+    roomCov,
+    reviewed_with_decision,
+    latest_sa_event_id,
+    latest_sa_event_date
+FROM zambia_focus_area_irs
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'zambia_focus_area_irs_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs'
+AND indexname = 'zambia_focus_area_irs_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs'
+AND indexname = 'zambia_focus_area_irs_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs'
+AND indexname = 'zambia_focus_area_irs_jurisdiction_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_focus_area_irs'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_focus_area_irs_idx';
+
+-- zambia_irs_jurisdictions
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_jurisdictions';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    is_virtual_jurisdiction,
+    is_leaf_node,
+    totStruct,
+    rooms_eligible,
+    rooms_sprayed,
+    sprayed_rooms_eligible,
+    sprayed_rooms_sprayed,
+    foundStruct,
+    notSprayed,
+    notEligible,
+    sprayedStruct,
+    totAreas,
+    targAreas,
+    targStruct,
+    perctVisAreasEffect,
+    sprayCovTarg,
+    roomCov,
+    avg_spray_effectiveness,
+    structures_remaining_to_90_se
+    tla_days_to_90_se,
+    num_health_centers_below_90_se,
+    num_spray_areas_below_90_se,
+    latest_spray_event_id,
+    latest_spray_event_date,
+    latest_sa_event_id,
+    latest_sa_event_date
+FROM zambia_irs_jurisdictions
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_jurisdictions_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'zambia_irs_jurisdictions_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexname = 'zambia_irs_jurisdictions_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexname = 'zambia_irs_jurisdictions_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_jurisdictions'
+AND indexname = 'zambia_irs_jurisdictions_jurisdiction_parent_idx';
+
+-- zambia_irs_structures_report
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_structures_report_no_geojson';
+
+SELECT
+    id,
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    task_id,
+    plan_id,
+    event_date,
+    business_status,
+    rooms_eligible,
+    rooms_sprayed,
+    eligibility,
+    structure_sprayed
+FROM zambia_irs_structures_report_no_geojson
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures_report_no_geojson'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_structures_report_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures_report_no_geojson'
+AND indexname = 'zambia_irs_structures_report_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures_report_no_geojson'
+AND indexname = 'zambia_irs_structures_report_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_structures_report_no_geojson'
+AND indexname = 'zambia_irs_structures_report_jurisdiction_plan_idx';
+
+SELECT 1/COUNT(*) FROM pg_views WHERE schemaname = :'schema' AND viewname = 'zambia_irs_structures_report';
+
+SELECT
+    id,
+    structure_id,
+    jurisdiction_id,
+    task_id,
+    plan_id,
+    geojson
+FROM zambia_irs_structures_report
+WHERE FALSE;
 
 ROLLBACK;
