@@ -10,7 +10,7 @@ ALTER MATERIALIZED VIEW zambia_focus_area_irs SET SCHEMA pending_:schema ;
 ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW deprecated_:schema .zambia_focus_area_irs SET SCHEMA :"schema";
 
-DROP MATERIALIZED VIEW pending_:schema .zambia_irs_jurisdictions;
-DROP MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs;
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_jurisdictions;
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_focus_area_irs;
 
 COMMIT;
