@@ -545,4 +545,67 @@ CREATE INDEX IF NOT EXISTS zambia_irs_export_event_id_idx ON pending_:schema .za
 CREATE INDEX IF NOT EXISTS zambia_irs_export_structure_jurisdiction_idx ON zambia_irs_export (structure_jurisdiction_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_export_idx ON pending_:schema .zambia_irs_export (structure_id, task_id);
 
+-- Add zambia_irs_spray_event in pending.
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_spray_event CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_spray_event AS
+SELECT
+    event.id AS id,
+    date(event.event_date) AS event_date,
+    event.task_id as task_id,
+    event.form_data->>'end' AS end_time,
+    event.form_data->>'start' AS start_time,
+    event.form_data->>'sprayop_code' AS sop,
+    event.provider_id AS data_collector,
+    event.form_data->>'notsprayed_reason' AS notsprayed_reason,
+    event.location_id AS location_id,
+    event.base_entity_id AS base_entity_id,
+    DATEDIFF('second', (event.form_data->>'start')::timestamp, (event.form_data->>'end')::timestamp) AS field_duration,
+    CASE
+        WHEN event.form_data->>'eligibility' = 'eligible' THEN 1
+        ELSE 1
+    END AS found,
+    CASE
+        WHEN event.form_data->>'structure_sprayed' = 'yes' THEN 1
+        ELSE 0
+    END AS sprayed,
+    CASE
+        WHEN (event.form_data->>'structure_sprayed' != 'yes' AND form_data->>'notsprayed_reason' = 'refused') THEN 1
+        ELSE 0
+    END AS refused,
+    CASE
+        WHEN (event.form_data->>'structure_sprayed' != 'yes' AND form_data->>'notsprayed_reason' != 'refused') THEN 1
+        ELSE 0
+    END AS other_reason,
+    materialized_jur.jurisdiction_parent_id AS jurisdiction_parent_id,
+    materialized_jur.jurisdiction_name AS jurisdiction_name,
+    materialized_jur.jurisdiction_depth AS jurisdiction_depth,
+    materialized_jur.jurisdiction_path AS jurisdiction_path,
+    materialized_jur.jurisdiction_name_path AS jurisdiction_name_path,
+    tasks_query.plan_identifier AS plan_id,
+    tasks_query.code AS code,
+    jurisdiction_query.id AS district_id,
+    jurisdiction_query.name AS district_name
+FROM events AS event
+LEFT JOIN jurisdictions_tree AS materialized_jur
+    ON event.location_id = materialized_jur.jurisdiction_id
+LEFT JOIN tasks AS tasks_query
+    ON event.task_id = tasks_query.identifier
+LEFT JOIN jurisdictions AS jurisdiction_query ON jurisdiction_query.id = materialized_jur.jurisdiction_path[3]
+WHERE
+    event.event_type = 'Spray'
+    AND event.form_data->>'eligibility' != 'notEligible'
+    AND provider_id IS NOT NULL
+    AND form_data->>'sprayop_code' IS NOT NULL
+    AND tasks_query.plan_identifier IS NOT NULL
+    AND tasks_query.plan_identifier != ''
+    AND jurisdiction_query.id IS NOT NULL
+    AND jurisdiction_query.name IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_plan_id_idx ON pending_:schema .zambia_irs_spray_event (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_district_id_idx ON pending_:schema .zambia_irs_spray_event (district_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_data_collector_idx ON pending_:schema .zambia_irs_spray_event (data_collector);
+CREATE INDEX IF NOT EXISTS zambia_irs_spray_event_sop_idx ON pending_:schema .zambia_irs_spray_event (sop);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_spray_event_idx ON pending_:schema .zambia_irs_spray_event (id);
+
 COMMIT;
