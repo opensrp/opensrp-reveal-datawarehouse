@@ -1,0 +1,9 @@
+-- Revert reveal_irs_lite_zambia_202020:remove_hard_coded_jurisdiction_depth from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+DROP VIEW IF EXISTS pending_:schema .irs_lite_plans CASCADE;
+
+COMMIT;
