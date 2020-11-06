@@ -91,6 +91,5 @@ schemaname = :'schema'
 AND tablename = 'zambia_irs_lite_structures'
 AND indexdef LIKE '%gist (structure_geometry)%'
 AND indexname = 'zambia_irs_lite_structures_geom_gix';
-CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_geom_gix ON zambia_irs_lite_structures USING GIST (structure_geometry);
 
 ROLLBACK;
