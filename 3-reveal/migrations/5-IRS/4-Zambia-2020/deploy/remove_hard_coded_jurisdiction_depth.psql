@@ -1140,23 +1140,23 @@ FROM (
 ---
 
 -- Ensure deprecated_ is empty
-DROP VIEW IF EXISTS deprecated_:schema .zambia_irs_structures_report CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_structures_report_no_geojson CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_date_performance CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_performance CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_data_collector_performance CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_district_performance CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_avg_time CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_collector_avg_time CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_district_avg_time CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_spray_event CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_export CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_jurisdictions CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_focus_area_irs CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_structures CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_plan_jurisdictions CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_structure_jurisdictions CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_jurisdictions CASCADE;
+-- DROP VIEW IF EXISTS deprecated_:schema .zambia_irs_structures_report CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_structures_report_no_geojson CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_date_performance CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_performance CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_data_collector_performance CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_district_performance CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_avg_time CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_collector_avg_time CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_district_avg_time CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_spray_event CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_export CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_structure CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_plan_jurisdictions CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_structure_jurisdictions CASCADE;
+-- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_jurisdictions CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_focus_area_irs_remove_hard_coded_depth CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_remove_hard_coded_depth CASCADE;
 
 -- Move current views to deprecated_
 ALTER VIEW zambia_irs_structures_report SET SCHEMA deprecated_:schema;
@@ -1170,12 +1170,16 @@ ALTER MATERIALIZED VIEW zambia_irs_collector_avg_time SET SCHEMA deprecated_:sch
 ALTER MATERIALIZED VIEW zambia_irs_district_avg_time SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_irs_spray_event SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_irs_export SET SCHEMA deprecated_:schema;
-ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA deprecated_:schema;
-ALTER MATERIALIZED VIEW zambia_focus_area_irs SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_irs_structures SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_plan_jurisdictions SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_structure_jurisdictions SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_jurisdictions SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_focus_area_irs
+  RENAME TO zambia_focus_area_irs_remove_hard_coded_depth,
+  SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions
+  RENAME TO zambia_irs_jurisdictions_remove_hard_coded_depth,
+  SET SCHEMA deprecated_:schema;
 
 -- Move pending views to current schema
 ALTER VIEW pending_:schema .zambia_irs_structures_report SET SCHEMA :"schema";
