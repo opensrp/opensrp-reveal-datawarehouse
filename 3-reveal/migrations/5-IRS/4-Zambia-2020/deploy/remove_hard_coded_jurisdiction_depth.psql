@@ -159,6 +159,8 @@ LEFT JOIN LATERAL (
             COALESCE (events.form_data->'rooms_sprayed'->>0, '0')::int AS rooms_sprayed,
             COALESCE (events.form_data->'eligibility'->>0, 'Eligible')::text AS eligibility,
             COALESCE (events.form_data->'structure_sprayed'->>0, 'No')::text AS structure_sprayed,
+            events.form_data->>'start' AS form_start_time,
+            events.form_data->>'end' AS form_end_time,
             events.form_data->'business_status'->>0 AS business_status,
             COALESCE (events.form_data->'notsprayed_reason'->>0, '')::text AS notsprayed_reason
             -- end get fields from JSON --
@@ -170,7 +172,7 @@ LEFT JOIN LATERAL (
         AND events.event_type = 'Spray'
     ) AS subq
     ORDER BY
-        subq.event_date DESC,
+        subq.form_end_time DESC,
         subq.structure_sprayed DESC,
         subq.rooms_sprayed DESC,
         subq.rooms_eligible DESC
