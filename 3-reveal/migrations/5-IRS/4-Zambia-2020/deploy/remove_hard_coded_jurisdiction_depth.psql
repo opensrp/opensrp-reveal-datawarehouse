@@ -347,11 +347,11 @@ SELECT * FROM
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx ON pending_:schema .zambia_focus_area_irs (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_parent_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_parent_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_idx ON pending_:schema .zambia_focus_area_irs (id);
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin2 on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx2 ON pending_:schema .zambia_focus_area_irs (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_idx2 ON pending_:schema .zambia_focus_area_irs (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_parent_idx2 ON pending_:schema .zambia_focus_area_irs (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_idx2 ON pending_:schema .zambia_focus_area_irs (id);
 
 -- Add zambia_irs_jurisdictions in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_jurisdictions CASCADE;
@@ -514,11 +514,11 @@ SELECT * FROM
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_path_idx_gin on pending_:schema .zambia_irs_jurisdictions using GIN(jurisdiction_path);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_plan_idx ON pending_:schema .zambia_irs_jurisdictions (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx ON pending_:schema .zambia_irs_jurisdictions (id);
+CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_path_idx_gin2 on pending_:schema .zambia_irs_jurisdictions using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_plan_idx2 ON pending_:schema .zambia_irs_jurisdictions (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx2 ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx2 ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx2 ON pending_:schema .zambia_irs_jurisdictions (id);
 
 -- Add zambia_irs_export in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_export CASCADE;
