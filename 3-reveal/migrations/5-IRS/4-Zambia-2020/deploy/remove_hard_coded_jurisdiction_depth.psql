@@ -347,11 +347,11 @@ SELECT * FROM
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin2 on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx2 ON pending_:schema .zambia_focus_area_irs (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_idx2 ON pending_:schema .zambia_focus_area_irs (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_parent_idx2 ON pending_:schema .zambia_focus_area_irs (jurisdiction_parent_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_idx2 ON pending_:schema .zambia_focus_area_irs (id);
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx ON pending_:schema .zambia_focus_area_irs (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_parent_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_idx ON pending_:schema .zambia_focus_area_irs (id);
 
 -- Add zambia_irs_jurisdictions in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_jurisdictions CASCADE;
@@ -514,11 +514,11 @@ SELECT * FROM
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_path_idx_gin2 on pending_:schema .zambia_irs_jurisdictions using GIN(jurisdiction_path);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_plan_idx2 ON pending_:schema .zambia_irs_jurisdictions (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx2 ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx2 ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx2 ON pending_:schema .zambia_irs_jurisdictions (id);
+CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_path_idx_gin on pending_:schema .zambia_irs_jurisdictions using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_plan_idx ON pending_:schema .zambia_irs_jurisdictions (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx ON pending_:schema .zambia_irs_jurisdictions (id);
 
 -- Add zambia_irs_export in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_export CASCADE;
@@ -1139,22 +1139,22 @@ FROM (
 -- Move views
 ---
 
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_focus_area_irs RENAME TO zambia_focus_area_irs_mopup;
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions RENAME TO zambia_irs_jurisdictions_mopup;
+
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_focus_area_irs_path_idx_gin RENAME TO zambia_fcirs_mopup_path_idx_gin;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_focus_area_irs_plan_idx RENAME TO zambia_fcirs_mopup_plan_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_focus_area_irs_jurisdiction_idx RENAME TO zambia_fcirs_mopup_jurisdiction_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_focus_area_irs_jurisdiction_parent_idx RENAME TO zambia_fcirs_mopup_jurisdiction_parent_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_focus_area_irs_idx RENAME TO zambia_fcirs_mopup_idx;
+
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_path_idx_gin RENAME TO zambia_irs_jurisdictions_mopup_path_idx_gin;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_plan_idx RENAME TO zambia_irs_jurisdictions_mopup_plan_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_jurisdiction_idx RENAME TO zambia_irs_jurisdictions_mopup_jurisdiction_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_jurisdiction_parent_idx RENAME TO zambia_irs_jurisdictions_mopup_jurisdiction_parent_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_idx RENAME TO zambia_irs_jurisdictions_mopup_idx;
+
 -- Ensure deprecated_ is empty
--- DROP VIEW IF EXISTS deprecated_:schema .zambia_irs_structures_report CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_structures_report_no_geojson CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_date_performance CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_performance CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_data_collector_performance CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_district_performance CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_sop_avg_time CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_collector_avg_time CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_district_avg_time CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_spray_event CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_export CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_structure CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_plan_jurisdictions CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_structure_jurisdictions CASCADE;
--- DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_jurisdictions CASCADE;
 DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_focus_area_irs_remove_hard_coded_depth CASCADE;
 DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_remove_hard_coded_depth CASCADE;
 
@@ -1179,7 +1179,7 @@ ALTER MATERIALIZED VIEW zambia_focus_area_irs_remove_hard_coded_depth SET SCHEMA
 ALTER MATERIALIZED VIEW zambia_irs_jurisdictions RENAME TO zambia_irs_jurisdictions_remove_hard_coded_depth;
 ALTER MATERIALIZED VIEW zambia_irs_jurisdictions_remove_hard_coded_depth SET SCHEMA deprecated_:schema;
 
--- Move pending views to current schema
+-- -- Move pending views to current schema
 ALTER VIEW pending_:schema .zambia_irs_structures_report SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_structures_report_no_geojson SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_sop_date_performance SET SCHEMA :"schema";
