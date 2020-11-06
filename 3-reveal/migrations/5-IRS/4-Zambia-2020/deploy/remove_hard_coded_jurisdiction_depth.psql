@@ -1133,7 +1133,7 @@ FROM (
         irs_structures_report.business_status AS business_status
     FROM pending_:schema .zambia_irs_structures_report_no_geojson AS irs_structures_report
     LEFT JOIN locations ON irs_structures_report.structure_id = locations.id
-) row
+) row;
 
 --
 -- Move views
