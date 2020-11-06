@@ -225,7 +225,7 @@ SELECT * FROM
             concat(plans.identifier, zambia_jurisdictions.jurisdiction_id)) AS id,
         plans.identifier AS plan_id,
         zambia_jurisdictions.jurisdiction_id AS jurisdiction_id,
-        zambia_jurisdictions.jurisdiction_parent_id AS jurisdiction_parent_id,
+        COALESCE(zambia_jurisdictions.jurisdiction_parent_id, '') AS jurisdiction_parent_id,
         zambia_jurisdictions.jurisdiction_name AS jurisdiction_name,
         zambia_jurisdictions.jurisdiction_depth AS jurisdiction_depth,
         zambia_jurisdictions.jurisdiction_path AS jurisdiction_path,
@@ -366,7 +366,7 @@ SELECT * FROM
             concat(jurisdictions_query.jurisdiction_id, plans.identifier)) AS id,
         plans.identifier as plan_id,
         jurisdictions_query.jurisdiction_id AS jurisdiction_id,
-        jurisdictions_query.jurisdiction_parent_id AS jurisdiction_parent_id,
+        COALESCE(jurisdictions_query.jurisdiction_parent_id, '') AS jurisdiction_parent_id,
         jurisdictions_query.jurisdiction_name AS jurisdiction_name,
         jurisdictions_query.jurisdiction_depth AS jurisdiction_depth,
         jurisdictions_query.jurisdiction_path AS jurisdiction_path,
@@ -405,7 +405,7 @@ SELECT * FROM
     (
         SELECT
             zambia_jurisdictions.jurisdiction_id AS jurisdiction_id,
-            zambia_jurisdictions.jurisdiction_parent_id AS jurisdiction_parent_id,
+            COALESCE(zambia_jurisdictions.jurisdiction_parent_id, '') AS jurisdiction_parent_id,
             zambia_jurisdictions.jurisdiction_name AS jurisdiction_name,
             zambia_jurisdictions.jurisdiction_geometry AS jurisdiction_geometry,
             zambia_jurisdictions.jurisdiction_depth AS jurisdiction_depth,
