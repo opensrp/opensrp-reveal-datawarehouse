@@ -1139,6 +1139,25 @@ FROM (
 -- Move views
 ---
 
+-- Ensure deprecated_ is empty
+DROP VIEW deprecated_:schema .zambia_irs_structures_report CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_structures_report_no_geojson CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_sop_date_performance CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_sop_performance CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_data_collector_performance CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_district_performance CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_sop_avg_time CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_collector_avg_time CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_district_avg_time CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_spray_event CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_export CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_focus_area_irs CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_irs_structures CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_plan_jurisdictions CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_structure_jurisdictions CASCADE;
+DROP MATERIALIZED VIEW deprecated_:schema .zambia_jurisdictions CASCADE;
+
 -- Move current views to deprecated_
 ALTER VIEW zambia_irs_structures_report SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_irs_structures_report_no_geojson SET SCHEMA deprecated_:schema;
