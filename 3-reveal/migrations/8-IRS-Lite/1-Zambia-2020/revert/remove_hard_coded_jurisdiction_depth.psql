@@ -5,5 +5,6 @@ BEGIN;
 SET search_path TO :"schema",public;
 
 DROP VIEW IF EXISTS pending_:schema .irs_lite_plans CASCADE;
+DROP VIEW IF EXISTS pending_:schema .zambia_irs_lite_operational_areas CASCADE;
 
 COMMIT;
