@@ -5,6 +5,10 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
+--
+-- Modify views
+---
+
 -- Add zambia_jurisdictions in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_jurisdictions CASCADE;
 
@@ -1130,5 +1134,47 @@ FROM (
     FROM pending_:schema .zambia_irs_structures_report_no_geojson AS irs_structures_report
     LEFT JOIN locations ON irs_structures_report.structure_id = locations.id
 ) row
+
+--
+-- Move views
+---
+
+-- Move current views to deprecated_
+ALTER VIEW zambia_irs_structures_report SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_structures_report_no_geojson SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_sop_date_performance SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_sop_performance SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_data_collector_performance SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_district_performance SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_sop_avg_time SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_collector_avg_time SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_district_avg_time SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_spray_event SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_export SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_focus_area_irs SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_structures SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_plan_jurisdictions SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_structure_jurisdictions SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_jurisdictions SET SCHEMA deprecated_:schema;
+
+-- Move pending views to current schema
+ALTER VIEW pending_:schema .zambia_irs_structures_report SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_structures_report_no_geojson SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_sop_date_performance SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_sop_performance SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_data_collector_performance SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_district_performance SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_sop_avg_time SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_collector_avg_time SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_district_avg_time SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_spray_event SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_export SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_structures SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_plan_jurisdictions SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_structure_jurisdictions SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_jurisdictions SET SCHEMA :"schema";
 
 COMMIT;
