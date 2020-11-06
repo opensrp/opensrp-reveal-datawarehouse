@@ -1066,5 +1066,69 @@ CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_sop_idx ON pending_:s
 CREATE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_event_date_idx ON pending_:schema .zambia_irs_sop_date_performance (event_date);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_sop_date_performance_idx ON pending_:schema .zambia_irs_sop_date_performance (id);
 
+-- Add zambia_irs_structures_report_no_geojson in pending.
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_structures_report_no_geojson CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_structures_report_no_geojson
+AS
+SELECT
+    id,
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    task_id,
+    plan_id,
+    event_date,
+    business_status,
+    rooms_eligible,
+    rooms_sprayed,
+    eligibility,
+    structure_sprayed
+FROM pending_:schema .zambia_irs_structures;
+
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_report_idx ON pending_:schema .zambia_irs_structures_report_no_geojson(id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_jurisdiction_idx ON pending_:schema .zambia_irs_structures_report_no_geojson(structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_plan_idx ON pending_:schema .zambia_irs_structures_report_no_geojson(plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_jurisdiction_plan_idx ON pending_:schema .zambia_irs_structures_report_no_geojson(structure_jurisdiction_id, plan_id);
+
+-- Add zambia_irs_structures_report in pending.
+DROP VIEW IF EXISTS pending_:schema .zambia_irs_structures_report CASCADE;
+
+CREATE OR REPLACE VIEW pending_:schema .zambia_irs_structures_report AS
+SELECT
+    id::VARCHAR,
+    structure_id,
+    structure_jurisdiction_id as jurisdiction_id,
+    task_id,
+    plan_id,
+    jsonb_build_object(
+        'type',         'Feature',
+        'id',           structure_id,
+        'geometry',     public.ST_AsGeoJSON(structure_geometry)::jsonb,
+        'properties',   to_jsonb(row) - 'structure_id' - 'structure_geometry'
+    ) AS geojson
+FROM (
+    SELECT
+        irs_structures_report.id AS id,
+        irs_structures_report.structure_id AS structure_id,
+        irs_structures_report.structure_jurisdiction_id AS structure_jurisdiction_id,
+        irs_structures_report.structure_code AS structure_code,
+        irs_structures_report.structure_name AS structure_name,
+        irs_structures_report.structure_type AS structure_type,
+        locations.geometry AS structure_geometry,
+        irs_structures_report.task_id AS task_id,
+        irs_structures_report.plan_id AS plan_id,
+        irs_structures_report.event_date AS event_date,
+        irs_structures_report.business_status AS business_status,
+        irs_structures_report.rooms_eligible AS rooms_eligible,
+        irs_structures_report.rooms_sprayed AS rooms_sprayed,
+        irs_structures_report.eligibility AS eligibility,
+        irs_structures_report.structure_sprayed AS structure_sprayed,
+        irs_structures_report.business_status AS business_status
+    FROM pending_:schema .zambia_irs_structures_report_no_geojson AS irs_structures_report
+    LEFT JOIN locations ON irs_structures_report.structure_id = locations.id
+) row
 
 COMMIT;
