@@ -1137,7 +1137,7 @@ FROM (
 
 --
 -- Move views
----
+--
 
 ALTER MATERIALIZED VIEW deprecated_:schema .zambia_focus_area_irs RENAME TO zambia_focus_area_irs_mopup;
 ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions RENAME TO zambia_irs_jurisdictions_mopup;
@@ -1179,7 +1179,7 @@ ALTER MATERIALIZED VIEW zambia_focus_area_irs_remove_hard_coded_depth SET SCHEMA
 ALTER MATERIALIZED VIEW zambia_irs_jurisdictions RENAME TO zambia_irs_jurisdictions_remove_hard_coded_depth;
 ALTER MATERIALIZED VIEW zambia_irs_jurisdictions_remove_hard_coded_depth SET SCHEMA deprecated_:schema;
 
--- -- Move pending views to current schema
+-- Move pending views to current schema
 ALTER VIEW pending_:schema .zambia_irs_structures_report SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_structures_report_no_geojson SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_sop_date_performance SET SCHEMA :"schema";
