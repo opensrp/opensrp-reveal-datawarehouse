@@ -3,6 +3,8 @@
 
 BEGIN;
 
+SET search_path TO :"schema",public;
+
 --
 -- Modify views
 ---
@@ -306,5 +308,19 @@ CREATE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_plan_idx ON pending_:sc
 CREATE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_jurisdiction_idx ON pending_:schema .zambia_irs_lite_jurisdictions (jurisdiction_id);
 CREATE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_jurisdiction_parent_idx ON pending_:schema .zambia_irs_lite_jurisdictions (jurisdiction_parent_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_idx ON pending_:schema .zambia_irs_lite_jurisdictions (id);
+
+--
+-- Move views
+--
+
+-- Move current views to deprecated_
+ALTER MATERIALIZED VIEW zambia_irs_lite_jurisdictions SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_lite_operational_areas SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW irs_lite_plans SET SCHEMA deprecated_:schema;
+
+-- Move pending views to current schema
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_lite_jurisdictions SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_lite_operational_areas SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_:schema .irs_lite_plans SET SCHEMA :"schema";
 
 COMMIT;

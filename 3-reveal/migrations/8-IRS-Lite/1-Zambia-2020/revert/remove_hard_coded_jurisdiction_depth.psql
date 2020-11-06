@@ -4,8 +4,16 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-DROP VIEW IF EXISTS pending_:schema .zambia_irs_lite_jurisdictions CASCADE;
-DROP VIEW IF EXISTS pending_:schema .zambia_irs_lite_operational_areas CASCADE;
-DROP VIEW IF EXISTS pending_:schema .irs_lite_plans CASCADE;
+ALTER MATERIALIZED VIEW zambia_irs_lite_jurisdictions SET SCHEMA pending_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_lite_operational_areas SET SCHEMA pending_:schema;
+ALTER MATERIALIZED VIEW irs_lite_plans SET SCHEMA pending_:schema;
+
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_lite_jurisdictions SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_lite_operational_areas SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW deprecated_:schema .irs_lite_plans SET SCHEMA :"schema";
+
+DROP MATERIALIZED VIEW pending_:schema .zambia_irs_lite_jurisdictions CASCADE;
+DROP MATERIALIZED VIEW pending_:schema .zambia_irs_lite_operational_areas CASCADE;
+DROP MATERIALIZED VIEW pending_:schema .irs_lite_plans CASCADE;
 
 COMMIT;
