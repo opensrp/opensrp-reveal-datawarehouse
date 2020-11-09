@@ -13,7 +13,7 @@ SET search_path TO :"schema",public;
 -- in any other way may have unknown performance implications.
 -- TODO: revisit if performance of the materialized view is a huge problem
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_structures
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_zambia_prod.zambia_irs_structures
 AS
 SELECT DISTINCT ON (locations.id, events_query.task_id)
     public.uuid_generate_v5(
@@ -46,8 +46,8 @@ SELECT DISTINCT ON (locations.id, events_query.task_id)
     COALESCE(events_query.notsprayed_reasons, ARRAY[]::varchar[]) AS notsprayed_reasons,
     COALESCE(events_query.duplicate, FALSE) AS duplicate,
     COALESCE(events_query.sprayed_duplicate, FALSE) AS sprayed_duplicate
-FROM locations
-INNER JOIN zambia_structure_jurisdictions ON zambia_structure_jurisdictions.id = locations.id
+FROM zambia_prod.locations AS locations
+INNER JOIN zambia_prod.zambia_structure_jurisdictions ON zambia_structure_jurisdictions.id = locations.id
 LEFT JOIN LATERAL (
     SELECT
         subq.task_id AS task_id,
@@ -82,8 +82,8 @@ LEFT JOIN LATERAL (
             events.form_data->'business_status'->>0 AS business_status,
             COALESCE (events.form_data->'notsprayed_reason'->>0, '')::text AS notsprayed_reason
             -- end get fields from JSON --
-        FROM events
-        LEFT JOIN tasks
+        FROM zambia_prod.events AS events
+        LEFT JOIN zambia_prod.tasks AS tasks
             ON tasks.identifier = events.task_id
         WHERE locations.id = events.base_entity_id
         AND events.entity_type = 'Structure'
@@ -103,40 +103,28 @@ LEFT JOIN LATERAL (
         tasks.plan_identifier,
         tasks.status,
         tasks.business_status
-    FROM tasks
+    FROM zambia_prod.tasks AS tasks
     WHERE tasks.task_for = locations.id
+    AND tasks.plan_identifier IN ('d40c1227-644b-55d6-b3f3-bed42380322f')
     AND tasks.status != 'Cancelled'
     ORDER BY tasks.server_version DESC
     LIMIT 1
 ) AS tasks_query ON true
 WHERE locations.status != 'Inactive';
 
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_structure_sprayed_idx ON zambia_irs_structures (structure_sprayed);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_business_status_idx ON zambia_irs_structures (business_status);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_sprayed_duplicate_idx ON zambia_irs_structures (sprayed_duplicate);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_duplicate_idx ON zambia_irs_structures (duplicate);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_notsprayed_reasons_idx ON zambia_irs_structures using GIN(notsprayed_reasons);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_event_date_idx ON zambia_irs_structures (event_date);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_task_id_idx ON zambia_irs_structures (task_id);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_plan_id_idx ON zambia_irs_structures (plan_id);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_plan_jurisdiction_id_idx ON zambia_irs_structures (plan_id, structure_jurisdiction_id);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_structure_jurisdiction_idx ON zambia_irs_structures (structure_jurisdiction_id);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_old_jurisdiction_idx ON zambia_irs_structures (old_jurisdiction_id);
-
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_geom_gix ON zambia_irs_structures USING GIST (structure_geometry);
-
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_structure_task_idx ON zambia_irs_structures (structure_id, task_id);
-
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_idx ON zambia_irs_structures (id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_structure_sprayed_idx ON pending_zambia_prod.zambia_irs_structures (structure_sprayed);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_business_status_idx ON pending_zambia_prod.zambia_irs_structures (business_status);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_sprayed_duplicate_idx ON pending_zambia_prod.zambia_irs_structures (sprayed_duplicate);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_duplicate_idx ON pending_zambia_prod.zambia_irs_structures (duplicate);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_notsprayed_reasons_idx ON pending_zambia_prod.zambia_irs_structures using GIN(notsprayed_reasons);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_event_date_idx ON pending_zambia_prod.zambia_irs_structures (event_date);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_task_id_idx ON pending_zambia_prod.zambia_irs_structures (task_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_plan_id_idx ON pending_zambia_prod.zambia_irs_structures (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_plan_jurisdiction_id_idx ON pending_zambia_prod.zambia_irs_structures (plan_id, structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_structure_jurisdiction_idx ON pending_zambia_prod.zambia_irs_structures (structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_old_jurisdiction_idx ON pending_zambia_prod.zambia_irs_structures (old_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strcts_geom_gix ON pending_zambia_prod.zambia_irs_structures USING GIST (structure_geometry);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_strcts_structure_task_idx ON pending_zambia_prod.zambia_irs_structures (structure_id, task_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_strcts_idx ON pending_zambia_prod.zambia_irs_structures (id);
 
 COMMIT;

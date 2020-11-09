@@ -9,7 +9,7 @@ SET search_path TO :"schema",public;
 -- as a materialized view withput the geometry column.  This is being done because
 -- in production zambia_irs_structures is not being refreshed concurrently and so we
 -- needs its data available for reporting even during its refreshing.
-CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_structures_report_no_geojson
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_zambia_prod.zambia_irs_structures_report_no_geojson
 AS
 SELECT
     id,
@@ -26,15 +26,16 @@ SELECT
     rooms_sprayed,
     eligibility,
     structure_sprayed
-FROM zambia_irs_structures;
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_report_idx ON zambia_irs_structures_report_no_geojson(id);
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_jurisdiction_idx ON zambia_irs_structures_report_no_geojson(structure_jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_plan_idx ON zambia_irs_structures_report_no_geojson(plan_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_report_jurisdiction_plan_idx ON zambia_irs_structures_report_no_geojson(structure_jurisdiction_id, plan_id);
+FROM pending_zambia_prod.zambia_irs_structures;
+
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_strctrs_report_idx ON pending_zambia_prod.zambia_irs_structures_report_no_geojson(id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strctrs_report_jurisdiction_idx ON pending_zambia_prod.zambia_irs_structures_report_no_geojson(structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strctrs_report_plan_idx ON pending_zambia_prod.zambia_irs_structures_report_no_geojson(plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_strctrs_report_jurisdiction_plan_idx ON pending_zambia_prod.zambia_irs_structures_report_no_geojson(structure_jurisdiction_id, plan_id);
 
 -- This view takes zambia_irs_structures_report and adds structure geometry
 -- This view is the one that is actually exposed directly to reporting applications
-CREATE OR REPLACE VIEW zambia_irs_structures_report AS
+CREATE OR REPLACE VIEW pending_zambia_prod.zambia_irs_structures_report AS
 SELECT
     id::VARCHAR,
     structure_id,
@@ -65,8 +66,8 @@ FROM (
         irs_structures_report.eligibility AS eligibility,
         irs_structures_report.structure_sprayed AS structure_sprayed,
         irs_structures_report.business_status AS business_status
-    FROM zambia_irs_structures_report_no_geojson AS irs_structures_report
-    LEFT JOIN locations ON irs_structures_report.structure_id = locations.id
+    FROM pending_zambia_prod.zambia_irs_structures_report_no_geojson AS irs_structures_report
+    LEFT JOIN zambia_prod.locations ON irs_structures_report.structure_id = locations.id
 ) row;
 
 COMMIT;

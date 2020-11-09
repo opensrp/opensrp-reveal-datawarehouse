@@ -3,7 +3,8 @@
 
 -- stop running queries
 SELECT
-  pg_cancel_backend(pid) as canceled
+  *
+  -- pg_cancel_backend(pid) as canceled
 FROM pg_stat_activity
 WHERE (now() - pg_stat_activity.query_start) > interval '1 minutes'
 AND (query ILIKE '%refresh_mat_view%' OR query ILIKE '%structure_geo_hierarchy%');

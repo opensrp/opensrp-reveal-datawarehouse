@@ -8,12 +8,12 @@ SET search_path TO :"schema",public;
 -- Modify views
 --
 
-CREATE MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs
+CREATE MATERIALIZED VIEW pending_zambia_prod.zambia_focus_area_irs
 AS
 SELECT * FROM
 (
     SELECT
-        uuid_generate_v5(
+        public.uuid_generate_v5(
             '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
             concat(plans.identifier, zambia_jurisdictions.jurisdiction_id)) AS id,
         plans.identifier AS plan_id,
@@ -40,7 +40,7 @@ SELECT * FROM
         irs_structures.duplicates AS duplicates,
         irs_structures.sprayed_duplicates AS sprayed_duplicates,
         COALESCE(irs_structures.notsprayed_reasons, '{}') AS notsprayed_reasons,
-        COALESCE(count_elements(irs_structures.notsprayed_reasons), '{}'::json) AS notsprayed_reasons_counts,
+        COALESCE(zambia_prod.count_elements(irs_structures.notsprayed_reasons), '{}'::json) AS notsprayed_reasons_counts,
         irs_structures.latest_spray_event_id AS latest_spray_event_id,
         irs_structures.latest_spray_event_date AS latest_spray_event_date,
         coverage_query.sprayCov AS sprayCov,
@@ -75,12 +75,12 @@ SELECT * FROM
         END AS reviewed_with_decision,
         irs_sa_events.latest_event_id AS latest_sa_event_id,
         irs_sa_events.latest_event_date AS latest_sa_event_date
-    FROM plans
-    LEFT JOIN zambia_plan_jurisdictions
+    FROM zambia_prod.plans AS plans
+    LEFT JOIN zambia_prod.zambia_plan_jurisdictions AS zambia_plan_jurisdictions
         ON plans.identifier = zambia_plan_jurisdictions.plan_id
-    LEFT JOIN zambia_jurisdictions
+    LEFT JOIN zambia_prod.zambia_jurisdictions AS zambia_jurisdictions
         ON zambia_plan_jurisdictions.zambia_jurisdiction_id = zambia_jurisdictions.jurisdiction_id
-    LEFT JOIN jurisdictions AS health_center_jurisdictions
+    LEFT JOIN zambia_prod.jurisdictions AS health_center_jurisdictions
     	ON health_center_jurisdictions.id = zambia_jurisdictions.jurisdiction_path[4]
     LEFT JOIN LATERAL (
         SELECT
@@ -95,10 +95,10 @@ SELECT * FROM
             COALESCE(SUM(rooms_sprayed) FILTER (WHERE business_status IN ('Partially Sprayed', 'Complete')), 0) AS sprayed_rooms_sprayed,
             COALESCE(COUNT(structure_id) FILTER (WHERE duplicate = TRUE), 0) AS duplicates,
             COALESCE(COUNT(structure_id) FILTER (WHERE sprayed_duplicate = TRUE), 0) AS sprayed_duplicates,
-            array_concat_agg(notsprayed_reasons) FILTER (WHERE notsprayed_reasons <> '{}')  AS notsprayed_reasons,
+            zambia_prod.ARRAY_CONCAT_AGG(notsprayed_reasons) FILTER (WHERE notsprayed_reasons <> '{}')  AS notsprayed_reasons,
             (MAX(ARRAY[TO_JSON(event_date)#>>'{}', event_id]) FILTER (WHERE event_id is not null))[2] AS latest_spray_event_id,
             MAX(event_date) AS latest_spray_event_date
-        FROM zambia_irs_structures AS zambia_irs_structures
+        FROM pending_zambia_prod.zambia_irs_structures AS zambia_irs_structures
         WHERE
             zambia_irs_structures.structure_jurisdiction_id = zambia_jurisdictions.jurisdiction_id AND
             business_status NOT IN ('Not Eligible', 'No Tasks') AND
@@ -115,17 +115,17 @@ SELECT * FROM
         SELECT
             COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('Not Eligible')), 0) AS notEligible,
             COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('No Tasks')), 0) AS noTasks
-        FROM zambia_irs_structures
+        FROM zambia_prod.zambia_irs_structures AS zambia_irs_structures
         WHERE
             zambia_irs_structures.structure_jurisdiction_id = zambia_jurisdictions.jurisdiction_id AND
             business_status IN ('Not Eligible', 'No Tasks') AND
             (plans.identifier = zambia_irs_structures.plan_id OR zambia_irs_structures.plan_id IS NULL)
     ) AS inactive_irs_structures ON true
     LEFT JOIN LATERAL (
-        SELECT 
+        SELECT
 			events.id AS latest_event_id,
 			events.event_date AS latest_event_date
-		FROM events
+		FROM zambia_prod.events
 		WHERE
 			events.event_type = 'irs_sa_decision'
 			AND events.location_id = zambia_jurisdictions.jurisdiction_id
@@ -139,22 +139,22 @@ SELECT * FROM
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx ON pending_:schema .zambia_focus_area_irs (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_parent_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_parent_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_idx ON pending_:schema .zambia_focus_area_irs (id);
+CREATE INDEX IF NOT EXISTS zambia_fcirss_path_idx_gin on pending_zambia_prod.zambia_focus_area_irs using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_fcirss_plan_idx ON pending_zambia_prod.zambia_focus_area_irs (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_fcirss_jurisdiction_idx ON pending_zambia_prod.zambia_focus_area_irs (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_fcirss_jurisdiction_parent_idx ON pending_zambia_prod.zambia_focus_area_irs (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_fcirss_idx ON pending_zambia_prod.zambia_focus_area_irs (id);
 
 --
 --
 --
 
-CREATE MATERIALIZED VIEW pending_:schema .zambia_irs_jurisdictions
+CREATE MATERIALIZED VIEW pending_zambia_prod.zambia_irs_jurisdictions
 AS
 SELECT * FROM
 (
     SELECT DISTINCT ON (jurisdictions_query.jurisdiction_id, plans.identifier)
-        uuid_generate_v5(
+        public.uuid_generate_v5(
             '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
             concat(jurisdictions_query.jurisdiction_id, plans.identifier)) AS id,
         plans.identifier as plan_id,
@@ -192,7 +192,7 @@ SELECT * FROM
         jurisdictions_query.latest_spray_event_date AS latest_spray_event_date,
         jurisdictions_query.latest_sa_event_id AS latest_sa_event_id,
         jurisdictions_query.latest_sa_event_date AS latest_sa_event_date
-    FROM plans
+    FROM zambia_prod.plans AS plans
     LEFT JOIN LATERAL
     (
         SELECT
@@ -246,7 +246,7 @@ SELECT * FROM
             zambia_focus_area_irs_query.latest_spray_event_date AS latest_spray_event_date,
             zambia_focus_area_irs_query.latest_sa_event_id AS latest_sa_event_id,
             zambia_focus_area_irs_query.latest_sa_event_date AS latest_sa_event_date
-        FROM zambia_jurisdictions
+        FROM zambia_prod.zambia_jurisdictions AS zambia_jurisdictions
         LEFT JOIN LATERAL (
             SELECT
                 COALESCE(COUNT(jurisdiction_id), 0) AS totAreas,
@@ -286,7 +286,7 @@ SELECT * FROM
 			    MAX(latest_spray_event_date) AS latest_spray_event_date,
 				(MAX(ARRAY[TO_JSON(latest_sa_event_date)#>>'{}', latest_sa_event_id]) FILTER (WHERE latest_sa_event_id is not null))[2] AS latest_sa_event_id,
 			    MAX(latest_sa_event_date) AS latest_sa_event_date
-            FROM pending_:schema .zambia_focus_area_irs AS zambia_focus_area_irs
+            FROM pending_zambia_prod.zambia_focus_area_irs AS zambia_focus_area_irs
             WHERE zambia_focus_area_irs.plan_id = plans.identifier
                 AND ( (zambia_jurisdictions.is_virtual_jurisdiction
                        AND zambia_focus_area_irs.is_virtual_jurisdiction
@@ -305,16 +305,16 @@ SELECT * FROM
 ) AS main_query
 ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
 
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_path_idx_gin on pending_:schema .zambia_irs_jurisdictions using GIN(jurisdiction_path);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_plan_idx ON pending_:schema .zambia_irs_jurisdictions (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx ON pending_:schema .zambia_irs_jurisdictions (id);
+CREATE INDEX IF NOT EXISTS zambia_irssts_path_idx_gin on pending_zambia_prod.zambia_irs_jurisdictions using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS zambia_irssts_plan_idx ON pending_zambia_prod.zambia_irs_jurisdictions (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irssts_jurisdiction_idx ON pending_zambia_prod.zambia_irs_jurisdictions (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irssts_jurisdiction_parent_idx ON pending_zambia_prod.zambia_irs_jurisdictions (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irssts_jurisdictions_idx ON pending_zambia_prod.zambia_irs_jurisdictions (id);
 
 ALTER MATERIALIZED VIEW zambia_focus_area_irs SET SCHEMA deprecated_:schema ;
 ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA deprecated_:schema ;
 
-ALTER MATERIALIZED VIEW pending_:schema .zambia_focus_area_irs SET SCHEMA :"schema";
-ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_zambia_prod.zambia_focus_area_irs SET SCHEMA :"schema";
+ALTER MATERIALIZED VIEW pending_zambia_prod.zambia_irs_jurisdictions SET SCHEMA :"schema";
 
 COMMIT;
