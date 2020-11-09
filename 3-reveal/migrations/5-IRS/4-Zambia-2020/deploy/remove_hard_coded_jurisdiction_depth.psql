@@ -98,11 +98,13 @@ DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_structures CASCADE;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_structures
 AS
-SELECT DISTINCT ON (locations.id, events_query.task_id)
+SELECT DISTINCT ON (irs_plans.plan_id, locations.id)
     public.uuid_generate_v5(
         '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-        concat(locations.id, events_query.task_id)) AS id,
+        concat(locations.id, COALESCE(events_query.task_id, tasks_query.identifier))) AS id,
+    irs_plans.plan_id,
     locations.id AS structure_id,
+    locations.status AS structure_status,
     locations.jurisdiction_id AS old_jurisdiction_id,
     zambia_structure_jurisdictions.jurisdiction_depth AS old_jurisdiction_depth,
     zambia_structure_jurisdictions.geo_jurisdiction_id AS geo_jurisdiction_id,
@@ -110,15 +112,9 @@ SELECT DISTINCT ON (locations.id, events_query.task_id)
     zambia_structure_jurisdictions.zambia_jurisdiction_id AS zambia_jurisdiction_id,
     zambia_structure_jurisdictions.zambia_jurisdiction_depth AS zambia_jurisdiction_depth,
     COALESCE(zambia_structure_jurisdictions.zambia_jurisdiction_id, locations.jurisdiction_id) AS structure_jurisdiction_id,
-    locations.code AS structure_code,
-    locations.name AS structure_name,
-    locations.type AS structure_type,
-    locations.geometry AS structure_geometry,
-    locations.status AS structure_status,
     COALESCE(events_query.task_id, tasks_query.identifier) AS task_id,
     COALESCE(events_query.task_status, tasks_query.status) AS task_status,
     events_query.event_id AS event_id,
-    COALESCE(events_query.plan_id, tasks_query.plan_identifier) AS plan_id,
     events_query.event_date AS event_date,
     COALESCE(events_query.rooms_eligible, 0) AS rooms_eligible,
     COALESCE(events_query.rooms_sprayed, 0) AS rooms_sprayed,
@@ -129,7 +125,17 @@ SELECT DISTINCT ON (locations.id, events_query.task_id)
     COALESCE(events_query.notsprayed_reasons, ARRAY[]::varchar[]) AS notsprayed_reasons,
     COALESCE(events_query.duplicate, FALSE) AS duplicate,
     COALESCE(events_query.sprayed_duplicate, FALSE) AS sprayed_duplicate
-FROM locations
+FROM irs_plans
+LEFT JOIN plan_jurisdiction
+    ON plan_jurisdiction.plan_id = irs_plans.plan_id
+LEFT JOIN jurisdictions_tree AS jurisdictions_tree
+    ON plan_jurisdiction.jurisdiction_id = jurisdictions_tree.jurisdiction_id
+LEFT JOIN locations
+    ON (
+        plan_jurisdiction.jurisdiction_id = locations.jurisdiction_id OR
+        -- this takes care of the possibility of higher level jurisdictions in the plan
+        locations.jurisdiction_id = ANY(jurisdictions_tree.jurisdiction_path)
+    )
 INNER JOIN pending_:schema .zambia_structure_jurisdictions AS zambia_structure_jurisdictions
     ON zambia_structure_jurisdictions.id = locations.id
 LEFT JOIN LATERAL (
@@ -174,6 +180,7 @@ LEFT JOIN LATERAL (
         WHERE locations.id = events.base_entity_id
         AND events.entity_type = 'Structure'
         AND events.event_type = 'Spray'
+        AND tasks.plan_identifier = irs_plans.plan_id
     ) AS subq
     ORDER BY
         subq.form_end_time DESC,
@@ -181,7 +188,7 @@ LEFT JOIN LATERAL (
         subq.rooms_sprayed DESC,
         subq.rooms_eligible DESC
     LIMIT 1
-) AS events_query ON true
+) AS events_query ON TRUE
 LEFT JOIN LATERAL (
     SELECT
         tasks.identifier,
@@ -192,9 +199,10 @@ LEFT JOIN LATERAL (
     FROM tasks
     WHERE tasks.task_for = locations.id
     AND tasks.status != 'Cancelled'
+    AND tasks.plan_identifier = irs_plans.plan_id
     ORDER BY tasks.server_version DESC
     LIMIT 1
-) AS tasks_query ON true
+) AS tasks_query ON TRUE
 WHERE locations.status != 'Inactive';
 
 CREATE INDEX IF NOT EXISTS zambia_irs_structures_structure_sprayed_idx ON pending_:schema .zambia_irs_structures (structure_sprayed);
@@ -208,7 +216,6 @@ CREATE INDEX IF NOT EXISTS zambia_irs_structures_plan_id_idx ON pending_:schema 
 CREATE INDEX IF NOT EXISTS zambia_irs_structures_plan_jurisdiction_id_idx ON pending_:schema .zambia_irs_structures (plan_id, structure_jurisdiction_id);
 CREATE INDEX IF NOT EXISTS zambia_irs_structures_structure_jurisdiction_idx ON pending_:schema .zambia_irs_structures (structure_jurisdiction_id);
 CREATE INDEX IF NOT EXISTS zambia_irs_structures_old_jurisdiction_idx ON pending_:schema .zambia_irs_structures (old_jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_structures_geom_gix ON pending_:schema .zambia_irs_structures USING GIST (structure_geometry);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_structure_task_idx ON pending_:schema .zambia_irs_structures (structure_id, task_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_structures_idx ON pending_:schema .zambia_irs_structures (id);
 
@@ -528,11 +535,11 @@ AS
 SELECT
     DISTINCT(zambia_irs_structures.structure_id) AS structure_id,
     zambia_irs_structures.structure_jurisdiction_id AS structure_jurisdiction_id,
-    zambia_irs_structures.structure_code AS structure_code,
-    zambia_irs_structures.structure_name AS structure_name,
-    zambia_irs_structures.structure_type AS structure_type,
-    ST_AsGeoJSON(zambia_irs_structures.structure_geometry) AS structure_geometry,
-    zambia_irs_structures.structure_status AS structure_status,
+    locations.code AS structure_code,
+    locations.name AS structure_name,
+    locations.type AS structure_type,
+    ST_AsGeoJSON(locations.geometry) AS structure_geometry,
+    locations.status AS structure_status,
     zambia_irs_structures.task_id AS task_id,
     zambia_irs_structures.event_id AS event_id,
     zambia_irs_structures.plan_id AS plan_id,
@@ -582,9 +589,9 @@ SELECT
     zambia_irs_structures.notsprayed_reasons AS notsprayed_reasons,
     zambia_irs_structures.duplicate AS duplicate,
     zambia_irs_structures.sprayed_duplicate AS sprayed_duplicate,
-    ST_GeometryType(zambia_irs_structures.structure_geometry) AS structure_geometry_type,
-    ST_AsGeoJSON(ST_Centroid(zambia_irs_structures.structure_geometry)) AS structure_geometry_centroid,
-    ST_AsText(ST_Centroid(zambia_irs_structures.structure_geometry)) AS structure_geometry_centroid_coordinates,
+    ST_GeometryType(locations.geometry) AS structure_geometry_type,
+    ST_AsGeoJSON(ST_Centroid(locations.geometry)) AS structure_geometry_centroid,
+    ST_AsText(ST_Centroid(locations.geometry)) AS structure_geometry_centroid_coordinates,
     zambia_jurisdictions.jurisdiction_name_path[1] AS jurisdiction_parent1,
     zambia_jurisdictions.jurisdiction_name_path[2] AS jurisdiction_parent2,
     zambia_jurisdictions.jurisdiction_name_path[3] AS jurisdiction_parent3,
@@ -611,7 +618,8 @@ LEFT JOIN jurisdictions AS geo_jurisdictions
     ON geo_jurisdictions.id = zambia_irs_structures.geo_jurisdiction_id
 LEFT JOIN pending_:schema .zambia_plan_jurisdictions AS zambia_plan_jurisdictions
     ON zambia_plan_jurisdictions.plan_id = zambia_irs_structures.plan_id
-      AND zambia_plan_jurisdictions.zambia_jurisdiction_id = zambia_irs_structures.structure_jurisdiction_id;
+    AND zambia_plan_jurisdictions.zambia_jurisdiction_id = zambia_irs_structures.structure_jurisdiction_id
+LEFT JOIN locations ON zambia_irs_structures.structure_id = locations.id;
 
 CREATE INDEX IF NOT EXISTS zambia_irs_export_event_date_idx ON pending_:schema .zambia_irs_export (event_date);
 CREATE INDEX IF NOT EXISTS zambia_irs_export_task_id_idx ON pending_:schema .zambia_irs_export (task_id);
@@ -1079,9 +1087,6 @@ SELECT
     id,
     structure_id,
     structure_jurisdiction_id,
-    structure_code,
-    structure_name,
-    structure_type,
     task_id,
     plan_id,
     event_date,
@@ -1118,9 +1123,9 @@ FROM (
         irs_structures_report.id AS id,
         irs_structures_report.structure_id AS structure_id,
         irs_structures_report.structure_jurisdiction_id AS structure_jurisdiction_id,
-        irs_structures_report.structure_code AS structure_code,
-        irs_structures_report.structure_name AS structure_name,
-        irs_structures_report.structure_type AS structure_type,
+        locations.code AS structure_code,
+        locations.name AS structure_name,
+        locations.type AS structure_type,
         locations.geometry AS structure_geometry,
         irs_structures_report.task_id AS task_id,
         irs_structures_report.plan_id AS plan_id,
