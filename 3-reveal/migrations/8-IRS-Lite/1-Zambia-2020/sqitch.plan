@@ -6,3 +6,4 @@ irs_lite_plans [reveal_transaction_tables:plans reveal_transaction_tables:plan_j
 zambia_irs_lite_structures [reveal_transaction_tables:locations reveal_transaction_tables:events reveal_transaction_tables:tasks] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_structures.
 zambia_irs_lite_operational_areas [reveal_transaction_tables:plans zambia_irs_lite_structures utils:count_elements utils:array_concat_agg] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_operational_areas.
 zambia_irs_lite_jurisdictions [reveal_transaction_tables:plans zambia_irs_lite_operational_areas] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_jurisdictions.
+remove_hard_coded_jurisdiction_depth [reveal_database_views:jurisdictions_tree] 2020-11-06T11:35:51Z mosh <kjayanoris@ona.io> # Remove hard-coded jurisdiction depth.

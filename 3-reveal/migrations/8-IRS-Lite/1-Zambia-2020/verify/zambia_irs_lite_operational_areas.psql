@@ -24,7 +24,7 @@ SELECT
     totAreas,
     targAreas,
     visitedAreas,
-    sprayCov,       
+    sprayCov,
     sprayCovTarg,
     foundCoverage,
     spraySuccess

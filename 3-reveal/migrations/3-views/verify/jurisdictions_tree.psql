@@ -1,0 +1,69 @@
+-- Verify reveal_database_views:jurisdictions_tree on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'jurisdictions_tree';
+
+SELECT
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_geometry,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    is_leaf_node,
+    jurisdiction_root_parent_id,
+    jurisdiction_root_parent_name
+FROM jurisdictions_tree
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions_tree'
+AND indexname = 'jurisdictions_tree_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions_tree'
+AND indexname = 'jurisdictions_tree_depth_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions_tree'
+AND indexname = 'jurisdictions_tree_root_parent_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions_tree'
+AND indexname = 'jurisdictions_is_leaf_node_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions_tree'
+AND indexdef LIKE '%gist (jurisdiction_geometry)%'
+AND indexname = 'jurisdictions_tree_geom_gix';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'jurisdictions_tree'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'jurisdictions_tree_idx';
+
+ROLLBACK;

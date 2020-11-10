@@ -1,0 +1,254 @@
+-- Verify reveal_irs_lite_zambia_202020:remove_hard_coded_jurisdiction_depth on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- zambia_irs_lite_structures
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_lite_structures';
+
+SELECT
+    id,
+    structure_id,
+    structure_jurisdiction_id,
+    structure_code,
+    structure_name,
+    structure_type,
+    structure_geometry,
+    structure_status,
+    task_id,
+    task_status,
+    event_id,
+    plan_id,
+    event_date,
+    business_status
+FROM zambia_irs_lite_structures
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_lite_structures_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_lite_structures_structure_task_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexname = 'zambia_irs_lite_structures_business_status_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexname = 'zambia_irs_lite_structures_event_date_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexname = 'zambia_irs_lite_structures_task_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexname = 'zambia_irs_lite_structures_plan_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexname = 'zambia_irs_lite_structures_plan_jurisdiction_id_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexname = 'zambia_irs_lite_structures_structure_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_structures'
+AND indexdef LIKE '%gist (structure_geometry)%'
+AND indexname = 'zambia_irs_lite_structures_geom_gix';
+
+-- zambia_irs_lite_jurisdictions
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_lite_jurisdictions';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    totStruct,
+    targStruct,
+    sprayed,
+    found,
+    totAreas,
+    targAreas,
+    visitedAreas,
+    sprayCov,
+    sprayCovTarg,
+    foundCoverage,
+    spraySuccess
+FROM zambia_irs_lite_jurisdictions
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_jurisdictions'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_lite_jurisdictions_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_jurisdictions'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'zambia_irs_lite_jurisdictions_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_jurisdictions'
+AND indexname = 'zambia_irs_lite_jurisdictions_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_jurisdictions'
+AND indexname = 'zambia_irs_lite_jurisdictions_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_jurisdictions'
+AND indexname = 'zambia_irs_lite_jurisdictions_jurisdiction_parent_idx';
+
+-- zambia_irs_lite_operational_areas
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'zambia_irs_lite_operational_areas';
+
+SELECT
+    id,
+    plan_id,
+    jurisdiction_id,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    totStruct,
+    targStruct,
+    sprayed,
+    found,
+    totAreas,
+    targAreas,
+    visitedAreas,
+    sprayCov,
+    sprayCovTarg,
+    foundCoverage,
+    spraySuccess
+FROM zambia_irs_lite_operational_areas
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexdef LIKE '%gin (jurisdiction_path)%'
+AND indexname = 'zambia_irs_lite_operational_areas_path_idx_gin';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexname = 'zambia_irs_lite_operational_areas_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexname = 'zambia_irs_lite_operational_areas_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexname = 'zambia_irs_lite_operational_areas_jurisdiction_parent_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'zambia_irs_lite_operational_areas'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'zambia_irs_lite_operational_areas_idx';
+
+-- irs_lite_plans
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'irs_lite_plans';
+
+SELECT
+    plan_id,
+    plan_title,
+    plan_name,
+    plan_status,
+    plan_date,
+    plan_effective_period_start,
+    plan_effective_period_end,
+    plan_intervention_type,
+    plan_version,
+    jurisdiction_root_parent_ids
+FROM irs_lite_plans
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'irs_lite_plans'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'irs_lite_plans_idx';
+
+
+ROLLBACK;
