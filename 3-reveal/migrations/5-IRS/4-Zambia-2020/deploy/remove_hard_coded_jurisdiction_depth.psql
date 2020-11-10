@@ -101,7 +101,7 @@ AS
 SELECT DISTINCT ON (irs_plans.plan_id, locations.id)
     public.uuid_generate_v5(
         '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-        concat(locations.id, COALESCE(events_query.task_id, tasks_query.identifier))) AS id,
+        concat(irs_plans.plan_id, locations.id)) AS id,
     irs_plans.plan_id,
     locations.id AS structure_id,
     locations.status AS structure_status,
