@@ -158,7 +158,6 @@ LEFT JOIN LATERAL (
     FROM
     (
         SELECT
-            DISTINCT ON (events.task_id)
             events.id AS event_id,
             events.task_id AS task_id,
             events.event_date AS event_date,
@@ -181,6 +180,7 @@ LEFT JOIN LATERAL (
         AND events.entity_type = 'Structure'
         AND events.event_type = 'Spray'
         AND tasks.plan_identifier = irs_plans.plan_id
+        ORDER BY form_end_time DESC
     ) AS subq
     ORDER BY
         subq.form_end_time DESC,
