@@ -227,7 +227,7 @@ AS
 SELECT * FROM
 (
     SELECT
-        uuid_generate_v5(
+        public.uuid_generate_v5(
             '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
             concat(plans.identifier, zambia_jurisdictions.jurisdiction_id)) AS id,
         plans.identifier AS plan_id,
@@ -337,18 +337,18 @@ SELECT * FROM
             (plans.identifier = zambia_irs_structures.plan_id OR zambia_irs_structures.plan_id IS NULL)
     ) AS inactive_irs_structures ON true
     LEFT JOIN LATERAL (
-        SELECT
-			events.id AS latest_event_id,
-			events.event_date AS latest_event_date
-		FROM events
-		WHERE
-			events.event_type = 'irs_sa_decision'
-			AND events.location_id = zambia_jurisdictions.jurisdiction_id
-		ORDER BY
-			events.event_date DESC,
-			events.server_version DESC,
-			events.id DESC
-		LIMIT 1
+      SELECT
+        events.id AS latest_event_id,
+        events.event_date AS latest_event_date
+      FROM events
+      WHERE
+        events.event_type = 'irs_sa_decision'
+        AND events.location_id = zambia_jurisdictions.jurisdiction_id
+      ORDER BY
+        events.form_data->>'end' DESC,
+        events.server_version DESC,
+        events.id DESC
+      LIMIT 1
     ) AS irs_sa_events ON true
     WHERE plans.intervention_type IN ('IRS', 'Dynamic-IRS') AND plans.status NOT IN ('draft', 'retired')
 ) AS main_query
@@ -368,7 +368,7 @@ AS
 SELECT * FROM
 (
     SELECT DISTINCT ON (jurisdictions_query.jurisdiction_id, plans.identifier)
-        uuid_generate_v5(
+        public.uuid_generate_v5(
             '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
             concat(jurisdictions_query.jurisdiction_id, plans.identifier)) AS id,
         plans.identifier as plan_id,
@@ -538,7 +538,7 @@ SELECT
     locations.code AS structure_code,
     locations.name AS structure_name,
     locations.type AS structure_type,
-    ST_AsGeoJSON(locations.geometry) AS structure_geometry,
+    public.ST_AsGeoJSON(locations.geometry) AS structure_geometry,
     locations.status AS structure_status,
     zambia_irs_structures.task_id AS task_id,
     zambia_irs_structures.event_id AS event_id,
@@ -589,9 +589,9 @@ SELECT
     zambia_irs_structures.notsprayed_reasons AS notsprayed_reasons,
     zambia_irs_structures.duplicate AS duplicate,
     zambia_irs_structures.sprayed_duplicate AS sprayed_duplicate,
-    ST_GeometryType(locations.geometry) AS structure_geometry_type,
-    ST_AsGeoJSON(ST_Centroid(locations.geometry)) AS structure_geometry_centroid,
-    ST_AsText(ST_Centroid(locations.geometry)) AS structure_geometry_centroid_coordinates,
+    public.ST_GeometryType(locations.geometry) AS structure_geometry_type,
+    public.ST_AsGeoJSON(public.ST_Centroid(locations.geometry)) AS structure_geometry_centroid,
+    public.ST_AsText(public.ST_Centroid(locations.geometry)) AS structure_geometry_centroid_coordinates,
     zambia_jurisdictions.jurisdiction_name_path[1] AS jurisdiction_parent1,
     zambia_jurisdictions.jurisdiction_name_path[2] AS jurisdiction_parent2,
     zambia_jurisdictions.jurisdiction_name_path[3] AS jurisdiction_parent3,
