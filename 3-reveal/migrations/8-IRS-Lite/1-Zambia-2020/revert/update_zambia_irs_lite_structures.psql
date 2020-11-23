@@ -1,0 +1,13 @@
+-- Revert reveal_irs_lite_zambia_2020:update_zambia_irs_lite_structures from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER MATERIALIZED VIEW zambia_irs_lite_structures SET SCHEMA pending_:schema;
+
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_lite_structures SET SCHEMA :"schema";
+
+DROP MATERIALIZED VIEW pending_:schema .zambia_irs_lite_structures CASCADE;
+
+COMMIT;

@@ -1,0 +1,82 @@
+-- Deploy reveal_irs_lite_zambia_2020:update_zambia_list_structures to pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+--
+-- Modify views
+---
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_lite_structures CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_lite_structures
+AS
+SELECT DISTINCT ON (locations.id, events_query.task_id)
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(locations.id, events_query.task_id)) AS id,
+    locations.id AS structure_id,
+    locations.jurisdiction_id AS structure_jurisdiction_id,
+    locations.code AS structure_code,
+    locations.name AS structure_name,
+    locations.type AS structure_type,
+    locations.status AS structure_status,
+    locations.geometry AS structure_geometry,
+    events_query.event_id AS event_id,
+    events_query.task_id AS task_id,
+    events_query.task_status AS task_status,
+    events_query.plan_id AS plan_id,
+    events_query.event_date AS event_date,
+    COALESCE(events_query.business_status, 'Not Visited') AS business_status
+FROM locations
+LEFT JOIN LATERAL (
+    SELECT
+        subq.event_id AS event_id,
+        subq.task_id AS task_id,
+        subq.task_status AS task_status,
+        subq.event_date AS event_date,
+        subq.plan_id AS plan_id,
+        subq.business_status AS business_status
+    FROM (
+        SELECT
+            DISTINCT ON (tasks.identifier)
+            events.id AS event_id,
+            tasks.identifier AS task_id,
+            tasks.status AS task_status,
+            events.event_date AS event_date,
+            tasks.plan_identifier AS plan_id,
+            COALESCE (events.form_data->'business_status'->>0, 'Not Visited')::text AS business_status
+        FROM tasks
+        LEFT JOIN events
+            ON tasks.identifier = events.task_id
+        AND events.entity_type = 'Structure'
+        AND events.event_type = 'irs_lite_verification'
+        WHERE locations.id = tasks.task_for
+        AND tasks.status != 'Cancelled'
+        ORDER BY tasks.identifier, events.form_data->'end' DESC
+    ) AS subq
+) AS events_query ON true
+WHERE locations.status != 'Inactive'
+AND locations.geographic_level = 4;
+
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_business_status_idx ON pending_:schema .zambia_irs_lite_structures (business_status);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_event_date_idx ON pending_:schema .zambia_irs_lite_structures (event_date);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_task_id_idx ON pending_:schema .zambia_irs_lite_structures (task_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_plan_id_idx ON pending_:schema .zambia_irs_lite_structures (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_plan_jurisdiction_id_idx ON pending_:schema .zambia_irs_lite_structures (plan_id, structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_structure_jurisdiction_idx ON pending_:schema .zambia_irs_lite_structures (structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_geom_gix ON pending_:schema .zambia_irs_lite_structures USING GIST (structure_geometry);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_structures_structure_task_idx ON pending_:schema .zambia_irs_lite_structures (structure_id, task_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_structures_idx ON pending_:schema .zambia_irs_lite_structures (id);
+
+--
+-- Move views
+--
+
+-- Move current views to deprecated_
+ALTER MATERIALIZED VIEW zambia_irs_lite_structures SET SCHEMA deprecated_:schema;
+
+-- Move pending views to current schema
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_lite_structures SET SCHEMA :"schema";
+
+COMMIT;
