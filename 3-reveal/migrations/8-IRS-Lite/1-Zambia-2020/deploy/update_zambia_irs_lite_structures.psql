@@ -1,14 +1,15 @@
--- Deploy reveal_irs_lite_zambia_2020:zambia_irs_lite_structures to pg
--- requires: reveal_transaction_tables:structures
--- requires: reveal_transaction_tables:events
--- requires: reveal_transaction_tables:tasks
--- requires: zambia_lite_structure_jurisdictions
+-- Deploy reveal_irs_lite_zambia_2020:update_zambia_list_structures to pg
 
 BEGIN;
 
 SET search_path TO :"schema",public;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_irs_lite_structures
+--
+-- Modify views
+---
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_lite_structures CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS pending_:schema .zambia_irs_lite_structures
 AS
 SELECT DISTINCT ON (locations.id, events_query.task_id)
     public.uuid_generate_v5(
@@ -58,15 +59,24 @@ LEFT JOIN LATERAL (
 WHERE locations.status != 'Inactive'
 AND locations.geographic_level = 4;
 
-CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_business_status_idx ON zambia_irs_lite_structures (business_status);
-CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_event_date_idx ON zambia_irs_lite_structures (event_date);
-CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_task_id_idx ON zambia_irs_lite_structures (task_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_plan_id_idx ON zambia_irs_lite_structures (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_plan_jurisdiction_id_idx ON zambia_irs_lite_structures (plan_id, structure_jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_structure_jurisdiction_idx ON zambia_irs_lite_structures (structure_jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_geom_gix ON zambia_irs_lite_structures USING GIST (structure_geometry);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_structures_structure_task_idx ON zambia_irs_lite_structures (structure_id, task_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_structures_idx ON zambia_irs_lite_structures (id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_business_status_idx ON pending_:schema .zambia_irs_lite_structures (business_status);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_event_date_idx ON pending_:schema .zambia_irs_lite_structures (event_date);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_task_id_idx ON pending_:schema .zambia_irs_lite_structures (task_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_plan_id_idx ON pending_:schema .zambia_irs_lite_structures (plan_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_plan_jurisdiction_id_idx ON pending_:schema .zambia_irs_lite_structures (plan_id, structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_structure_jurisdiction_idx ON pending_:schema .zambia_irs_lite_structures (structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS zambia_irs_lite_structures_geom_gix ON pending_:schema .zambia_irs_lite_structures USING GIST (structure_geometry);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_structures_structure_task_idx ON pending_:schema .zambia_irs_lite_structures (structure_id, task_id);
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_structures_idx ON pending_:schema .zambia_irs_lite_structures (id);
+
+--
+-- Move views
+--
+
+-- Move current views to deprecated_
+ALTER MATERIALIZED VIEW zambia_irs_lite_structures SET SCHEMA deprecated_:schema;
+
+-- Move pending views to current schema
+ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_lite_structures SET SCHEMA :"schema";
 
 COMMIT;
-
