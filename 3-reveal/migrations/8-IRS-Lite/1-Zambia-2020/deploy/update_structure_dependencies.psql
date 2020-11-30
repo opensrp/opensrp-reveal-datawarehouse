@@ -277,13 +277,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_lite_jurisdictions_idx ON pending_:
 -- Move views
 --
 
--- Drop existing deprecated views
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_lite_operational_areas CASCADE;
-DROP MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_lite_jurisdictions CASCADE;
-
 -- Move current views to deprecated_
-ALTER MATERIALIZED VIEW zambia_irs_lite_jurisdictions SET SCHEMA deprecated_:schema;
-ALTER MATERIALIZED VIEW zambia_irs_lite_operational_areas SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_irs_lite_jurisdictions RENAME TO zambia_irs_lite_jurisdictions_v2;
+ALTER MATERIALIZED VIEW zambia_irs_lite_jurisdictions_v2 SET SCHEMA deprecated_:schema;
+
+ALTER MATERIALIZED VIEW zambia_irs_lite_operational_areas RENAME TO zambia_irs_lite_operational_areas_v2;
+ALTER MATERIALIZED VIEW zambia_irs_lite_operational_areas_v2 SET SCHEMA deprecated_:schema;
 
 -- Move pending views to current schema
 ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_lite_jurisdictions SET SCHEMA :"schema";
