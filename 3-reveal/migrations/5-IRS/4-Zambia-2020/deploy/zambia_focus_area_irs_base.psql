@@ -1,0 +1,155 @@
+-- Deploy reveal_irs_zambia_2020:zambia_focus_area_irs_base to pg
+-- requires: reveal_transaction_tables:plans
+-- requires: reveal_irs_zambia_2019:zambia_plan_jurisdictions
+-- requires: reveal_irs_zambia_2019:zambia_jurisdictions
+-- requires: reveal_irs_zambia_2019:zambia_irs_structures
+-- requires: utils:count_elements
+-- requires: utils:array_concat_agg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS zambia_focus_area_irs_base
+AS
+SELECT * FROM
+(
+    SELECT
+        public.uuid_generate_v5(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+            concat(plans.identifier, zambia_jurisdictions.jurisdiction_id)) AS id,
+        plans.identifier AS plan_id,
+        zambia_jurisdictions.jurisdiction_id AS jurisdiction_id,
+        COALESCE(zambia_jurisdictions.jurisdiction_parent_id, '') AS jurisdiction_parent_id,
+        zambia_jurisdictions.jurisdiction_name AS jurisdiction_name,
+        zambia_jurisdictions.jurisdiction_depth AS jurisdiction_depth,
+        zambia_jurisdictions.jurisdiction_path AS jurisdiction_path,
+        zambia_jurisdictions.jurisdiction_name_path AS jurisdiction_name_path,
+        zambia_jurisdictions.is_virtual_jurisdiction AS is_virtual_jurisdiction,
+        zambia_jurisdictions.is_leaf_node AS is_leaf_node,
+        health_center_jurisdictions.id AS health_center_jurisdiction_id,
+        health_center_jurisdictions.name AS health_center_jurisdiction_name,
+        irs_structures.totStruct AS totStruct,
+        irs_structures.targStruct AS targStruct,
+        irs_structures.rooms_eligible AS rooms_eligible,
+        irs_structures.rooms_sprayed AS rooms_sprayed,
+        irs_structures.sprayed_rooms_eligible AS sprayed_rooms_eligible,
+        irs_structures.sprayed_rooms_sprayed AS sprayed_rooms_sprayed,
+        irs_structures.foundStruct AS foundStruct,
+        irs_structures.notSprayed AS notSprayed,
+        inactive_irs_structures.notEligible AS notEligible,
+        inactive_irs_structures.noTasks AS noTasks,
+        irs_structures.sprayedStruct AS sprayedStruct,
+        irs_structures.duplicates AS duplicates,
+        irs_structures.sprayed_duplicates AS sprayed_duplicates,
+        COALESCE(irs_structures.notsprayed_reasons, '{}') AS notsprayed_reasons,
+        COALESCE(count_elements(irs_structures.notsprayed_reasons), '{}'::json) AS notsprayed_reasons_counts,
+        irs_structures.latest_spray_event_id AS latest_spray_event_id,
+        irs_structures.latest_spray_event_date AS latest_spray_event_date,
+        coverage_query.sprayCov AS sprayCov,
+        CASE
+            WHEN irs_structures.totStruct = 0 THEN 0
+            ELSE CAST(irs_structures.foundStruct AS DECIMAL)/CAST(irs_structures.totStruct AS DECIMAL)
+        END AS sprayTarg,
+        CASE
+            WHEN irs_structures.foundStruct = 0 THEN 0
+            ELSE CAST(irs_structures.sprayedStruct AS DECIMAL)/CAST(irs_structures.foundStruct AS DECIMAL)
+        END AS spraySuccess,
+        CASE
+	        WHEN irs_structures.totStruct = 0 THEN NULL
+	        ELSE CAST(irs_structures.sprayedStruct AS DECIMAL) / CAST(irs_structures.totStruct AS DECIMAL)
+	    END AS spray_effectiveness,
+        GREATEST(
+        	0,
+        	CEIL((CAST(irs_structures.totStruct AS DECIMAL) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL))
+        ) AS structures_remaining_to_90_se,
+        GREATEST(
+        	0,
+        	(CAST(irs_structures.totStruct AS DECIMAL) * 0.9) - CAST(irs_structures.sprayedStruct AS DECIMAL)
+        ) / 15.0 AS tla_days_to_90_se,
+        CASE
+            WHEN irs_structures.sprayed_rooms_eligible = 0 THEN 0
+            ELSE CAST(irs_structures.sprayed_rooms_sprayed AS DECIMAL)/CAST(irs_structures.sprayed_rooms_eligible AS DECIMAL)
+        END AS roomCov,
+        CASE
+            WHEN coverage_query.sprayCov = 0 THEN 'n/a'
+            WHEN coverage_query.sprayCov > 0.9 THEN '0'
+            ELSE 'Not done'
+        END AS reviewed_with_decision,
+        irs_sa_events.latest_event_id AS latest_sa_event_id,
+        irs_sa_events.latest_event_date AS latest_sa_event_date
+    FROM plans
+    LEFT JOIN zambia_plan_jurisdictions AS zambia_plan_jurisdictions
+        ON plans.identifier = zambia_plan_jurisdictions.plan_id
+    LEFT JOIN zambia_jurisdictions AS zambia_jurisdictions
+        ON zambia_plan_jurisdictions.zambia_jurisdiction_id = zambia_jurisdictions.jurisdiction_id
+    LEFT JOIN jurisdictions AS health_center_jurisdictions
+    	ON health_center_jurisdictions.id = zambia_jurisdictions.jurisdiction_path[4]
+    LEFT JOIN LATERAL (
+        SELECT
+            COALESCE(COUNT(structure_id), 0) AS totStruct,
+            COALESCE(COUNT(structure_id) FILTER (WHERE structure_status IN ('Active', 'Pending Review')), 0) AS targStruct,
+            COALESCE(COUNT(structure_id) FILTER (WHERE business_status NOT IN ('Not Visited')), 0) AS foundStruct,
+            COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('Not Sprayed')), 0) AS notSprayed,
+            COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('Partially Sprayed', 'Complete')), 0) AS sprayedStruct,
+            COALESCE(SUM(rooms_eligible), 0) AS rooms_eligible,
+            COALESCE(SUM(rooms_eligible) FILTER (WHERE business_status IN ('Partially Sprayed', 'Complete')), 0) AS sprayed_rooms_eligible,
+            COALESCE(SUM(rooms_sprayed), 0) AS rooms_sprayed,
+            COALESCE(SUM(rooms_sprayed) FILTER (WHERE business_status IN ('Partially Sprayed', 'Complete')), 0) AS sprayed_rooms_sprayed,
+            COALESCE(COUNT(structure_id) FILTER (WHERE duplicate = TRUE), 0) AS duplicates,
+            COALESCE(COUNT(structure_id) FILTER (WHERE sprayed_duplicate = TRUE), 0) AS sprayed_duplicates,
+            array_concat_agg(notsprayed_reasons) FILTER (WHERE notsprayed_reasons <> '{}')  AS notsprayed_reasons,
+            (MAX(ARRAY[TO_JSON(event_date)#>>'{}', event_id]) FILTER (WHERE event_id is not null))[2] AS latest_spray_event_id,
+            MAX(event_date) AS latest_spray_event_date
+        FROM zambia_irs_structures
+        WHERE
+            zambia_irs_structures.structure_jurisdiction_id = zambia_jurisdictions.jurisdiction_id AND
+            business_status NOT IN ('Not Eligible', 'No Tasks') AND
+            (plans.identifier = zambia_irs_structures.plan_id OR zambia_irs_structures.plan_id IS NULL)
+    ) AS irs_structures ON true
+    LEFT JOIN LATERAL (
+        SELECT
+            CASE
+                WHEN irs_structures.totStruct = 0 THEN 0
+                ELSE CAST(irs_structures.sprayedStruct AS DECIMAL)/CAST(irs_structures.totStruct AS DECIMAL)
+            END AS sprayCov
+    ) AS coverage_query ON true
+    LEFT JOIN LATERAL (
+        SELECT
+            COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('Not Eligible')), 0) AS notEligible,
+            COALESCE(COUNT(structure_id) FILTER (WHERE business_status IN ('No Tasks')), 0) AS noTasks
+        FROM zambia_irs_structures AS zambia_irs_structures
+        WHERE
+            zambia_irs_structures.structure_jurisdiction_id = zambia_jurisdictions.jurisdiction_id AND
+            business_status IN ('Not Eligible', 'No Tasks') AND
+            (plans.identifier = zambia_irs_structures.plan_id OR zambia_irs_structures.plan_id IS NULL)
+    ) AS inactive_irs_structures ON true
+    LEFT JOIN LATERAL (
+      SELECT
+        events.id AS latest_event_id,
+        events.event_date AS latest_event_date
+      FROM events
+      WHERE
+        events.event_type = 'irs_sa_decision'
+        AND events.location_id = zambia_jurisdictions.jurisdiction_id
+      ORDER BY
+        events.form_data->>'end' DESC,
+        events.server_version DESC,
+        events.id DESC
+      LIMIT 1
+    ) AS irs_sa_events ON true
+    WHERE plans.intervention_type IN ('IRS', 'Dynamic-IRS') AND plans.status NOT IN ('draft', 'retired')
+) AS main_query
+ORDER BY CASE WHEN main_query.is_virtual_jurisdiction THEN 1 ELSE 0 END ASC, main_query.jurisdiction_name;
+
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_base_path_idx_gin on zambia_focus_area_irs_base using GIN(jurisdiction_path);
+
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_base_plan_idx ON zambia_focus_area_irs_base (plan_id);
+
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_base_jurisdiction_idx ON zambia_focus_area_irs_base (jurisdiction_id);
+
+CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_base_jurisdiction_parent_idx ON zambia_focus_area_irs_base (jurisdiction_parent_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_base_idx ON zambia_focus_area_irs_base (id);
+
+COMMIT;
