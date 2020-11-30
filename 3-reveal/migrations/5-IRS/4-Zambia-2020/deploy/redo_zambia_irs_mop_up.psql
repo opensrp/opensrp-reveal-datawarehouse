@@ -15,12 +15,6 @@ WHERE
 -- get spray areas only
 is_leaf_node = TRUE;
 
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx ON pending_:schema .zambia_focus_area_irs (plan_id);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_id);
-CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_jurisdiction_parent_idx ON pending_:schema .zambia_focus_area_irs (jurisdiction_parent_id);
-CREATE UNIQUE INDEX IF NOT EXISTS zambia_focus_area_irs_idx ON pending_:schema .zambia_focus_area_irs (id);
-
 
 -- Add zambia_irs_jurisdictions in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_jurisdictions CASCADE;
