@@ -13,7 +13,7 @@ AS
 SELECT * FROM zambia_focus_area_irs_base
 WHERE
 -- get spray areas only
-zambia_jurisdictions.is_leaf_node = TRUE;
+is_leaf_node = TRUE;
 
 CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_path_idx_gin on pending_:schema .zambia_focus_area_irs using GIN(jurisdiction_path);
 CREATE INDEX IF NOT EXISTS zambia_focus_area_irs_plan_idx ON pending_:schema .zambia_focus_area_irs (plan_id);
