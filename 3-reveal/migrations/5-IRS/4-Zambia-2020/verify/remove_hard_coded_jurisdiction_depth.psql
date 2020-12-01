@@ -132,8 +132,8 @@ AND indexname = 'zambia_irs_structures_old_jurisdiction_idx';
 
 -- zambia_focus_area_irs
 SELECT 1/count(*)
-FROM pg_views
-WHERE viewname = 'zambia_focus_area_irs';
+FROM pg_matviews
+WHERE matviewname = 'zambia_focus_area_irs_base';
 
 SELECT
     id,
