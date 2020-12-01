@@ -1,7 +1,6 @@
 -- Deploy reveal_irs_zambia_2020:zambia_focus_area_irs_base to pg
 -- requires: reveal_transaction_tables:plans
 -- requires: reveal_irs_zambia_2019:zambia_jurisdictions
--- requires: reveal_irs_zambia_2019:zambia_focus_area_irs
 
 BEGIN;
 
@@ -193,7 +192,7 @@ CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx ON p
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx ON pending_:schema .zambia_irs_jurisdictions (id);
 
 -- Rename zambia_irs_jurisdictions in deprecated_
-ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions RENAME TO zambia_irs_jurisdictions_base;
+ALTER MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_jurisdictions RENAME TO zambia_irs_jurisdictions_base;
 
 ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_path_idx_gin RENAME TO zambia_irs_jurisdictions_base_path_idx_gin;
 ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_plan_idx RENAME TO zambia_irs_jurisdictions_base_plan_idx;
