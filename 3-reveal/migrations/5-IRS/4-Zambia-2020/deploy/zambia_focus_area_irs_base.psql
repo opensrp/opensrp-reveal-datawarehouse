@@ -182,11 +182,21 @@ CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_idx ON pending_
 CREATE INDEX IF NOT EXISTS zambia_irs_jurisdictions_jurisdiction_parent_idx ON pending_:schema .zambia_irs_jurisdictions (jurisdiction_parent_id);
 CREATE UNIQUE INDEX IF NOT EXISTS zambia_irs_jurisdictions_idx ON pending_:schema .zambia_irs_jurisdictions (id);
 
+-- Rename zambia_irs_jurisdictions in deprecated_
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions RENAME TO zambia_irs_jurisdictions_base;
+
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_path_idx_gin RENAME TO zambia_irs_jurisdictions_base_path_idx_gin;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_plan_idx RENAME TO zambia_irs_jurisdictions_base_plan_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_jurisdiction_idx RENAME TO zambia_irs_jurisdictions_base_jurisdiction_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_jurisdiction_parent_idx RENAME TO zambia_irs_jurisdictions_base_jurisdiction_parent_idx;
+ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_idx RENAME TO zambia_irs_jurisdictions_base_idx;
+
 -- Rename current zambia_focus_area_irs view
 ALTER MATERIALIZED VIEW :"schema" .zambia_focus_area_irs RENAME TO zambia_focus_area_irs_base;
 
 -- Move current views to deprecated_
-ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA deprecated_:schema ;
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA deprecated_:schema;
+ALTER MATERIALIZED VIEW zambia_focus_area_irs_base SET SCHEMA deprecated_:schema;
 
 -- Move pending views to current schema
 ALTER VIEW pending_:schema .zambia_focus_area_irs SET SCHEMA :"schema";
