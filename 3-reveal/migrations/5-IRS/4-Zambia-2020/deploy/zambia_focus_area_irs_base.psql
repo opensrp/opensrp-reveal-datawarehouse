@@ -7,12 +7,22 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
+-- Rename current zambia_focus_area_irs view
+ALTER MATERIALIZED VIEW :"schema" .zambia_focus_area_irs RENAME TO zambia_focus_area_irs_base;
+
+--- Rename zambia_focus_area_irs indices
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_path_idx_gin RENAME TO zambia_focus_area_irs_base_path_idx_gin;
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_plan_idx RENAME TO zambia_focus_area_irs_base_plan_idx;
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_jurisdiction_idx RENAME TO zambia_focus_area_irs_base_jurisdiction_idx;
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_jurisdiction_parent_idx RENAME TO zambia_focus_area_irs_base_jurisdiction_parent_idx;
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_idx RENAME TO zambia_focus_area_irs_base_idx;
+
 -- Add zambia_focus_area_irs in pending.
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_focus_area_irs CASCADE;
 
 CREATE OR REPLACE VIEW pending_:schema .zambia_focus_area_irs
 AS
-SELECT * FROM zambia_focus_area_irs
+SELECT * FROM zambia_focus_area_irs_base
 WHERE is_leaf_node = TRUE;
 
 -- Add zambia_irs_jurisdictions in pending.
@@ -157,7 +167,7 @@ SELECT * FROM
 			    MAX(latest_spray_event_date) AS latest_spray_event_date,
 				(MAX(ARRAY[TO_JSON(latest_sa_event_date)#>>'{}', latest_sa_event_id]) FILTER (WHERE latest_sa_event_id is not null))[2] AS latest_sa_event_id,
 			    MAX(latest_sa_event_date) AS latest_sa_event_date
-            FROM zambia_focus_area_irs AS zambia_focus_area_irs
+            FROM zambia_focus_area_irs_base AS zambia_focus_area_irs
             WHERE zambia_focus_area_irs.plan_id = plans.identifier
                 AND ( (zambia_jurisdictions.is_virtual_jurisdiction
                        AND zambia_focus_area_irs.is_virtual_jurisdiction
@@ -191,9 +201,6 @@ ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_jurisdiction_
 ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_jurisdiction_parent_idx RENAME TO zambia_irs_jurisdictions_base_jurisdiction_parent_idx;
 ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_idx RENAME TO zambia_irs_jurisdictions_base_idx;
 
--- Rename current zambia_focus_area_irs view
-ALTER MATERIALIZED VIEW :"schema" .zambia_focus_area_irs RENAME TO zambia_focus_area_irs_base;
-
 -- Move current views to deprecated_
 ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA deprecated_:schema;
 ALTER MATERIALIZED VIEW zambia_focus_area_irs_base SET SCHEMA deprecated_:schema;
@@ -201,12 +208,5 @@ ALTER MATERIALIZED VIEW zambia_focus_area_irs_base SET SCHEMA deprecated_:schema
 -- Move pending views to current schema
 ALTER VIEW pending_:schema .zambia_focus_area_irs SET SCHEMA :"schema";
 ALTER MATERIALIZED VIEW pending_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
-
---- Rename zambia_focus_area_irs indices
-ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_path_idx_gin RENAME TO zambia_focus_area_irs_base_path_idx_gin;
-ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_plan_idx RENAME TO zambia_focus_area_irs_base_plan_idx;
-ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_jurisdiction_idx RENAME TO zambia_focus_area_irs_base_jurisdiction_idx;
-ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_jurisdiction_parent_idx RENAME TO zambia_focus_area_irs_base_jurisdiction_parent_idx;
-ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_idx RENAME TO zambia_focus_area_irs_base_idx;
 
 COMMIT;
