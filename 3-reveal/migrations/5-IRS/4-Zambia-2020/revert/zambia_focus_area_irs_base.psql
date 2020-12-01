@@ -4,7 +4,12 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions_base RENAME TO zambia_irs_jurisdictions;
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA pending_:schema;
+ALTER VIEW zambia_focus_area_irs SET SCHEMA pending_:schema;
+
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
+
+ALTER MATERIALIZED VIEW IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_base RENAME TO zambia_irs_jurisdictions;
 
 ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_base_path_idx_gin RENAME TO zambia_irs_jurisdictions_path_idx_gin;
 ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_base_plan_idx RENAME TO zambia_irs_jurisdictions_plan_idx;
@@ -12,16 +17,10 @@ ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_base_jurisdic
 ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_base_jurisdiction_parent_idx RENAME TO zambia_irs_jurisdictions_jurisdiction_parent_idx;
 ALTER INDEX IF EXISTS deprecated_:schema .zambia_irs_jurisdictions_base_idx RENAME TO zambia_irs_jurisdictions_idx;
 
-ALTER MATERIALIZED VIEW deprecated_:schema .zambia_focus_area_irs_base SET SCHEMA :"schema";
-ALTER MATERIALIZED VIEW :"schema" .zambia_focus_area_irs_base RENAME TO zambia_focus_area_irs
-
-ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
-
-ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA pending_:schema;
-ALTER VIEW zambia_focus_area_irs SET SCHEMA pending_:schema;
-
 DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_jurisdictions CASCADE;
 DROP VIEW IF EXISTS pending_:schema .zambia_focus_area_irs CASCADE;
+
+ALTER MATERIALIZED VIEW :"schema" .zambia_focus_area_irs_base RENAME TO zambia_focus_area_irs;
 
 ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_base_path_idx_gin RENAME TO zambia_focus_area_irs_path_idx_gin;
 ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_base_plan_idx RENAME TO zambia_focus_area_irs_plan_idx;
