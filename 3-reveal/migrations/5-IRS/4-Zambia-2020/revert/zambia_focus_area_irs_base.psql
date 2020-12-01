@@ -4,6 +4,20 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-DROP MATERIALIZED VIEW IF EXISTS zambia_focus_area_irs_base CASCADE;
+ALTER MATERIALIZED VIEW :"schema" .zambia_focus_area_irs_base RENAME TO zambia_focus_area_irs
+
+ALTER MATERIALIZED VIEW deprecated_:schema .zambia_irs_jurisdictions SET SCHEMA :"schema";
+
+ALTER MATERIALIZED VIEW zambia_irs_jurisdictions SET SCHEMA pending_:schema;
+ALTER VIEW zambia_focus_area_irs SET SCHEMA pending_:schema;
+
+DROP MATERIALIZED VIEW IF EXISTS pending_:schema .zambia_irs_jurisdictions CASCADE;
+DROP VIEW IF EXISTS pending_:schema .zambia_focus_area_irs CASCADE;
+
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_base_path_idx_gin RENAME TO zambia_focus_area_irs_path_idx_gin;
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_base_plan_idx RENAME TO zambia_focus_area_irs_plan_idx;
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_base_jurisdiction_idx RENAME TO zambia_focus_area_irs_jurisdiction_idx;
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_base_jurisdiction_parent_idx RENAME TO zambia_focus_area_irs_jurisdiction_parent_idx;
+ALTER INDEX IF EXISTS :"schema" .zambia_focus_area_irs_base_idx RENAME TO zambia_focus_area_irs_idx;
 
 COMMIT;
