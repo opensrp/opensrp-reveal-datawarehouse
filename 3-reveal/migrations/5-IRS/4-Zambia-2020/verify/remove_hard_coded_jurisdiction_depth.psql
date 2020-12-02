@@ -130,11 +130,6 @@ schemaname = :'schema'
 AND tablename = 'zambia_irs_structures'
 AND indexname = 'zambia_irs_structures_old_jurisdiction_idx';
 
--- zambia_focus_area_irs
-SELECT 1/count(*)
-FROM pg_views
-WHERE viewname = 'zambia_focus_area_irs';
-
 SELECT
     id,
     plan_id,
@@ -172,43 +167,6 @@ SELECT
     latest_sa_event_date
 FROM zambia_focus_area_irs
 WHERE FALSE;
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'zambia_focus_area_irs_base'
-AND indexdef LIKE '%gin (jurisdiction_path)%'
-AND indexname = 'zambia_focus_area_irs_base_path_idx_gin';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'zambia_focus_area_irs_base'
-AND indexname = 'zambia_focus_area_irs_base_plan_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'zambia_focus_area_irs_base'
-AND indexname = 'zambia_focus_area_irs_base_jurisdiction_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'zambia_focus_area_irs_base'
-AND indexname = 'zambia_focus_area_irs_base_jurisdiction_parent_idx';
-
-SELECT 1/COUNT(*)
-FROM pg_catalog.pg_indexes
-WHERE
-schemaname = :'schema'
-AND tablename = 'zambia_focus_area_irs_base'
-AND indexdef LIKE '%CREATE UNIQUE INDEX%'
-AND indexname = 'zambia_focus_area_irs_base_idx';
 
 -- zambia_irs_jurisdictions
 SELECT 1/count(*)
