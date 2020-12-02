@@ -8,3 +8,4 @@ zambia_irs_lite_operational_areas [reveal_transaction_tables:plans zambia_irs_li
 zambia_irs_lite_jurisdictions [reveal_transaction_tables:plans zambia_irs_lite_operational_areas] 2020-10-12T00:00:01Z jsmethie <jsmethie@terraframe.com> # Add zambia_irs_lite_jurisdictions.
 remove_hard_coded_jurisdiction_depth [reveal_database_views:jurisdictions_tree] 2020-11-06T11:35:51Z mosh <kjayanoris@ona.io> # Remove hard-coded jurisdiction depth.
 update_zambia_irs_lite_structures [zambia_irs_lite_structures] 2020-11-23T11:06:21Z jsmethie <jsmethie@terraframe.com> # Update zambia_lite_structures for RVL-1334.
+update_structure_dependencies 2020-11-28T20:59:49Z jsmethie <jsmethie@terraframe.com> # Update of downstream views to use the updated irs_lite_strucutres view
