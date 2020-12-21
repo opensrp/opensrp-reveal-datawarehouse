@@ -4,7 +4,7 @@ BEGIN;
 
 SET search_path TO :"schema",public;
 
-SELECT has_function_privilege(:'schema' || '.create_structure_geo_hierarchy(locations)', 'execute');
+SELECT has_function_privilege(:'schema' || '.create_structure_geo_hierarchy(locations, BOOLEAN, INTEGER)', 'execute');
 
 -- first some fixtures
 INSERT INTO raw_jurisdictions
@@ -90,7 +90,7 @@ VALUES (
 );
 
 -- next lets run the function
-SELECT create_structure_geo_hierarchy(locations.*) FROM locations;
+SELECT create_structure_geo_hierarchy(locations.*, FALSE) FROM locations;
 
 -- this structure is in the right jurisdiction
 SELECT 1/COUNT(*)
@@ -138,6 +138,6 @@ VALUES (
 INSERT INTO structure_geo_hierarchy_structure_queue
 VALUES
 (public.uuid_generate_v1(), '023bd6d7-mosh-4194-133a-2f5c3bfcf4bb');
-SELECT create_structure_geo_hierarchy(locations.*) FROM locations;
+SELECT create_structure_geo_hierarchy(locations.*, FALSE) FROM locations;
 
 ROLLBACK;
