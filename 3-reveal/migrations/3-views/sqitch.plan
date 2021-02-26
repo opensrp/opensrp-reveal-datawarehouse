@@ -9,3 +9,4 @@ reporting_lag [reveal_transaction_tables:events reveal_transaction_tables:tasks 
 plan_jurisdictions_materialized_view [reveal_transaction_tables:plan_jurisdiction jurisdictions_materialized_view] 2020-08-25T08:28:41Z mosh <kjayanoris@ona.io> # Add plan_jurisdictions_materialized_view.
 distinct_plans_materialized_view 2020-10-14T06:49:03Z gstuder,,, <gstuder@gstuder-ThinkPad-T490> # Make the plans_materialized_view tolerant of dup plan_jurisdiction entries
 jurisdictions_tree [reveal_transaction_tables:jurisdictions] 2020-11-05T14:35:36Z mosh <kjayanoris@ona.io> # Add jurisdictions tree materialized view.
+plans_with_case_classification_view 2021-02-26T11:09:20Z [reveal_transaction_tables:events] Ona,,, <ona@ona-ThinkPad-T470> # Add case_classification column to plans_materialzied_view
