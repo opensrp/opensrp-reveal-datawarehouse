@@ -1,0 +1,66 @@
+-- Verify reveal_database_views:plans_with_case_classification_view on pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+SELECT 1/count(*)
+FROM pg_matviews
+WHERE matviewname = 'plans_materialzied_view';
+
+SELECT
+    id,
+    plan_id,
+    plan_title,
+    plan_name,
+    plan_status,
+    jurisdiction_id,
+    plan_fi_status,
+    plan_fi_reason,
+    plan_date,
+    plan_effective_period_start,
+    plan_effective_period_end,
+    plan_intervention_type,
+    plan_version,
+    jurisdiction_parent_id,
+    jurisdiction_name,
+    jurisdiction_geometry,
+    jurisdiction_depth,
+    jurisdiction_path,
+    jurisdiction_name_path,
+    jurisdiction_root_parent_id,
+    jurisdiction_root_parent_name,
+    case_classification
+FROM plans_materialzied_view
+WHERE FALSE;
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plans_materialzied_view'
+AND indexname = 'plans_materialzied_view_plan_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plans_materialzied_view'
+AND indexname = 'plans_materialzied_view_jurisdiction_idx';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plans_materialzied_view'
+AND indexname = 'plans_materialzied_view_intervention_typex';
+
+SELECT 1/COUNT(*)
+FROM pg_catalog.pg_indexes
+WHERE
+schemaname = :'schema'
+AND tablename = 'plans_materialzied_view'
+AND indexdef LIKE '%CREATE UNIQUE INDEX%'
+AND indexname = 'plans_materialzied_view_idx';
+
+ROLLBACK;

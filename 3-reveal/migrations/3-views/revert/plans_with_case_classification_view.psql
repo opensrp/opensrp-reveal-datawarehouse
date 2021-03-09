@@ -1,0 +1,19 @@
+-- Revert reveal_database_views:plans_with_case_classification_view from pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+ALTER MATERIALIZED VIEW plans_materialzied_view SET SCHEMA pending_:schema ;
+ALTER MATERIALIZED VIEW deprecated_:schema .plans_materialzied_view_v1 SET SCHEMA :"schema";
+
+ALTER INDEX plans_materialzied_view_plan_idx_v1 RENAME TO plans_materialzied_view_plan_idx;
+ALTER INDEX plans_materialzied_view_jurisdiction_idx_v1 RENAME TO plans_materialzied_view_jurisdiction_idx;
+ALTER INDEX plans_materialzied_view_intervention_typex_v1 RENAME TO plans_materialzied_view_intervention_typex;
+ALTER INDEX plans_materialzied_view_idx_v1 RENAME TO plans_materialzied_view_idx;
+
+ALTER MATERIALIZED VIEW plans_materialzied_view_v1 RENAME TO plans_materialzied_view;
+
+DROP MATERIALIZED VIEW pending_:schema .plans_materialzied_view;
+
+COMMIT;
