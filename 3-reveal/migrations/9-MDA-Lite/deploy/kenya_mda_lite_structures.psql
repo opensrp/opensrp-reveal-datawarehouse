@@ -1,0 +1,52 @@
+-- Deploy 9-MDA-Lite:kenya_mda_lite_structures to pg
+-- requires: reveal_transaction_tables:structures
+-- requires: reveal_transaction_tables:events
+-- requires: reveal_transaction_tables:tasks
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS kenya_mda_lite_structures
+AS
+SELECT DISTINCT ON (locations.id, events_query.task_id)
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(locations.id, events_query.task_id)) AS id,
+    locations.id AS structure_id,
+    locations.jurisdiction_id AS structure_jurisdiction_id,
+    locations.code AS structure_code,
+    events_query.event_id AS event_id,
+    events_query.plan_id AS plan_id
+FROM locations AS locations
+LEFT JOIN LATERAL (
+    SELECT
+        subq.event_id AS event_id,
+        subq.task_id AS task_id,
+        subq.plan_id AS plan_id
+    FROM (
+        SELECT
+            DISTINCT ON (tasks.identifier)
+            events.id AS event_id,
+            tasks.identifier AS task_id,
+            tasks.plan_identifier AS plan_id
+        FROM tasks as tasks
+        LEFT JOIN events as events
+            ON tasks.identifier = events.task_id
+        AND events.entity_type = 'Structure'
+        AND events.event_type = 'cdd_supervisor_daily_summary'
+        WHERE locations.id = tasks.task_for
+        AND tasks.status != 'Cancelled'
+        ORDER BY tasks.identifier, events.form_data->'end' DESC
+    ) AS subq
+) AS events_query ON true
+WHERE locations.status != 'Inactive';
+
+CREATE INDEX IF NOT EXISTS kenya_mda_lite_structures_task_id_idx ON kenya_mda_lite_structures (task_id);
+CREATE INDEX IF NOT EXISTS kenya_mda_lite_structures_plan_id_idx ON kenya_mda_lite_structures (plan_id);
+CREATE INDEX IF NOT EXISTS kenya_mda_lite_structures_plan_jurisdiction_id_idx ON kenya_mda_lite_structures (plan_id, structure_jurisdiction_id);
+CREATE INDEX IF NOT EXISTS kenya_mda_lite_structures_structure_jurisdiction_idx ON kenya_mda_lite_structures (structure_jurisdiction_id);
+CREATE UNIQUE INDEX IF NOT EXISTS kenya_mda_lite_structures_structure_task_idx ON kenya_mda_lite_structures (structure_id, task_id);
+CREATE UNIQUE INDEX IF NOT EXISTS kenya_mda_lite_structures_idx ON kenya_mda_lite_structures (id);
+
+COMMIT;

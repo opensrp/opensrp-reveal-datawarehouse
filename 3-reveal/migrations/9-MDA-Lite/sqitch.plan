@@ -1,0 +1,4 @@
+%syntax-version=1.0.0
+%project=9-MDA-Lite
+
+kenya_mda_lite_structures [reveal_transaction_tables:structures reveal_transaction_tables:events reveal_transaction_tables:tasks] 2021-03-02T07:13:48Z Lincoln Simba <lincolnsimba@Lincolns-MacBook-Pro.local> # MDA LITE
