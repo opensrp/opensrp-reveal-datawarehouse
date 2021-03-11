@@ -34,7 +34,7 @@ LEFT JOIN LATERAL (
         LEFT JOIN events as events
             ON tasks.identifier = events.task_id
         AND events.entity_type = 'Structure'
-        AND events.event_type = 'cdd_supervisor_daily_summary'
+        AND events.event_type IN ('cdd_supervisor_daily_summary', 'tablet_accountability')
         WHERE locations.id = tasks.task_for
         AND tasks.status != 'Cancelled'
         ORDER BY tasks.identifier, events.form_data->'end' DESC

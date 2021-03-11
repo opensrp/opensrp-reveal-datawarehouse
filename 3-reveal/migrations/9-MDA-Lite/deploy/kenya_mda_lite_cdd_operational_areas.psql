@@ -1,6 +1,6 @@
 -- Deploy 9-MDA-Lite:kenya_mda_lite_cdd_operational_areas to pg
 -- requires: 9-MDA-Lite:kenya_mda_lite_structures
--- requires: irs_lite_zambia_2020:zambia_irs_lite_structures
+-- requires: irs_lite_zambia_2020:kenya_mda_lite_cdd_structures
 -- requires: jurisdictions_materialized_view
 -- requires: opensrp_settings
 
@@ -33,7 +33,7 @@ FROM (
         operational_area_query.total_males AS total_males,
         operational_area_query.total_females AS total_females,
         operational_area_query.total_all_genders AS total_all_genders
-    FROM reveal_stage.plans
+    FROM plans
     LEFT JOIN (
         SELECT
             jurisdictions.plan_id,
@@ -93,7 +93,7 @@ FROM (
                     COALESCE (events.form_data->'treated_female_5-14'->>0, '0')::int +
                     COALESCE (events.form_data->'treated_female_above_15'->>0, '0')::int) AS total_all_genders
 
-                FROM public.events
+                FROM events
                 WHERE jurisdictions.structure_jurisdiction_id  = events.location_id
                 AND events.plan_id = jurisdictions.plan_id
                 AND events.entity_type = 'Structure'
@@ -103,31 +103,15 @@ FROM (
         ) AS daily_summary ON true
         GROUP BY jurisdictions.plan_id, jurisdictions.structure_jurisdiction_id
     ) AS operational_area_query ON operational_area_query.plan_id = plans.identifier
-    LEFT JOIN pending.jurisdictions_materialized_view AS kenya_lite_jurisdictions
+    LEFT JOIN jurisdictions_materialized_view AS kenya_lite_jurisdictions
         ON operational_area_query.structure_jurisdiction_id = kenya_lite_jurisdictions.jurisdiction_id
-    LEFT JOIN LATERAL (
-        SELECT
-            key as jurisdiction_id,
-            COALESCE(data->>'value', '0')::INTEGER as target
-        FROM reveal_stage.opensrp_settings
-        WHERE identifier = 'jurisdiction_metadata-target'
-        AND operational_area_query.structure_jurisdiction_id = opensrp_settings.key
-        ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
-        LIMIT 1
-    ) AS jurisdiction_target_query ON true
-    LEFT JOIN LATERAL (
-        SELECT
-            key as jurisdiction_id,
-            COALESCE(data->>'value', '0')::INTEGER as structure
-        FROM reveal_stage.opensrp_settings
-        WHERE identifier = 'jurisdiction_metadata-structures'
-        AND operational_area_query.structure_jurisdiction_id = opensrp_settings.key
-        ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
-        LIMIT 1
-    ) AS jurisdiction_structure_query ON true
     WHERE plans.intervention_type IN ('MDA-Lite') AND plans.status NOT IN ('draft', 'retired')
 ) AS main_query;
 
-
+CREATE INDEX IF NOT EXISTS kenya_mda_lite_cdd_operational_areas_path_idx_gin on kenya_mda_lite_cdd_operational_areas using GIN(jurisdiction_path);
+CREATE INDEX IF NOT EXISTS kenya_mda_lite_cdd_operational_areas_plan_idx ON kenya_mda_lite_cdd_operational_areas (plan_id);
+CREATE INDEX IF NOT EXISTS kenya_mda_lite_cdd_operational_areas_jurisdiction_idx ON kenya_mda_lite_cdd_operational_areas (jurisdiction_id);
+CREATE INDEX IF NOT EXISTS kenya_mda_lite_cdd_operational_areas_jurisdiction_parent_idx ON kenya_mda_lite_cdd_operational_areas (jurisdiction_parent_id);
+CREATE UNIQUE INDEX IF NOT EXISTS kenya_mda_lite_cdd_operational_areas_idx ON kenya_mda_lite_cdd_operational_areas (id);
 
 COMMIT;
