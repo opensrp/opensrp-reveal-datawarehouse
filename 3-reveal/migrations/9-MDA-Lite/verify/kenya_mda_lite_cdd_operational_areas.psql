@@ -25,7 +25,14 @@ SELECT
     treated_female_above_15,
     total_males,
     total_females,
-    total_all_genders
+    total_all_genders,
+    supervisor_distributed,
+    received_number,
+    adminstered,
+    damaged,
+    adverse,
+    remaining_with_cdd,
+    returned_to_supervisor
 FROM kenya_mda_lite_cdd_operational_areas
 WHERE FALSE;
 
