@@ -1,0 +1,7 @@
+-- Revert 9-MDA-Lite:kenya_mda_lite_wards from pg
+
+BEGIN;
+
+DROP MATERIALIZED VIEW kenya_mda_lite_wards CASCADE;
+
+COMMIT;
