@@ -1,0 +1,15 @@
+-- Deploy thailand_only:more_raw_table_modifications to pg
+-- requires: reveal_raw_tables:raw_clients
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- adds archived column to the raw clients table
+ALTER TABLE raw_clients
+ADD COLUMN IF NOT EXISTS archived BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- add indices
+CREATE INDEX IF NOT EXISTS archived_raw_clients_idx ON raw_clients(archived);
+
+COMMIT;
