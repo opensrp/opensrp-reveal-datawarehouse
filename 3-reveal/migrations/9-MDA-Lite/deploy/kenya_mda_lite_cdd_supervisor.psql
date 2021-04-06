@@ -3,6 +3,8 @@
 
 BEGIN;
 
+SET search_path TO :"schema",public;
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS supervisor_drug_distribution AS
 SELECT 
     events.form_data -> 'health_worker_supervisor'::text AS supervisor_name,
