@@ -7,6 +7,10 @@ SET search_path TO :"schema",public;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS supervisor_drug_distribution AS
 SELECT 
+    public.uuid_generate_v5(
+            '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+            concat(events.base_entity_id, events.plan_id, events.form_data -> 'health_worker_supervisor')
+        ) AS id,
     events.form_data -> 'health_worker_supervisor'::text AS supervisor_name,
     events.base_entity_id AS base_entity_id,
     events.plan_id AS plan_id,

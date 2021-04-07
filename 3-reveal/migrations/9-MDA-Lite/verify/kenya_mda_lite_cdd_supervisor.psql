@@ -9,6 +9,7 @@ FROM pg_matviews
 WHERE matviewname = 'supervisor_drug_distribution';
 
 SELECT
+    id,
     supervisor_name,
     base_entity_id,
     plan_id,
