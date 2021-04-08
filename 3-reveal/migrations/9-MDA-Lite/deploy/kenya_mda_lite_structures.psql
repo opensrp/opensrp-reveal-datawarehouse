@@ -52,7 +52,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS kenya_mda_lite_structures_idx ON kenya_mda_lit
 CREATE OR REPLACE VIEW kenya_mda_lite_wards_geojson AS
 SELECT locations.id,
     locations.jurisdiction_id,
-    locations.plan_id
+    locations.plan_id,
     jsonb_build_object('type', 'Feature', 'id', locations.id, 'geometry', public.st_asgeojson(locations.geometry)::jsonb, 'properties', to_jsonb(locations.*) - 'jurisdiction_id'::text - 'jurisdiction_geometry'::text) AS geojson
     FROM ( SELECT locations_1.id,
             locations_1.created_at,
@@ -71,8 +71,8 @@ SELECT locations.id,
             events.plan_id,
             sum(COALESCE((events.form_data -> 'treated_male_1-4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_5-14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer) AS total_males,
             sum(COALESCE((events.form_data -> 'treated_female_1-4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5-14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_females
-           FROM public.events
-             LEFT JOIN reveal_stage.locations locations_1 ON events.base_entity_id::text = locations_1.id::text
+           FROM events
+            LEFT JOIN locations locations_1 ON events.base_entity_id::text = locations_1.id::text
           WHERE events.event_type::text = ANY (ARRAY['tablet_accountability'::character varying, 'cdd_supervisor_daily_summary'::character varying]::text[])
           GROUP BY events.plan_id, events.base_entity_id, locations_1.id, locations_1.created_at, locations_1.uid, locations_1.jurisdiction_id, locations_1.code, locations_1.type, locations_1.name, locations_1.status, locations_1.geometry, locations_1.geographic_level, locations_1.effective_start_date, locations_1.effective_end_date, locations_1.version, locations_1.server_version) locations;
 
