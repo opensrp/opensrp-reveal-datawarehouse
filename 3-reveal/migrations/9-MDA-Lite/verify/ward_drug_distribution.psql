@@ -30,7 +30,9 @@ SELECT
     damaged,
     adverse,
     remaining_with_cdd,
-    returned_to_supervisor
+    returned_to_supervisor,
+    days_worked,
+    average_per_day
 FROM ward_drug_distribution
 WHERE FALSE;
 
