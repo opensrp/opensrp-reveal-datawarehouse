@@ -6,6 +6,4 @@ SET search_path TO :"schema",public;
 
 DROP MATERIALIZED VIEW kenya_mda_lite_operational_areas CASCADE;
 
-DROP VIEW kenya_mda_lite_wards_geojson
-
 COMMIT;

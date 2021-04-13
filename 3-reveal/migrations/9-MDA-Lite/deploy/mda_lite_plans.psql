@@ -19,8 +19,8 @@ SELECT
     plans.version AS plan_version
 FROM plans
 WHERE plans.intervention_type IN ('MDA-Lite') AND plans.status NOT IN ('draft', 'retired')
-ORDER BY plans.date DESC
+ORDER BY plans.date DESC;
 
-CREATE UNIQUE INDEX IF NOT EXISTS mda_lite_plans_idx ON mda_lite_plans (plan_id);
+CREATE UNIQUE INDEX IF NOT EXISTS mda_lite_plans_idx ON mda_lite_plans(plan_id);
 
 COMMIT;

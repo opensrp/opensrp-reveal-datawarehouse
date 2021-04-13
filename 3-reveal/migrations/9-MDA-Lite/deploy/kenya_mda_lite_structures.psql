@@ -1,5 +1,4 @@
 -- Deploy 9-MDA-Lite:kenya_mda_lite_structures to pg
--- requires: reveal_transaction_tables:structures
 -- requires: reveal_transaction_tables:events
 -- requires: reveal_transaction_tables:tasks
 
@@ -13,11 +12,13 @@ SELECT DISTINCT ON (locations.id, events_query.task_id)
     public.uuid_generate_v5(
         '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
         concat(locations.id, events_query.task_id)) AS id,
+    
     locations.id AS structure_id,
     locations.jurisdiction_id AS structure_jurisdiction_id,
     locations.code AS structure_code,
     events_query.event_id AS event_id,
-    events_query.plan_id AS plan_id
+    events_query.plan_id AS plan_id,
+    events_query.task_id AS task_id
 FROM locations AS locations
 LEFT JOIN LATERAL (
     SELECT

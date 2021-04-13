@@ -2,6 +2,8 @@
 
 BEGIN;
 
+SET search_path TO :"schema",public;
+
 DROP MATERIALIZED VIEW kenya_mda_lite_wards CASCADE;
 
 COMMIT;

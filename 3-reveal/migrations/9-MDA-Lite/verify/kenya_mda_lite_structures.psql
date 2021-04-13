@@ -14,7 +14,8 @@ SELECT
     structure_jurisdiction_id,
     structure_code,
     event_id,
-    plan_id
+    plan_id,
+    task_id
 FROM kenya_mda_lite_structures
 WHERE FALSE;
 

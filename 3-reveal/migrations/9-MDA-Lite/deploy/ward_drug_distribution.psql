@@ -40,7 +40,7 @@ FROM (
       sum(COALESCE((events.form_data -> 'adverse'::text) ->> 0, '0'::text)::integer) AS adverse,
       sum(COALESCE((events.form_data -> 'received_number'::text) ->> 0, '0'::text)::integer - (COALESCE((events.form_data -> 'adminstered'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'damaged'::text) ->> 0, '0'::text)::integer)) AS remaining_with_cdd,
       sum(COALESCE((events.form_data -> 'pzq_returned'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'albendazole_returned'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'mebendazole_returned'::text) ->> 0, '0'::text)::integer) AS returned_to_supervisor
-  FROM public.events
+  FROM events
   WHERE events.event_type::text = ANY (ARRAY['tablet_accountability'::character varying, 'cdd_supervisor_daily_summary'::character varying]::text[])
   GROUP BY (events.form_data -> 'cdd_name'::text), (events.form_data -> 'health_worker_supervisor'::text), events.plan_id, events.base_entity_id
 ) as subq;
