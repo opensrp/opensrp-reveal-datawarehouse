@@ -34,4 +34,8 @@ FROM events
 WHERE events.event_type::text = ANY (ARRAY['tablet_accountability'::character varying, 'cdd_supervisor_daily_summary'::character varying]::text[])
 GROUP BY (events.form_data -> 'health_worker_supervisor'::text), events.base_entity_id, events.plan_id;
 
+CREATE INDEX IF NOT EXISTS supervisor_drug_distribution_base_entity_id_idx ON supervisor_drug_distribution (base_entity_id);
+CREATE INDEX IF NOT EXISTS supervisor_drug_distribution_plan_id_idx ON supervisor_drug_distribution (plan_id);
+CREATE UNIQUE INDEX IF NOT EXISTS supervisor_drug_distribution_id_idx ON supervisor_drug_distribution (id);
+
 COMMIT;

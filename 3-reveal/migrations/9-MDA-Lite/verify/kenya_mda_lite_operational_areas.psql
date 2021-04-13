@@ -34,7 +34,9 @@ SELECT
     remaining_with_cdd,
     returned_to_supervisor,
     official_population,
-    treatment_coverage
+    treatment_coverage,
+    other_pop_target,
+    other_pop_coverage
 FROM kenya_mda_lite_operational_areas
 WHERE FALSE;
 

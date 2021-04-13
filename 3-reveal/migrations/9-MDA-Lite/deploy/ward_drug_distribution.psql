@@ -45,4 +45,9 @@ FROM (
   GROUP BY (events.form_data -> 'cdd_name'::text), (events.form_data -> 'health_worker_supervisor'::text), events.plan_id, events.base_entity_id
 ) as subq;
 
+CREATE INDEX IF NOT EXISTS ward_drug_distribution_base_entity_id_idx ON ward_drug_distribution (base_entity_id);
+CREATE INDEX IF NOT EXISTS ward_drug_distribution_supervisor_id_idx ON ward_drug_distribution (supervisor_id);
+CREATE INDEX IF NOT EXISTS ward_drug_distribution_plan_id_idx ON ward_drug_distribution (plan_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ward_drug_distribution_id_idx ON ward_drug_distribution (id);
+
 COMMIT;

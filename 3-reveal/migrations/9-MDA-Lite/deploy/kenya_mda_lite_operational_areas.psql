@@ -41,8 +41,10 @@ FROM (
         operational_area_query.returned_to_supervisor AS returned_to_supervisor,
         COALESCE(jurisdiction_population_query.official_population, 0) AS official_population,
         COALESCE(operational_area_query.total_all_genders, 0.0)::float /
-        COALESCE(jurisdiction_population_query.official_population, 1.0)::float * 100 AS treatment_coverage
-
+        COALESCE(jurisdiction_population_query.official_population, 1.0)::float * 100 AS treatment_coverage,
+        COALESCE(jurisdiction_other_population.other_population, 0) AS other_pop_target,
+        COALESCE(operational_area_query.total_all_genders, 0.0)::float /
+        COALESCE(jurisdiction_other_population.other_population, 1.0)::float * 100 AS other_pop_coverage
     FROM plans
     LEFT JOIN (
         SELECT
@@ -153,6 +155,16 @@ FROM (
         ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
         LIMIT 1
     ) AS jurisdiction_population_query ON true
+    LEFT JOIN LATERAL (
+        SELECT
+            key as jurisdiction_id,
+            COALESCE(data->>'value', '0')::INTEGER as other_population
+        FROM opensrp_settings
+        WHERE identifier = 'jurisdiction_metadata-other-population'
+        AND operational_area_query.structure_jurisdiction_id = opensrp_settings.key
+        ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+        LIMIT 1
+    ) AS jurisdiction_other_population ON true
     WHERE plans.intervention_type IN ('MDA-Lite') AND plans.status NOT IN ('draft', 'retired')
 ) AS main_query;
 

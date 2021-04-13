@@ -29,7 +29,11 @@ SELECT
     damaged,
     adverse,
     remaining_with_cdd,
-    returned_to_supervisor
+    returned_to_supervisor,
+    official_population,
+    other_pop_target,
+    treatment_coverage,
+    other_pop_coverage
 FROM kenya_mda_lite_wards
 WHERE FALSE;
 
