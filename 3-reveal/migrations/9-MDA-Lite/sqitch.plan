@@ -8,3 +8,4 @@ kenya_mda_lite_wards [kenya_mda_lite_operational_areas reveal_transaction_tables
 kenya_mda_lite_cdd_supervisor [reveal_transaction_tables:events] 2021-04-06T13:36:32Z Ona,,, <ona@ona-ThinkPad-T470> # MDA Lite supervisor aggregations
 mda_lite_plans [reveal_transaction_tables:plans] 2021-04-06T15:00:20Z Ona,,, <ona@ona-ThinkPad-T470> # MDA Lite plans
 ward_drug_distribution [reveal_transaction_tables:events] 2021-04-08T17:28:05Z Ona,,, <ona@ona-ThinkPad-T470> # CDD drug distribution report
+kenya_mda_lite_jurisdictions [mda_lite_plans reveal_database_views:jurisdictions_materialized_view kenya_mda_lite_operational_areas] 2021-04-20T10:29:07Z Ona,,, <ona@ona-ThinkPad-T470> # kenya mda lite jurisdictions report
