@@ -15,11 +15,11 @@ SELECT DISTINCT ON (jurisdictions_query.jurisdiction_id, plans.plan_id)
     plans.plan_id as plan_id,
     jurisdictions_query.*,
     CASE 
-        WHEN jurisdictions_query.official_population = 0 THEN 0
+        WHEN COALESCE(jurisdictions_query.official_population, 0) = 0 THEN 0
         ELSE CAST(jurisdictions_query.total_all_genders AS DECIMAL)/CAST(jurisdictions_query.official_population AS DECIMAL)
     END as treatment_coverage,
     CASE 
-        WHEN jurisdictions_query.other_pop_target = 0 THEN 0
+        WHEN COALESCE(jurisdictions_query.other_pop_target, 0) = 0 THEN 0
         ELSE CAST(jurisdictions_query.total_all_genders AS DECIMAL)/CAST(jurisdictions_query.other_pop_target AS DECIMAL)
     END as other_pop_coverage
 FROM mda_lite_plans as plans
@@ -59,10 +59,6 @@ LEFT JOIN LATERAL (
     ) AS kenya_op_areas ON TRUE
     WHERE kenya_lite_jurisdictions.jurisdiction_depth = 0
 ) AS jurisdictions_query ON TRUE;
-
-
-WHERE plan_id = '16472edb-96fb-54ae-8714-754cf1f6392e'
-AND jurisdiction_id = '25e8a10b-737c-44e7-bfff-3b6344b1126f';
 
 SELECT jurisdiction_parent_id, jurisdiction_name FROM kenya_mda_lite_jurisdictions WHERE plan_id = '16472edb-96fb-54ae-8714-754cf1f6392e';
 

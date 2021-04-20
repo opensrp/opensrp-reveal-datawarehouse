@@ -13,8 +13,14 @@ SELECT
     subq.*,
     COALESCE(jurisdiction_population_query.official_population, 0) AS official_population,
     COALESCE(jurisdiction_other_population.other_population, 0) AS other_pop_target,
-    COALESCE(subq.total_all_genders, 0.0)::float / COALESCE(jurisdiction_population_query.official_population, 1.0)::float * 100 AS treatment_coverage,
-    COALESCE(subq.total_all_genders, 0.0)::float / COALESCE(jurisdiction_other_population.other_population, 1.0)::float * 100 AS other_pop_coverage
+    CASE
+        WHEN COALESCE(jurisdiction_population_query.official_population, 0) = 0 THEN 0
+        ELSE CAST(subq.total_all_genders as DECIMAL) / CAST(jurisdiction_population_query.official_population as DECIMAL) 
+    END AS treatment_coverage,
+    CASE
+        WHEN COALESCE(jurisdiction_other_population.other_population, 0) = 0 THEN 0
+        ELSE CAST(subq.total_all_genders as DECIMAL) / CAST(jurisdiction_other_population.other_population as DECIMAL)
+    END AS other_pop_coverage
 FROM (
     SELECT
         public.uuid_generate_v5(

@@ -40,11 +40,15 @@ FROM (
         operational_area_query.remaining_with_cdd AS remaining_with_cdd,
         operational_area_query.returned_to_supervisor AS returned_to_supervisor,
         COALESCE(jurisdiction_population_query.official_population, 0) AS official_population,
-        COALESCE(operational_area_query.total_all_genders, 0.0)::float /
-        COALESCE(jurisdiction_population_query.official_population, 1.0)::float * 100 AS treatment_coverage,
+        CASE
+            WHEN COALESCE(jurisdiction_population_query.official_population, 0) = 0 THEN 0
+            ELSE CAST(operational_area_query.total_all_genders as DECIMAL) / CAST(jurisdiction_population_query.official_population as DECIMAL)
+        END AS treatment_coverage,
         COALESCE(jurisdiction_other_population.other_population, 0) AS other_pop_target,
-        COALESCE(operational_area_query.total_all_genders, 0.0)::float /
-        COALESCE(jurisdiction_other_population.other_population, 1.0)::float * 100 AS other_pop_coverage
+        CASE
+            WHEN COALESCE(jurisdiction_other_population.other_population, 0) = 0 THEN 0
+            ELSE CAST(operational_area_query.total_all_genders as DECIMAL) / CAST(jurisdiction_other_population.other_population as DECIMAL)
+        END AS other_pop_coverage
     FROM plans
     LEFT JOIN (
         SELECT
