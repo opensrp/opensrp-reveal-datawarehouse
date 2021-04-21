@@ -24,16 +24,20 @@ SELECT DISTINCT ON (jurisdictions_query.jurisdiction_id, plans.plan_id)
     END as other_pop_coverage
 FROM mda_lite_plans as plans
 LEFT JOIN LATERAL (
-    SELECT 
-        kenya_lite_jurisdictions.jurisdiction_id AS jurisdiction_id,
-        COALESCE(kenya_lite_jurisdictions.jurisdiction_parent_id, '') AS jurisdiction_parent_id,
-        kenya_lite_jurisdictions.jurisdiction_name AS jurisdiction_name,
-        kenya_lite_jurisdictions.jurisdiction_depth AS jurisdiction_depth,
-        kenya_lite_jurisdictions.jurisdiction_path AS jurisdiction_path,
-        kenya_lite_jurisdictions.jurisdiction_name_path AS jurisdiction_name_path,
-        kenya_op_areas.*
-    FROM jurisdictions_materialized_view AS kenya_lite_jurisdictions
+    SELECT
+      kenya_lite_jurisdictions.*
+    FROM kenya_mda_lite_operational_areas as jurisdictions
     LEFT JOIN LATERAL (
+      SELECT
+          jurisdiction_id AS jurisdiction_id,
+          COALESCE(jurisdiction_parent_id, '') AS jurisdiction_parent_id,
+          jurisdiction_name AS jurisdiction_name,
+          jurisdiction_depth AS jurisdiction_depth,
+          jurisdiction_path AS jurisdiction_path,
+          jurisdiction_name_path AS jurisdiction_name_path,
+          kenya_op_areas.*
+      FROM jurisdictions_materialized_view
+      LEFT JOIN LATERAL (
         SELECT
             COALESCE(sum(treated_male_1_4), 0) AS treated_male_1_4,
             COALESCE(sum(treated_male_5_14), 0) AS treated_male_5_14,
@@ -55,13 +59,12 @@ LEFT JOIN LATERAL (
             COALESCE(sum(other_pop_target), 0) AS other_pop_target
         FROM kenya_mda_lite_operational_areas AS op_area
         WHERE op_area.plan_id = plans.plan_id
-        AND op_area.jurisdiction_path @> ARRAY[kenya_lite_jurisdictions.jurisdiction_id]
-    ) AS kenya_op_areas ON TRUE
-    WHERE kenya_lite_jurisdictions.jurisdiction_depth = 0
+        AND op_area.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id]
+      ) AS kenya_op_areas ON TRUE
+      WHERE jurisdictions.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id]
+      AND jurisdictions_materialized_view.jurisdiction_depth < 2
+    ) AS kenya_lite_jurisdictions ON TRUE
 ) AS jurisdictions_query ON TRUE;
-
-SELECT jurisdiction_parent_id, jurisdiction_name FROM kenya_mda_lite_jurisdictions WHERE plan_id = '16472edb-96fb-54ae-8714-754cf1f6392e';
-
 
 CREATE INDEX IF NOT EXISTS kenya_mda_lite_jurisdictions_plan_idx ON kenya_mda_lite_jurisdictions (plan_id);
 CREATE INDEX IF NOT EXISTS kenya_mda_lite_jurisdictions_jurisdiction_idx ON kenya_mda_lite_jurisdictions (jurisdiction_id);

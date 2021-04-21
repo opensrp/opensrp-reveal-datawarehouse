@@ -170,7 +170,8 @@ FROM (
         LIMIT 1
     ) AS jurisdiction_other_population ON true
     WHERE plans.intervention_type IN ('MDA-Lite') AND plans.status NOT IN ('draft', 'retired')
-) AS main_query;
+) AS main_query
+WHERE main_query.jurisdiction_depth = 2;
 
 CREATE INDEX IF NOT EXISTS kenya_mda_lite_operational_areas_path_idx_gin on kenya_mda_lite_operational_areas using GIN(jurisdiction_path);
 CREATE INDEX IF NOT EXISTS kenya_mda_lite_operational_areas_plan_idx ON kenya_mda_lite_operational_areas (plan_id);
