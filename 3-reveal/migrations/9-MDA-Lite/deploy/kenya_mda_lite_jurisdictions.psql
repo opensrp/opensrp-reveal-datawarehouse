@@ -2,6 +2,7 @@
 -- requires: 9-MDA-Lite:mda_lite_plans
 -- requires: reveal_database_views:jurisdictions_materialized_view
 -- requires: 9-MDA-Lite:kenya_mda_lite_operational_areas
+-- requires: opensrp_settings
 
 BEGIN;
 
@@ -14,13 +15,15 @@ SELECT DISTINCT ON (jurisdictions_query.jurisdiction_id, plans.plan_id)
         concat(jurisdictions_query.jurisdiction_id, plans.plan_id)) AS id,
     plans.plan_id as plan_id,
     jurisdictions_query.*,
+    COALESCE(jurisdiction_population_query.official_population, 0) AS official_population,
+    COALESCE(jurisdiction_other_population.other_pop_target, 0) AS other_pop_target,
     CASE 
-        WHEN COALESCE(jurisdictions_query.official_population, 0) = 0 THEN 0
-        ELSE CAST(jurisdictions_query.total_all_genders AS DECIMAL)/CAST(jurisdictions_query.official_population AS DECIMAL)
+        WHEN COALESCE(jurisdiction_population_query.official_population, 0) = 0 THEN 0
+        ELSE CAST(jurisdictions_query.total_all_genders AS DECIMAL)/CAST(jurisdiction_population_query.official_population AS DECIMAL)
     END as treatment_coverage,
     CASE 
-        WHEN COALESCE(jurisdictions_query.other_pop_target, 0) = 0 THEN 0
-        ELSE CAST(jurisdictions_query.total_all_genders AS DECIMAL)/CAST(jurisdictions_query.other_pop_target AS DECIMAL)
+        WHEN COALESCE(jurisdiction_other_population.other_pop_target, 0) = 0 THEN 0
+        ELSE CAST(jurisdictions_query.total_all_genders AS DECIMAL)/CAST(jurisdiction_other_population.other_pop_target AS DECIMAL)
     END as other_pop_coverage
 FROM mda_lite_plans as plans
 LEFT JOIN LATERAL (
@@ -54,9 +57,7 @@ LEFT JOIN LATERAL (
             COALESCE(sum(damaged), 0) AS damaged,
             COALESCE(sum(adverse), 0) AS adverse,
             COALESCE(sum(remaining_with_cdd), 0) AS remaining_with_cdd,
-            COALESCE(sum(returned_to_supervisor), 0) AS returned_to_supervisor,
-            COALESCE(sum(official_population), 0) AS official_population,
-            COALESCE(sum(other_pop_target), 0) AS other_pop_target
+            COALESCE(sum(returned_to_supervisor), 0) AS returned_to_supervisor
         FROM kenya_mda_lite_operational_areas AS op_area
         WHERE op_area.plan_id = plans.plan_id
         AND op_area.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id]
@@ -64,7 +65,27 @@ LEFT JOIN LATERAL (
       WHERE jurisdictions.jurisdiction_path @> ARRAY[jurisdictions_materialized_view.jurisdiction_id]
       AND jurisdictions_materialized_view.jurisdiction_depth < 2
     ) AS kenya_lite_jurisdictions ON TRUE
-) AS jurisdictions_query ON TRUE;
+) AS jurisdictions_query ON TRUE
+LEFT JOIN LATERAL (
+    SELECT
+        key as jurisdiction_id,
+        COALESCE(data->>'value', '0')::INTEGER as official_population
+    FROM opensrp_settings
+    WHERE identifier = 'jurisdiction_metadata-population'
+    AND jurisdictions_query.jurisdiction_id = opensrp_settings.key
+    ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+    LIMIT 1
+) AS jurisdiction_population_query ON true
+LEFT JOIN LATERAL (
+    SELECT
+        key as jurisdiction_id,
+        COALESCE(data->>'value', '0')::INTEGER as other_pop_target
+    FROM opensrp_settings
+    WHERE identifier = 'jurisdiction_metadata-other-population'
+    AND jurisdictions_query.jurisdiction_id = opensrp_settings.key
+    ORDER BY COALESCE(data->>'serverVersion', '0')::BIGINT DESC
+    LIMIT 1
+) AS jurisdiction_other_population ON true;
 
 CREATE INDEX IF NOT EXISTS kenya_mda_lite_jurisdictions_plan_idx ON kenya_mda_lite_jurisdictions (plan_id);
 CREATE INDEX IF NOT EXISTS kenya_mda_lite_jurisdictions_jurisdiction_idx ON kenya_mda_lite_jurisdictions (jurisdiction_id);
