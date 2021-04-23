@@ -74,6 +74,8 @@ FROM (
     LEFT JOIN locations ON events.base_entity_id = locations.id
     LEFT JOIN kenya_mda_lite_operational_areas AS parents ON locations.jurisdiction_id = parents.jurisdiction_id
     WHERE events.event_type IN ('tablet_accountability', 'cdd_supervisor_daily_summary')
+    AND events.entity_type = 'Structure'
+    AND parents.plan_id = events.plan_id
     GROUP BY events.base_entity_id, locations.name, parents.jurisdiction_id, parents.plan_id
 ) as subq
 LEFT JOIN LATERAL (
