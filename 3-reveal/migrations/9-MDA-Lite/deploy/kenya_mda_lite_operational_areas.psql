@@ -98,27 +98,27 @@ FROM (
                 subq.returned_to_supervisor AS returned_to_supervisor
             FROM (
                 SELECT
-                    SUM(COALESCE (events.form_data->'treated_male_1-4'->>0, '0')::int) AS treated_male_1_4,
-                    SUM(COALESCE (events.form_data->'treated_male_5-14'->>0, '0')::int) AS treated_male_5_14,
+                    SUM(COALESCE (events.form_data->'treated_male_1_to_4'->>0, '0')::int) AS treated_male_1_4,
+                    SUM(COALESCE (events.form_data->'treated_male_5_to_14'->>0, '0')::int) AS treated_male_5_14,
                     SUM(COALESCE (events.form_data->'treated_male_above_15'->>0, '0')::int) AS treated_male_above_15,
 
-                    SUM(COALESCE (events.form_data->'treated_female_1-4'->>0, '0')::int) AS treated_female_1_4,
-                    SUM(COALESCE (events.form_data->'treated_female_5-14'->>0, '0')::int) AS treated_female_5_14,
+                    SUM(COALESCE (events.form_data->'treated_female_1_to_4'->>0, '0')::int) AS treated_female_1_4,
+                    SUM(COALESCE (events.form_data->'treated_female_5_to_14'->>0, '0')::int) AS treated_female_5_14,
                     SUM(COALESCE (events.form_data->'treated_female_above_15'->>0, '0')::int) AS treated_female_above_15,
 
-                    SUM(COALESCE (events.form_data->'treated_male_1-4'->>0, '0')::int +
-                    COALESCE (events.form_data->'treated_male_5-14'->>0, '0')::int +
+                    SUM(COALESCE (events.form_data->'treated_male_1_to_4'->>0, '0')::int +
+                    COALESCE (events.form_data->'treated_male_5_to_14'->>0, '0')::int +
                     COALESCE (events.form_data->'treated_male_above_15'->>0, '0')::int) AS total_males,
 
-                    SUM(COALESCE (events.form_data->'treated_female_1-4'->>0, '0')::int +
-                    COALESCE (events.form_data->'treated_female_5-14'->>0, '0')::int +
+                    SUM(COALESCE (events.form_data->'treated_female_1_to_4'->>0, '0')::int +
+                    COALESCE (events.form_data->'treated_female_5_to_14'->>0, '0')::int +
                     COALESCE (events.form_data->'treated_female_above_15'->>0, '0')::int) AS total_females,
 
-                    SUM(COALESCE (events.form_data->'treated_male_1-4'->>0, '0')::int +
-                    COALESCE (events.form_data->'treated_male_5-14'->>0, '0')::int +
+                    SUM(COALESCE (events.form_data->'treated_male_1_to_4'->>0, '0')::int +
+                    COALESCE (events.form_data->'treated_male_5_to_14'->>0, '0')::int +
                     COALESCE (events.form_data->'treated_male_above_15'->>0, '0')::int +
-                    COALESCE (events.form_data->'treated_female_1-4'->>0, '0')::int +
-                    COALESCE (events.form_data->'treated_female_5-14'->>0, '0')::int +
+                    COALESCE (events.form_data->'treated_female_1_to_4'->>0, '0')::int +
+                    COALESCE (events.form_data->'treated_female_5_to_14'->>0, '0')::int +
                     COALESCE (events.form_data->'treated_female_above_15'->>0, '0')::int) AS total_all_genders,
 
                     SUM(COALESCE (events.form_data->'sum_pzq_received_and_top_up'->>0, '0')::int +

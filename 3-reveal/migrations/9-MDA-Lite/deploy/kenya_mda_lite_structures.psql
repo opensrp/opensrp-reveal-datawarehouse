@@ -70,8 +70,8 @@ SELECT locations.id,
             locations_1.version,
             locations_1.server_version,
             events.plan_id,
-            sum(COALESCE((events.form_data -> 'treated_male_1-4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_5-14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer) AS total_males,
-            sum(COALESCE((events.form_data -> 'treated_female_1-4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5-14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_females
+            sum(COALESCE((events.form_data -> 'treated_male_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer) AS total_males,
+            sum(COALESCE((events.form_data -> 'treated_female_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_females
            FROM events
             LEFT JOIN locations locations_1 ON events.base_entity_id::text = locations_1.id::text
           WHERE events.event_type::text = ANY (ARRAY['tablet_accountability'::character varying, 'cdd_supervisor_daily_summary'::character varying]::text[])

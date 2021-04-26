@@ -24,15 +24,15 @@ FROM (
       events.base_entity_id,
       events.form_data -> 'cdd_name'::text AS cdd_name,
       count(DISTINCT TO_CHAR(date_created :: DATE, 'dd/mm/yyyy')) as days_worked,
-      sum(COALESCE((events.form_data -> 'treated_male_1-4'::text) ->> 0, '0'::text)::integer) AS treated_male_1_4,
-      sum(COALESCE((events.form_data -> 'treated_male_5-14'::text) ->> 0, '0'::text)::integer) AS treated_male_5_14,
+      sum(COALESCE((events.form_data -> 'treated_male_1_to_4'::text) ->> 0, '0'::text)::integer) AS treated_male_1_4,
+      sum(COALESCE((events.form_data -> 'treated_male_5_to_14'::text) ->> 0, '0'::text)::integer) AS treated_male_5_14,
       sum(COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer) AS treated_male_above_15,
-      sum(COALESCE((events.form_data -> 'treated_female_1-4'::text) ->> 0, '0'::text)::integer) AS treated_female_1_4,
-      sum(COALESCE((events.form_data -> 'treated_female_5-14'::text) ->> 0, '0'::text)::integer) AS treated_female_5_14,
+      sum(COALESCE((events.form_data -> 'treated_female_1_to_4'::text) ->> 0, '0'::text)::integer) AS treated_female_1_4,
+      sum(COALESCE((events.form_data -> 'treated_female_5_to_14'::text) ->> 0, '0'::text)::integer) AS treated_female_5_14,
       sum(COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS treated_female_above_15,
-      sum(COALESCE((events.form_data -> 'treated_male_1-4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_5-14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer) AS total_males,
-      sum(COALESCE((events.form_data -> 'treated_female_1-4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5-14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_females,
-      sum(COALESCE((events.form_data -> 'treated_male_1-4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_5-14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_1-4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5-14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_all_genders,
+      sum(COALESCE((events.form_data -> 'treated_male_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer) AS total_males,
+      sum(COALESCE((events.form_data -> 'treated_female_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_females,
+      sum(COALESCE((events.form_data -> 'treated_male_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_all_genders,
       sum(COALESCE((events.form_data -> 'sum_pzq_received_and_top_up'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'sum_alb_received_and_top_up'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'sum_mbz_received_and_top_up'::text) ->> 0, '0'::text)::integer) AS supervisor_distributed,
       sum(COALESCE((events.form_data -> 'received_number'::text) ->> 0, '0'::text)::integer) AS received_number,
       sum(COALESCE((events.form_data -> 'adminstered'::text) ->> 0, '0'::text)::integer) AS adminstered,
@@ -42,6 +42,7 @@ FROM (
       sum(COALESCE((events.form_data -> 'pzq_returned'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'albendazole_returned'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'mebendazole_returned'::text) ->> 0, '0'::text)::integer) AS returned_to_supervisor
   FROM events
   WHERE events.event_type::text = ANY (ARRAY['tablet_accountability'::character varying, 'cdd_supervisor_daily_summary'::character varying]::text[])
+  AND events.entity_type = 'Structure'
   GROUP BY (events.form_data -> 'cdd_name'::text), (events.form_data -> 'health_worker_supervisor'::text), events.plan_id, events.base_entity_id
 ) as subq;
 
