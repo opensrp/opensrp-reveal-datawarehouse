@@ -17,6 +17,7 @@ SELECT
     jurisdiction_depth,
     jurisdiction_path,
     jurisdiction_name_path,
+    is_leaf_node,
     treated_male_1_4,
     treated_male_5_14,
     treated_male_above_15,
