@@ -1,6 +1,7 @@
 -- Deploy 9-MDA-Lite:kenya_mda_lite_structures to pg
 -- requires: reveal_transaction_tables:events
 -- requires: reveal_transaction_tables:tasks
+-- requires: 9-MDA-Lite:mda_lite_plans
 
 BEGIN;
 
@@ -51,30 +52,53 @@ CREATE UNIQUE INDEX IF NOT EXISTS kenya_mda_lite_structures_structure_task_idx O
 CREATE UNIQUE INDEX IF NOT EXISTS kenya_mda_lite_structures_idx ON kenya_mda_lite_structures (id);
 
 CREATE OR REPLACE VIEW kenya_mda_lite_wards_geojson AS
-SELECT locations.id,
-    locations.jurisdiction_id,
-    locations.plan_id,
-    jsonb_build_object('type', 'Feature', 'id', locations.id, 'geometry', public.st_asgeojson(locations.geometry)::jsonb, 'properties', to_jsonb(locations.*) - 'jurisdiction_id'::text - 'jurisdiction_geometry'::text) AS geojson
-    FROM ( SELECT locations_1.id,
-            locations_1.created_at,
-            locations_1.uid,
-            locations_1.jurisdiction_id,
-            locations_1.code,
-            locations_1.type,
-            locations_1.name,
-            locations_1.status,
-            locations_1.geometry,
-            locations_1.geographic_level,
-            locations_1.effective_start_date,
-            locations_1.effective_end_date,
-            locations_1.version,
-            locations_1.server_version,
-            events.plan_id,
+SELECT
+    public.uuid_generate_v5(
+        '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+        concat(ward_data.id, ward_data.jurisdiction_id, plans.plan_id)) AS id,
+    ward_data.jurisdiction_id,
+    plans.plan_id,
+    ward_data.business_status,
+    jsonb_build_object('type', 'Feature', 'id', ward_data.id, 'geometry', public.st_asgeojson(ward_data.geometry)::jsonb, 'properties', to_jsonb(ward_data.*) - 'jurisdiction_id'::text - 'jurisdiction_geometry'::text) AS geojson
+FROM mda_lite_plans as plans
+LEFT JOIN LATERAL(
+    SELECT
+        locations.id,
+        locations.created_at,
+        locations.uid,
+        locations.jurisdiction_id,
+        locations.code,
+        locations.type,
+        locations.name,
+        locations.status,
+        locations.geometry,
+        locations.geographic_level,
+        locations.effective_start_date,
+        locations.effective_end_date,
+        locations.version,
+        locations.server_version,
+        COALESCE(loc_events.total_males, 0) as total_males,
+        COALESCE(loc_events.total_females, 0) as total_females,
+        COALESCE(loc_events.business_status, 'Not Visited') as business_status
+    FROM locations as locations
+    LEFT JOIN LATERAL(
+        SELECT
             sum(COALESCE((events.form_data -> 'treated_male_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_male_above_15'::text) ->> 0, '0'::text)::integer) AS total_males,
-            sum(COALESCE((events.form_data -> 'treated_female_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_females
-           FROM events
-            LEFT JOIN locations locations_1 ON events.base_entity_id::text = locations_1.id::text
-          WHERE events.event_type::text = ANY (ARRAY['tablet_accountability'::character varying, 'cdd_supervisor_daily_summary'::character varying]::text[])
-          GROUP BY events.plan_id, events.base_entity_id, locations_1.id, locations_1.created_at, locations_1.uid, locations_1.jurisdiction_id, locations_1.code, locations_1.type, locations_1.name, locations_1.status, locations_1.geometry, locations_1.geographic_level, locations_1.effective_start_date, locations_1.effective_end_date, locations_1.version, locations_1.server_version) locations;
+            sum(COALESCE((events.form_data -> 'treated_female_1_to_4'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_5_to_14'::text) ->> 0, '0'::text)::integer + COALESCE((events.form_data -> 'treated_female_above_15'::text) ->> 0, '0'::text)::integer) AS total_females,
+            CASE
+                WHEN count(*) = 0 THEN 'Not Visited'
+                WHEN (count(*) - (count(*) filter (WHERE (events.form_data ->> 'task_complete') = 'Yes'))) = 0 THEN 'Complete'
+                ELSE 'In Progress'
+            END AS business_status
+        FROM events
+        WHERE events.event_type::text = ANY (ARRAY['tablet_accountability'::character varying, 'cdd_supervisor_daily_summary'::character varying]::text[])
+        AND events.entity_type = 'Structure'
+        AND events.base_entity_id = locations.id
+        AND events.plan_id = plans.plan_id
+        GROUP BY events.plan_id, events.base_entity_id
+    ) as loc_events ON true
+    WHERE locations.id IS NOT NULL
+    AND locations.jurisdiction_id IS NOT NULL
+) as ward_data ON true;
 
 COMMIT;
