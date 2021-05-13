@@ -1,6 +1,6 @@
 -- Deploy 9-MDA-Lite:kenya_mda_lite_wards_population to pg
 -- requires: reveal_transaction_tables:locations
--- requires: reveal_database_views:jurisdictions_tree
+-- requires: reveal_database_views:jurisdictions_materialized_view
 -- requires: reveal_transaction_tables:opensrp_settings
 
 BEGIN;
@@ -14,17 +14,17 @@ SELECT
     locations.name,
     jurisdiction_other_population.data->>'value' as official_population,
     jurisdiction_population_query.data->>'value' as other_population,
-    jurisdictions_tree.jurisdiction_name_path,
-    jurisdictions_tree.jurisdiction_path
+    jurisdictions_materialized_view.jurisdiction_name_path,
+    jurisdictions_materialized_view.jurisdiction_path
 FROM locations as locations
-LEFT JOIN jurisdictions_tree as jurisdictions_tree
-    ON locations.jurisdiction_id = jurisdictions_tree.jurisdiction_id
+LEFT JOIN jurisdictions_materialized_view as jurisdictions_materialized_view
+    ON locations.jurisdiction_id = jurisdictions_materialized_view.jurisdiction_id
 LEFT JOIN opensrp_settings as jurisdiction_population_query
     ON jurisdiction_population_query.key = locations.code
-    AND jurisdiction_population_query.identifier = 'jurisdiction_metadata-other-population'
+    AND jurisdiction_population_query.identifier = 'structure_metadata-other-population'
 LEFT JOIN opensrp_settings as jurisdiction_other_population
     ON jurisdiction_other_population.key = locations.code
-    AND jurisdiction_other_population.identifier = 'jurisdiction_metadata-population'
+    AND jurisdiction_other_population.identifier = 'structure_metadata-population'
 WHERE jurisdiction_population_query.data->>'value' IS NOT NULL
 OR jurisdiction_other_population.data->>'value' IS NOT NULL;
 
