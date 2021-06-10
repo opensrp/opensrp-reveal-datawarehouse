@@ -1,6 +1,6 @@
 -- Deploy 9-MDA-Lite:kenya_mda_lite_wards_population to pg
 -- requires: reveal_transaction_tables:locations
--- requires: reveal_database_views:jurisdictions_materialized_view
+-- requires: reveal_database_views:jurisdictions_tree
 -- requires: reveal_transaction_tables:opensrp_settings
 
 BEGIN;
@@ -17,7 +17,7 @@ SELECT
     jurisdictions_materialized_view.jurisdiction_name_path,
     jurisdictions_materialized_view.jurisdiction_path
 FROM locations as locations
-LEFT JOIN jurisdictions_materialized_view as jurisdictions_materialized_view
+LEFT JOIN jurisdictions_tree as jurisdictions_materialized_view
     ON locations.jurisdiction_id = jurisdictions_materialized_view.jurisdiction_id
 LEFT JOIN opensrp_settings as jurisdiction_population_query
     ON jurisdiction_population_query.key = locations.code
