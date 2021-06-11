@@ -1,6 +1,6 @@
 %syntax-version=1.0.0
 %project=9-MDA-Lite
-%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/blob/41f81ef399a3c2981958db42d89eed42747e9952/3-reveal/migrations/9-MDA-Lite
+%uri=https://github.com/OpenSRP/opensrp-reveal-datawarehouse/tree/master/3-reveal/migrations/9-MDA-Lite
 
 mda_lite_plans [reveal_transaction_tables:plans] 2021-04-06T15:00:20Z Ona,,, <ona@ona-ThinkPad-T470> # MDA Lite plans
 kenya_mda_lite_wards_population [reveal_transaction_tables:locations reveal_database_views:jurisdictions_tree reveal_transaction_tables:opensrp_settings] 2021-05-03T13:34:59Z Ona,,, <ona@ona-ThinkPad-T470> # Kenya ward level official and unofficial population
