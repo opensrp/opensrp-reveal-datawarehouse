@@ -27,7 +27,7 @@ SELECT DISTINCT ON (id)
     action_title,
     task_count,
     completed_task_count,
-    COALESCE(task_business_status_map, '{}'::json) AS task_business_status_map
+    COALESCE(task_business_status_map::jsonb, '{}'::jsonb) AS task_business_status_map
 FROM
 (SELECT
     uuid_generate_v5(
