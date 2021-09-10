@@ -18,7 +18,7 @@ jobs:
     steps:
       - checkout
       - run: dockerize -wait tcp://localhost:5432 -timeout 1m
-      - run: sudo apt-get update -y
+      - run: sudo apt-get --allow-releaseinfo-change update -y
       - run: sudo apt install -y sqitch libdbd-pg-perl postgresql-client
       - run: psql -h localhost -U sqitch -d sqitch_test -c "SELECT 1 AS COL;"
       # run tests
