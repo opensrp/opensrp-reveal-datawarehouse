@@ -10,3 +10,4 @@ raw_clients [raw_locations] 2020-08-06T14:04:56Z Wambere <wambere@ona.io> # Crea
 raw_settings [raw_clients] 2020-08-17T08:31:07Z Wambere <wambere@ona.io> # Creates table for raw_settings.
 sync_column [opensrp_common_raw_tables:raw_events raw_settings] 2020-09-11T12:30:24Z Wambere <wambere@ona.io> # Add sync column to raw data tables.
 drop_length_constraints 2020-10-05T13:12:23Z mosh <kjayanoris@ona.io> # Drop length constraints.
+add_serial_id 2022-01-03T08:41:12Z Ona,,, <ona@ona-ThinkPad-T470> # Add auto incrementing field.

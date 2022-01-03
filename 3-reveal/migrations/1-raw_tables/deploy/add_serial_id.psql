@@ -1,0 +1,23 @@
+-- Deploy reveal_raw_tables:add_serial_id to pg
+
+BEGIN;
+
+SET search_path TO :"schema",public;
+
+-- Add serial_id column - auto incrementing column.
+
+ALTER TABLE raw_clients ADD COLUMN IF NOT EXISTS serial_id SERIAL;
+
+ALTER TABLE raw_jurisdictions ADD COLUMN IF NOT EXISTS serial_id SERIAL;
+
+ALTER TABLE raw_locations ADD COLUMN IF NOT EXISTS serial_id SERIAL;
+
+ALTER TABLE raw_plans ADD COLUMN IF NOT EXISTS serial_id SERIAL;
+
+ALTER TABLE raw_settings ADD COLUMN IF NOT EXISTS serial_id SERIAL;
+
+ALTER TABLE raw_tasks ADD COLUMN IF NOT EXISTS serial_id SERIAL;
+
+ALTER TABLE raw_events ADD COLUMN IF NOT EXISTS serial_id SERIAL;
+
+COMMIT;
